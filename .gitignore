@@ -1,0 +1,22 @@
+# Build artifacts
+_build/
+*.install
+*.byte
+*.native
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Bytecode files
+*.baglc
+
+# Claude Code
+.claude/
