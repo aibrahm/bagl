@@ -1,0 +1,6 @@
+(library
+ (name bagl)
+ (public_name bagl)
+ (modules
+   location errors token lexer ast parser types typeinfer
+   ir optimize bytecode codegen vm serialize))
