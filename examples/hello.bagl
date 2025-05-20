@@ -1,0 +1,4 @@
+// Simple arithmetic expressions
+let x = 5 in
+let y = 10 in
+x + y * 2

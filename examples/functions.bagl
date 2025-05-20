@@ -1,0 +1,19 @@
+// Higher-order functions example
+
+// Identity function
+let id = fn x -> x in
+
+// Function composition
+let compose = fn f -> fn g -> fn x -> f (g x) in
+
+// Double a number
+let double = fn x -> x * 2 in
+
+// Increment a number
+let inc = fn x -> x + 1 in
+
+// Compose double and increment: first double, then increment
+let double_then_inc = compose inc double in
+
+// Apply to 5: double(5) = 10, inc(10) = 11
+double_then_inc 5

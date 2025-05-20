@@ -1,0 +1,20 @@
+// Conditional expressions and comparison operators
+
+let max = fn x -> fn y ->
+  if x > y then x else y
+in
+
+let min = fn x -> fn y ->
+  if x < y then x else y
+in
+
+let abs = fn x ->
+  if x < 0 then 0 - x else x
+in
+
+let clamp = fn lo -> fn hi -> fn x ->
+  max lo (min hi x)
+in
+
+// clamp 0 to 10: clamp(0, 10, 15) = 10
+clamp 0 10 15
