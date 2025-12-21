@@ -1,6 +1,10 @@
 # BAGL
 
-A statically-typed functional programming language with first-class tensor support and compile-time shape checking.
+**A statically-typed functional programming language with first-class tensor support and compile-time shape checking.**
+
+## About
+
+BAGL (Basic Array/Graph Language) is a compiler and virtual machine I built from scratch in OCaml (~4,300 lines) that brings ML-style type safety to numerical computing. The language implements full Hindley-Milner type inference with a novel extension for tensor dimension checking—catching shape mismatches at compile time rather than runtime. The implementation includes a hand-written lexer and recursive descent parser, a graph-based intermediate representation with four optimization passes (constant folding, dead code elimination, copy propagation, and common subexpression elimination), and a stack-based VM with bytecode serialization. What makes BAGL unique is its shape polymorphism system that uses dimension variables to enable generic tensor operations while maintaining complete compile-time safety—similar to how dependent types work, but specialized for array programming.
 
 ## Features
 
