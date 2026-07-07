@@ -176,11 +176,16 @@ let connect_blocks (from_block : basic_block) (to_block : basic_block) : unit =
   from_block.succs <- to_block.id :: from_block.succs;
   to_block.preds <- from_block.id :: to_block.preds
 
-(* IR building context *)
+(* IR building context.
+   [block] is a shared ref so that advancing the current block inside a
+   sub-expression (e.g. an [if] opening a merge block) is visible to the
+   caller even when the caller threaded a functionally-copied ctx (env
+   extension). A fresh ref is only taken when a genuinely independent
+   cursor is wanted, e.g. the then/else arms of an [if]. *)
 type build_ctx = {
   program: ir_program;
   func: ir_func;
-  mutable block: basic_block;
+  block: basic_block ref;
   mutable env: (string * var_id) list;
   mutable captures: (string * var_id) list;  (* Captured variables *)
   type_env: Typeinfer.env;  (* Type environment for determining float vs int *)
@@ -191,7 +196,7 @@ let create_ctx program func type_env =
   {
     program;
     func;
-    block = get_entry_block func;
+    block = ref (get_entry_block func);
     env = [];
     captures = [];
     type_env;
@@ -204,7 +209,7 @@ let is_float_expr ctx expr =
     match Types.find_ty ty with
     | Types.TFloat -> true
     | _ -> false
-  with _ -> false
+  with Typeinfer.Type_error _ -> false
 
 (** Look up a variable in the build context *)
 let lookup_var ctx name =
@@ -253,22 +258,22 @@ let rec lower_expr ctx expr =
   match expr.value with
   | Ast.EInt n ->
       let v = fresh_var ctx.func in
-      add_instr ctx.block (IConst (v, CInt n));
+      add_instr !(ctx.block) (IConst (v, CInt n));
       v
 
   | Ast.EFloat f ->
       let v = fresh_var ctx.func in
-      add_instr ctx.block (IConst (v, CFloat f));
+      add_instr !(ctx.block) (IConst (v, CFloat f));
       v
 
   | Ast.EBool b ->
       let v = fresh_var ctx.func in
-      add_instr ctx.block (IConst (v, CBool b));
+      add_instr !(ctx.block) (IConst (v, CBool b));
       v
 
   | Ast.EString s ->
       let v = fresh_var ctx.func in
-      add_instr ctx.block (IConst (v, CString s));
+      add_instr !(ctx.block) (IConst (v, CString s));
       v
 
   | Ast.EVar name ->
@@ -282,13 +287,13 @@ let rec lower_expr ctx expr =
       let num_cols = if rows = [] then 0 else List.length (List.hd rows) in
       let shape = if num_rows = 1 then [num_cols] else [num_rows; num_cols] in
       let v = fresh_var ctx.func in
-      add_instr ctx.block (ITensorLit (v, elem_vars, shape));
+      add_instr !(ctx.block) (ITensorLit (v, elem_vars, shape));
       v
 
   | Ast.ELet { name; value; body; _ } ->
       let value_var = lower_expr ctx value in
       (* Get the type of the value for the type environment *)
-      let value_ty = try Typeinfer.infer_expr ctx.type_env value with _ -> Types.TInt in
+      let value_ty = try Typeinfer.infer_expr ctx.type_env value with Typeinfer.Type_error _ -> Types.TInt in
       let ctx' = extend_env_typed ctx name value_var value_ty in
       lower_expr ctx' body
 
@@ -296,7 +301,7 @@ let rec lower_expr ctx expr =
       (* For recursive bindings, the function must capture itself *)
       let rec_var = fresh_var ctx.func in
       (* Get the type of the recursive binding *)
-      let rec_ty = try Typeinfer.infer_expr ctx.type_env value with _ -> Types.TInt in
+      let rec_ty = try Typeinfer.infer_expr ctx.type_env value with Typeinfer.Type_error _ -> Types.TInt in
       (* Add it to the environment so the function body can reference it *)
       let ctx' = extend_env_typed ctx name rec_var rec_ty in
       (* Now lower the function value with the recursive binding in scope *)
@@ -330,16 +335,16 @@ let rec lower_expr ctx expr =
           (* Add capture loads - all free vars including self *)
           let nested_ctx = List.fold_left2 (fun nctx fname idx ->
             let v = fresh_var nctx.func in
-            add_instr nctx.block (ILoadCapture (v, idx));
+            add_instr !(nctx.block) (ILoadCapture (v, idx));
             { nctx with env = (fname, v) :: nctx.env }
           ) nested_ctx free_vars (List.init (List.length free_vars) Fun.id) in
 
           (* Lower the function body *)
           let result = lower_expr nested_ctx fn_body in
-          set_terminator nested_ctx.block (TReturn result);
+          set_terminator !(nested_ctx.block) (TReturn result);
 
           (* Create recursive closure - VM will fill self_idx with the closure itself *)
-          add_instr ctx.block (IRecClosure (rec_var, nested_func.id, capture_vars, self_idx));
+          add_instr !(ctx.block) (IRecClosure (rec_var, nested_func.id, capture_vars, self_idx));
 
           (* Continue with body *)
           lower_expr ctx' body
@@ -363,24 +368,24 @@ let rec lower_expr ctx expr =
       (* Add capture loads *)
       let nested_ctx = List.fold_left2 (fun ctx name idx ->
         let v = fresh_var ctx.func in
-        add_instr ctx.block (ILoadCapture (v, idx));
+        add_instr !(ctx.block) (ILoadCapture (v, idx));
         { ctx with env = (name, v) :: ctx.env }
       ) nested_ctx free_vars (List.init (List.length free_vars) Fun.id) in
 
       (* Lower the body *)
       let result = lower_expr nested_ctx body in
-      set_terminator nested_ctx.block (TReturn result);
+      set_terminator !(nested_ctx.block) (TReturn result);
 
       (* Create closure in current context *)
       let closure_var = fresh_var ctx.func in
-      add_instr ctx.block (IClosure (closure_var, nested_func.id, capture_vars));
+      add_instr !(ctx.block) (IClosure (closure_var, nested_func.id, capture_vars));
       closure_var
 
   | Ast.EApp (func, arg) ->
       let func_var = lower_expr ctx func in
       let arg_var = lower_expr ctx arg in
       let result = fresh_var ctx.func in
-      add_instr ctx.block (ICall (result, func_var, [arg_var]));
+      add_instr !(ctx.block) (ICall (result, func_var, [arg_var]));
       result
 
   | Ast.EIf { cond; then_branch; else_branch } ->
@@ -395,36 +400,37 @@ let rec lower_expr ctx expr =
       let merge_block = create_block ctx.func in
 
       (* Set up branches *)
-      set_terminator ctx.block (TBranch (cond_var, then_block.id, else_block.id));
-      connect_blocks ctx.block then_block;
-      connect_blocks ctx.block else_block;
+      set_terminator !(ctx.block) (TBranch (cond_var, then_block.id, else_block.id));
+      connect_blocks !(ctx.block) then_block;
+      connect_blocks !(ctx.block) else_block;
 
       (* Lower then branch - write result to shared variable *)
-      let then_ctx = { ctx with block = then_block } in
+      let then_ctx = { ctx with block = ref then_block } in
       let then_result = lower_expr then_ctx then_branch in
-      add_instr then_ctx.block (ICopy (result, then_result));
-      set_terminator then_ctx.block (TJump merge_block.id);
-      connect_blocks then_ctx.block merge_block;
+      add_instr !(then_ctx.block) (ICopy (result, then_result));
+      set_terminator !(then_ctx.block) (TJump merge_block.id);
+      connect_blocks !(then_ctx.block) merge_block;
 
       (* Lower else branch - write result to same shared variable *)
-      let else_ctx = { ctx with block = else_block } in
+      let else_ctx = { ctx with block = ref else_block } in
       let else_result = lower_expr else_ctx else_branch in
-      add_instr else_ctx.block (ICopy (result, else_result));
-      set_terminator else_ctx.block (TJump merge_block.id);
-      connect_blocks else_ctx.block merge_block;
+      add_instr !(else_ctx.block) (ICopy (result, else_result));
+      set_terminator !(else_ctx.block) (TJump merge_block.id);
+      connect_blocks !(else_ctx.block) merge_block;
 
       (* Continue in merge block with result variable *)
-      ctx.block <- merge_block;
+      ctx.block := merge_block;
       result
 
   | Ast.EBinop (op, e1, e2) ->
       let v1 = lower_expr ctx e1 in
       let v2 = lower_expr ctx e2 in
       let result = fresh_var ctx.func in
-      (* Determine if float based on type info *)
-      let is_float = is_float_expr ctx e1 in
+      (* Float if either operand is float: mirrors the type checker, which
+         resolves an operation to float when either side is float. *)
+      let is_float = is_float_expr ctx e1 || is_float_expr ctx e2 in
       let ir_op = lower_binop is_float op in
-      add_instr ctx.block (IBinop (result, ir_op, v1, v2));
+      add_instr !(ctx.block) (IBinop (result, ir_op, v1, v2));
       result
 
   | Ast.EUnop (op, e) ->
@@ -433,7 +439,7 @@ let rec lower_expr ctx expr =
       (* Determine if float based on type info *)
       let is_float = is_float_expr ctx e in
       let ir_op = lower_unop is_float op in
-      add_instr ctx.block (IUnop (result, ir_op, v));
+      add_instr !(ctx.block) (IUnop (result, ir_op, v));
       result
 
   | Ast.ETensorOp (op, args) ->
@@ -449,7 +455,7 @@ let rec lower_expr ctx expr =
             ) shape in
             IrTensorReshape dims
       in
-      add_instr ctx.block (ITensorOp (result, ir_op, arg_vars));
+      add_instr !(ctx.block) (ITensorOp (result, ir_op, arg_vars));
       result
 
 (** Collect free variables in an expression *)
@@ -523,10 +529,10 @@ let lower_program typed_program =
     | Some v -> v
     | None ->
         let v = fresh_var final_ctx.func in
-        add_instr final_ctx.block (IConst (v, CUnit));
+        add_instr !(final_ctx.block) (IConst (v, CUnit));
         v
   in
-  set_terminator final_ctx.block (TReturn result_var);
+  set_terminator !(final_ctx.block) (TReturn result_var);
 
   (* Finalize all blocks - reverse instruction lists to correct order *)
   finalize_program program;

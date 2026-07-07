@@ -275,6 +275,105 @@ let test_run_curried () =
   | Vm.VInt 7 -> ()
   | _ -> Alcotest.fail "Expected VInt 7"
 
+(* ===== Top-level `if` execution (regression: cross-block codegen) ===== *)
+
+(* A top-level `if` whose branches read a variable bound in an earlier block
+   used to crash codegen ("Variable vN not allocated"). These assert the
+   VM result, not just that it runs. *)
+
+let test_run_if_toplevel_var () =
+  let result = run "let a = 5 in if true then a + 1 else a - 1" in
+  match result with
+  | Vm.VInt 6 -> ()
+  | _ -> Alcotest.fail "Expected VInt 6"
+
+let test_run_if_toplevel_var_false () =
+  let result = run "let a = 5 in if false then a + 1 else a - 1" in
+  match result with
+  | Vm.VInt 4 -> ()
+  | _ -> Alcotest.fail "Expected VInt 4"
+
+let test_run_if_arith_branch () =
+  let result = run "let a = 10 in let b = 3 in if a > b then a - b else b - a" in
+  match result with
+  | Vm.VInt 7 -> ()
+  | _ -> Alcotest.fail "Expected VInt 7"
+
+let test_run_if_call_branch () =
+  let result = run "let f = fn x -> x + 100 in if true then f 5 else f 6" in
+  match result with
+  | Vm.VInt 105 -> ()
+  | _ -> Alcotest.fail "Expected VInt 105"
+
+let test_run_if_nested () =
+  let result = run "let a = 2 in if true then (if a > 1 then a * 10 else a) else 0" in
+  match result with
+  | Vm.VInt 20 -> ()
+  | _ -> Alcotest.fail "Expected VInt 20"
+
+(* ===== Recursion through the full pipeline ===== *)
+
+let test_run_letrec_factorial () =
+  let result = run "letrec fact = fn n -> if n == 0 then 1 else n * fact (n - 1) in fact 5" in
+  match result with
+  | Vm.VInt 120 -> ()
+  | _ -> Alcotest.fail "Expected VInt 120"
+
+let test_run_letrec_sum () =
+  let result = run "letrec sum = fn n -> if n == 0 then 0 else n + sum (n - 1) in sum 10" in
+  match result with
+  | Vm.VInt 55 -> ()
+  | _ -> Alcotest.fail "Expected VInt 55"
+
+(* ===== Tensor numeric results end to end ===== *)
+
+let run_tensor s =
+  match run s with
+  | Vm.VTensor t -> t
+  | v -> Alcotest.failf "Expected tensor, got %s" (Vm.string_of_value v)
+
+let test_run_matmul () =
+  let t = run_tensor
+    "let a = [[1.0, 2.0], [3.0, 4.0]] in \
+     let b = [[5.0, 6.0], [7.0, 8.0]] in dot(a, b)" in
+  Alcotest.(check (list int)) "shape" [2; 2] t.Vm.shape;
+  Alcotest.(check (list (float 0.0))) "data"
+    [19.0; 22.0; 43.0; 50.0] (Array.to_list t.Vm.data)
+
+let test_run_dot_scalar () =
+  let result = run "dot([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])" in
+  match result with
+  | Vm.VFloat f -> Alcotest.(check (float 0.0)) "dot" 32.0 f
+  | _ -> Alcotest.fail "Expected VFloat 32.0"
+
+let test_run_transpose () =
+  let t = run_tensor "transpose([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])" in
+  Alcotest.(check (list int)) "shape" [3; 2] t.Vm.shape;
+  Alcotest.(check (list (float 0.0))) "data"
+    [1.0; 4.0; 2.0; 5.0; 3.0; 6.0] (Array.to_list t.Vm.data)
+
+(* ===== Negative tests: programs that must be rejected ===== *)
+
+let is_rejected s =
+  try ignore (typecheck s); false
+  with Typeinfer.Type_error _ -> true
+
+let test_reject_shape_mismatch () =
+  Alcotest.(check bool) "dot with incompatible inner dims is rejected" true
+    (is_rejected "dot([[1.0, 2.0], [3.0, 4.0]], [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])")
+
+let test_reject_unbound_var () =
+  Alcotest.(check bool) "unbound variable is rejected" true
+    (is_rejected "x + 1")
+
+let test_reject_non_bool_cond () =
+  Alcotest.(check bool) "non-bool if condition is rejected" true
+    (is_rejected "if 5 then 1 else 2")
+
+let test_reject_int_tensor () =
+  Alcotest.(check bool) "int tensor literal is rejected" true
+    (is_rejected "let v = [1, 2, 3] in v")
+
 (* ===== Test Suite ===== *)
 
 let lexer_tests = [
@@ -319,6 +418,26 @@ let run_tests = [
   "comparison", `Quick, test_run_comparison;
   "fn_app", `Quick, test_run_fn_app;
   "curried", `Quick, test_run_curried;
+  "if_toplevel_var", `Quick, test_run_if_toplevel_var;
+  "if_toplevel_var_false", `Quick, test_run_if_toplevel_var_false;
+  "if_arith_branch", `Quick, test_run_if_arith_branch;
+  "if_call_branch", `Quick, test_run_if_call_branch;
+  "if_nested", `Quick, test_run_if_nested;
+  "letrec_factorial", `Quick, test_run_letrec_factorial;
+  "letrec_sum", `Quick, test_run_letrec_sum;
+]
+
+let tensor_tests = [
+  "matmul", `Quick, test_run_matmul;
+  "dot_scalar", `Quick, test_run_dot_scalar;
+  "transpose", `Quick, test_run_transpose;
+]
+
+let negative_tests = [
+  "shape_mismatch", `Quick, test_reject_shape_mismatch;
+  "unbound_var", `Quick, test_reject_unbound_var;
+  "non_bool_cond", `Quick, test_reject_non_bool_cond;
+  "int_tensor", `Quick, test_reject_int_tensor;
 ]
 
 let () =
@@ -327,4 +446,6 @@ let () =
     "Parser", parser_tests;
     "Types", type_tests;
     "Run", run_tests;
+    "Tensor", tensor_tests;
+    "Negative", negative_tests;
   ]

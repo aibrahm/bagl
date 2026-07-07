@@ -42,6 +42,13 @@ let alloc_local state var =
       state.next_local <- local + 1;
       local
 
+(** The variable an instruction defines (always its first operand) *)
+let defined_var = function
+  | IConst (dst, _) | IBinop (dst, _, _, _) | IUnop (dst, _, _)
+  | ICopy (dst, _) | ICall (dst, _, _) | IClosure (dst, _, _)
+  | IRecClosure (dst, _, _, _) | ILoadCapture (dst, _)
+  | ITensorOp (dst, _, _) | ITensorLit (dst, _, _) -> dst
+
 (** Get local index for a variable *)
 let get_local state var =
   match Hashtbl.find_opt state.var_to_local var with
@@ -236,6 +243,14 @@ let generate_func (ir_func : Ir.ir_func) : Bytecode.chunk =
     let sorted_others = List.sort (fun (a : Ir.basic_block) (b : Ir.basic_block) -> compare a.id b.id) others in
     entry :: sorted_others
   in
+
+  (* Pre-allocate a local for every variable the function defines, so a
+     cross-block LOAD (e.g. an [if] branch reading a value bound in an
+     earlier block) always finds a slot. Allocating lazily on first store
+     is order-dependent and breaks when a load is emitted before its store. *)
+  List.iter (fun (block : Ir.basic_block) ->
+    List.iter (fun instr -> ignore (alloc_local state (defined_var instr))) block.instrs
+  ) sorted_blocks;
 
   (* First pass: emit all blocks to get addresses *)
   List.iter (emit_block state) sorted_blocks;

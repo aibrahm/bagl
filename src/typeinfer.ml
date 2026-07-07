@@ -121,23 +121,22 @@ and ast_dim_to_dim = function
 let infer_binop span op t1 t2 =
   match op with
   | Add | Sub | Mul | Div ->
-      (* Arithmetic: both operands must be same numeric type *)
+      (* Arithmetic. Bagl has no type classes, so operators are resolved by
+         inspecting operands: if either side is concretely float the whole
+         operation is float; otherwise it is int, and any unconstrained
+         operand is defaulted to int. The rule is symmetric, so [x + 1.0]
+         and [1.0 + x] behave identically, and [fn x -> x + x] is int. *)
       begin match find_ty t1, find_ty t2 with
-      | TInt, TInt -> TInt
-      | TFloat, TFloat -> TFloat
-      | TInt, _ ->
-          unify span t2 TInt;
-          TInt
-      | TFloat, _ ->
-          unify span t2 TFloat;
-          TFloat
       | TTensor (elem1, shape1), TTensor (elem2, shape2) ->
           (* Element-wise operations on tensors *)
           unify span elem1 elem2;
           unify_shape span shape1 shape2;
           TTensor (elem1, shape1)
+      | TFloat, _ | _, TFloat ->
+          unify span t1 TFloat;
+          unify span t2 TFloat;
+          TFloat
       | _ ->
-          (* Try to unify both with int first *)
           unify span t1 TInt;
           unify span t2 TInt;
           TInt
@@ -149,14 +148,10 @@ let infer_binop span op t1 t2 =
       TBool
 
   | Lt | Gt | Le | Ge ->
-      (* Comparison: both operands must be same numeric type *)
+      (* Comparison: same numeric resolution as arithmetic, result is bool. *)
       begin match find_ty t1, find_ty t2 with
-      | TInt, TInt -> TBool
-      | TFloat, TFloat -> TBool
-      | TInt, _ ->
-          unify span t2 TInt;
-          TBool
-      | TFloat, _ ->
+      | TFloat, _ | _, TFloat ->
+          unify span t1 TFloat;
           unify span t2 TFloat;
           TBool
       | _ ->
@@ -270,6 +265,10 @@ let rec infer env expr =
         else
           infer env (List.hd (List.hd rows))
       in
+      (* Tensors are float-backed at runtime (see vm.ml), so the element
+         type is fixed to float. This rejects int tensors at compile time
+         instead of silently coercing them, keeping the type honest. *)
+      unify span elem_ty TFloat;
       (* Verify all elements have same type *)
       List.iter (fun row ->
         List.iter (fun e ->

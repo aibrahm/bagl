@@ -1,0 +1,15 @@
+// Top-level conditionals whose branches read earlier bindings.
+// The branch value flows across basic blocks, which the codegen now
+// handles by pre-allocating a local for every variable a function defines.
+
+let base = 20 in
+let bonus = 5 in
+
+// Both branches read `base` and `bonus`, defined in an earlier block.
+let score =
+  if base > bonus then base + bonus
+  else base - bonus
+in
+
+// Nested top-level if, still reading outer bindings.
+if score > 10 then score * 2 else score

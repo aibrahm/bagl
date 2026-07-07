@@ -77,16 +77,11 @@ let rec occurs_check_ty id = function
   | TVar { contents = Unbound (id', _) } -> id = id'
   | TVar { contents = Link t } -> occurs_check_ty id t
   | TArrow (t1, t2) -> occurs_check_ty id t1 || occurs_check_ty id t2
-  | TTensor (elem, shape) ->
-      occurs_check_ty id elem || occurs_check_shape id shape
-
-and occurs_check_shape id shape =
-  List.exists (occurs_check_dim id) shape
-
-and occurs_check_dim _ = function
-  | SDimConst _ -> false
-  | SDimVar { contents = DUnbound _ } -> false
-  | SDimVar { contents = DLink d } -> occurs_check_dim 0 d
+  | TTensor (elem, _shape) ->
+      (* A type variable cannot occur inside a shape: shapes contain only
+         dimension variables, which live in a separate namespace. The
+         dimension occurs-check is [occurs_check_dim_id], used in unify_dim. *)
+      occurs_check_ty id elem
 
 (** Check if a dimension variable id occurs in a shape *)
 let rec occurs_check_dim_id id = function
