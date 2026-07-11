@@ -1,8 +1,9 @@
 # BAGL
 
-[![CI](https://github.com/AbdelRahm4n/bagl/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdelRahm4n/bagl/actions/workflows/ci.yml)
+[![CI](https://github.com/aibrahm/bagl/actions/workflows/ci.yml/badge.svg)](https://github.com/aibrahm/bagl/actions/workflows/ci.yml)
 ![OCaml](https://img.shields.io/badge/OCaml-5.2-orange)
 ![Tests](https://img.shields.io/badge/tests-46%20passing-brightgreen)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A statically-typed functional programming language with first-class tensor support and compile-time shape checking.
 
@@ -21,11 +22,11 @@ A statically-typed functional programming language with first-class tensor suppo
 
 ## Installation
 
-Requires OCaml 4.14+ and dune.
+Requires OCaml 5.2 (builds on 4.14+) and dune.
 
 ```bash
 # Clone the repository
-git clone https://github.com/AbdelRahm4n/bagl.git
+git clone https://github.com/aibrahm/bagl.git
 cd bagl
 
 # Build
@@ -199,4 +200,4 @@ See [docs/language-spec/](docs/language-spec/) for the complete language specifi
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).

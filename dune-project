@@ -3,7 +3,7 @@
 
 (generate_opam_files true)
 
-(source (github aibrahim/bagl))
+(source (github aibrahm/bagl))
 (license MIT)
 (authors "Author")
 (maintainers "Author")

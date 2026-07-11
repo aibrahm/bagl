@@ -6,8 +6,8 @@ description:
 maintainer: ["Author"]
 authors: ["Author"]
 license: "MIT"
-homepage: "https://github.com/aibrahim/bagl"
-bug-reports: "https://github.com/aibrahim/bagl/issues"
+homepage: "https://github.com/aibrahm/bagl"
+bug-reports: "https://github.com/aibrahm/bagl/issues"
 depends: [
   "ocaml" {>= "4.14"}
   "dune" {>= "3.0" & >= "3.0"}
@@ -28,4 +28,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/aibrahim/bagl.git"
+dev-repo: "git+https://github.com/aibrahm/bagl.git"
