@@ -96,10 +96,20 @@ let rec string_of_value = function
   | VClosure c -> Printf.sprintf "<closure@%d>" c.func_id
 
 and string_of_tensor t =
-  let shape_str =
-    "[" ^ String.concat "," (List.map string_of_int t.shape) ^ "]"
-  in
-  Printf.sprintf "tensor%s" shape_str
+  (* Show the elements for small tensors, the shape alone for large ones. *)
+  let fmt f = Printf.sprintf "%g" f in
+  match t.shape with
+  | [n] when n <= 16 ->
+      "[" ^ String.concat ", " (Array.to_list (Array.map fmt t.data)) ^ "]"
+  | [rows; cols] when rows * cols <= 64 ->
+      let row r =
+        "[" ^ String.concat ", "
+          (List.init cols (fun c -> fmt t.data.(r * cols + c))) ^ "]"
+      in
+      "[" ^ String.concat ", " (List.init rows row) ^ "]"
+  | shape ->
+      Printf.sprintf "tensor[%s]"
+        (String.concat "," (List.map string_of_int shape))
 
 (** Pop an integer *)
 let pop_int vm =

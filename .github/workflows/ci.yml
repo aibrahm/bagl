@@ -34,3 +34,14 @@ jobs:
             echo "== $f =="
             opam exec -- dune exec baglc -- "$f"
           done
+
+      - name: Build browser playground
+        run: |
+          opam install -y js_of_ocaml js_of_ocaml-ppx
+          opam exec -- dune build --profile release js/bagl_js.bc.js
+          node -e "
+            const m = require('./_build/default/js/bagl_js.bc.js');
+            const r = m.bagl.run('grad (fn x -> x * x * x) 2.0');
+            if (!r.ok || r.value !== '12.') { console.error(r); process.exit(1); }
+            console.log('playground bundle OK:', JSON.stringify(r));
+          "
