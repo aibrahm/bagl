@@ -30,6 +30,7 @@ let typecheck s =
 (* Helper to compile and run *)
 let run s =
   let program = parse_program s in
+  let program = Autodiff.expand_program program in
   let typed = Typeinfer.infer_program program in
   let ir = Ir.lower_program typed in
   let optimized = Optimize.optimize_default ir in
@@ -325,6 +326,65 @@ let test_run_letrec_sum () =
   | Vm.VInt 55 -> ()
   | _ -> Alcotest.fail "Expected VInt 55"
 
+(* ===== Automatic differentiation ===== *)
+
+let run_float s =
+  match run s with
+  | Vm.VFloat f -> f
+  | v -> Alcotest.failf "Expected float, got %s" (Vm.string_of_value v)
+
+(* d/dx (x*x) = 2x, so at x=3 -> 6 *)
+let test_grad_square () =
+  Alcotest.(check (float 1e-9)) "2x at 3" 6.0
+    (run_float "grad (fn x -> x * x) 3.0")
+
+(* d/dx (x*x*x) = 3x^2, so at x=2 -> 12 *)
+let test_grad_cube () =
+  Alcotest.(check (float 1e-9)) "3x^2 at 2" 12.0
+    (run_float "grad (fn x -> x * x * x) 2.0")
+
+(* d/dx (x*x + x) = 2x + 1, so at x=3 -> 7 *)
+let test_grad_poly () =
+  Alcotest.(check (float 1e-9)) "2x+1 at 3" 7.0
+    (run_float "grad (fn x -> x * x + x) 3.0")
+
+(* d/dx (1/x) = -1/x^2, so at x=2 -> -0.25 *)
+let test_grad_reciprocal () =
+  Alcotest.(check (float 1e-9)) "-1/x^2 at 2" (-0.25)
+    (run_float "grad (fn x -> 1.0 / x) 2.0")
+
+(* d/dx (x/(x+1)) = 1/(x+1)^2, so at x=1 -> 0.25 *)
+let test_grad_quotient () =
+  Alcotest.(check (float 1e-9)) "1/(x+1)^2 at 1" 0.25
+    (run_float "grad (fn x -> x / (x + 1.0)) 1.0")
+
+(* d/dx -(x*x) = -2x, so at x=3 -> -6 *)
+let test_grad_neg () =
+  Alcotest.(check (float 1e-9)) "-2x at 3" (-6.0)
+    (run_float "grad (fn x -> 0.0 - x * x) 3.0")
+
+(* Chain rule through a let: x*x*x, derivative 3x^2 at 2 -> 12 *)
+let test_grad_let () =
+  Alcotest.(check (float 1e-9)) "let chain at 2" 12.0
+    (run_float "grad (fn x -> let y = x * x in y * x) 2.0")
+
+(* Each if branch differentiates; condition is data. x>0 branch is x*x -> 2x at 4 = 8 *)
+let test_grad_if () =
+  Alcotest.(check (float 1e-9)) "if branch at 4" 8.0
+    (run_float "grad (fn x -> if x > 0.0 then x * x else x) 4.0")
+
+let grad_raises s =
+  try ignore (run s); false
+  with Autodiff.Grad_error _ -> true
+
+let test_grad_reject_call () =
+  Alcotest.(check bool) "grad through a call is rejected" true
+    (grad_raises "grad (fn x -> f x) 3.0")
+
+let test_grad_reject_nonfn () =
+  Alcotest.(check bool) "grad on a non-function is rejected" true
+    (grad_raises "grad 3.0")
+
 (* ===== Tensor numeric results end to end ===== *)
 
 let run_tensor s =
@@ -440,6 +500,19 @@ let negative_tests = [
   "int_tensor", `Quick, test_reject_int_tensor;
 ]
 
+let autodiff_tests = [
+  "square", `Quick, test_grad_square;
+  "cube", `Quick, test_grad_cube;
+  "poly", `Quick, test_grad_poly;
+  "reciprocal", `Quick, test_grad_reciprocal;
+  "quotient", `Quick, test_grad_quotient;
+  "neg", `Quick, test_grad_neg;
+  "let_chain", `Quick, test_grad_let;
+  "if_branch", `Quick, test_grad_if;
+  "reject_call", `Quick, test_grad_reject_call;
+  "reject_nonfn", `Quick, test_grad_reject_nonfn;
+]
+
 let () =
   Alcotest.run "Bagl" [
     "Lexer", lexer_tests;
@@ -448,4 +521,5 @@ let () =
     "Run", run_tests;
     "Tensor", tensor_tests;
     "Negative", negative_tests;
+    "Autodiff", autodiff_tests;
   ]

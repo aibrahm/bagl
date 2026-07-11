@@ -1,0 +1,7 @@
+// Automatic differentiation as a source-to-source transform.
+// `grad (fn x -> body)` is rewritten, before type inference, into an ordinary
+// Bagl function that computes d(body)/dx. Because the result is a normal
+// function, it is shape- and type-checked like any other code.
+
+// d/dx (x*x*x) = 3*x^2, so the derivative at x = 2 is 12.
+grad (fn x -> x * x * x) 2.0

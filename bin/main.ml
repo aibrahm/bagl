@@ -42,6 +42,9 @@ let compile ~filename source ~optimize =
   let parser = Parser.create lexer in
   let ast = Parser.parse_program parser in
 
+  (* Expand grad(...) into ordinary derivative functions before inference *)
+  let ast = Autodiff.expand_program ast in
+
   (* Type check *)
   let typed = Typeinfer.infer_program ast in
 
@@ -100,6 +103,9 @@ let compile_file options filename =
       let diag = Errors.error ~span ~message:msg ~source () in
       Errors.fatal diag
   | Typeinfer.Type_error (msg, span) ->
+      let diag = Errors.error ~span ~message:msg ~source () in
+      Errors.fatal diag
+  | Autodiff.Grad_error (msg, span) ->
       let diag = Errors.error ~span ~message:msg ~source () in
       Errors.fatal diag
 

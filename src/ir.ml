@@ -352,7 +352,7 @@ let rec lower_expr ctx expr =
           failwith "letrec requires a function value"
       end
 
-  | Ast.EFn { param; body; _ } ->
+  | Ast.EFn { param; param_annot; body } ->
       (* Create a new function for the lambda *)
       let free_vars = collect_free_vars [param] body in
       let capture_vars = List.map (lookup_var ctx) free_vars in
@@ -361,9 +361,16 @@ let rec lower_expr ctx expr =
       let param_var = 0 in  (* Parameter is always var 0 *)
       let nested_func = create_func ctx.program "<lambda>" [param_var] (List.length free_vars) in
 
-      (* Set up captures in nested function *)
+      (* Set up captures in nested function. When the parameter is annotated,
+         seed the type environment with its type so float-vs-int opcode
+         selection is correct for a body that mentions only the parameter. *)
       let nested_ctx = create_ctx ctx.program nested_func ctx.type_env in
-      let nested_ctx = { nested_ctx with env = [(param, param_var)] } in
+      let param_env = match param_annot with
+        | Some annot -> [(param, Types.mono_scheme (Typeinfer.type_annot_to_ty annot))]
+        | None -> []
+      in
+      let nested_ctx = { nested_ctx with env = [(param, param_var)];
+                                         type_env = param_env @ nested_ctx.type_env } in
 
       (* Add capture loads *)
       let nested_ctx = List.fold_left2 (fun ctx name idx ->

@@ -2,5 +2,5 @@
  (name bagl)
  (public_name bagl)
  (modules
-   location errors token lexer ast parser types typeinfer
+   location errors token lexer ast parser autodiff types typeinfer
    ir optimize bytecode codegen vm serialize))
