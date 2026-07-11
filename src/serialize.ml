@@ -79,6 +79,7 @@ type opcode_tag =
   | T_AND | T_OR | T_NOT
   | T_JUMP | T_JUMP_IF_FALSE | T_CALL | T_RETURN
   | T_TENSOR_CREATE | T_TENSOR_DOT | T_TENSOR_TRANSPOSE | T_TENSOR_RESHAPE
+  | T_TADD | T_TSUB | T_TMUL | T_TDIV
   | T_PRINT | T_HALT | T_NOP
 
 let tag_of_opcode = function
@@ -98,6 +99,7 @@ let tag_of_opcode = function
   | TENSOR_TRANSPOSE -> 38 | TENSOR_RESHAPE _ -> 39
   | PRINT -> 40 | HALT -> 41 | NOP -> 42
   | MAKE_REC_CLOSURE _ -> 43
+  | TADD -> 48 | TSUB -> 49 | TMUL -> 50 | TDIV -> 51
 
 (** Write an opcode *)
 let write_opcode oc op =
@@ -125,6 +127,7 @@ let write_opcode oc op =
   | TENSOR_CREATE shape -> write_shape oc shape
   | TENSOR_DOT | TENSOR_TRANSPOSE -> ()
   | TENSOR_RESHAPE shape -> write_shape oc shape
+  | TADD | TSUB | TMUL | TDIV -> ()
   | PRINT | HALT | NOP -> ()
 
 (** Read an opcode *)
@@ -179,6 +182,10 @@ let read_opcode ic =
   | 45 -> FGT
   | 46 -> FLE
   | 47 -> FGE
+  | 48 -> TADD
+  | 49 -> TSUB
+  | 50 -> TMUL
+  | 51 -> TDIV
   | n -> raise (Serialize_error (Printf.sprintf "Unknown opcode tag: %d" n))
 
 (** Write a chunk *)

@@ -69,6 +69,13 @@ type opcode =
   | TENSOR_TRANSPOSE     (** Transpose 2D tensor *)
   | TENSOR_RESHAPE of int list  (** Reshape tensor *)
 
+  (* Element-wise tensor arithmetic; either operand may be a broadcast
+     float scalar, resolved dynamically from the popped values *)
+  | TADD
+  | TSUB
+  | TMUL
+  | TDIV
+
   (* Debugging and control *)
   | PRINT
   | HALT
@@ -143,6 +150,10 @@ let pp_opcode fmt = function
       Format.fprintf fmt "TENSOR_RESHAPE [%a]"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
           Format.pp_print_int) shape
+  | TADD -> Format.fprintf fmt "TADD"
+  | TSUB -> Format.fprintf fmt "TSUB"
+  | TMUL -> Format.fprintf fmt "TMUL"
+  | TDIV -> Format.fprintf fmt "TDIV"
   | PRINT -> Format.fprintf fmt "PRINT"
   | HALT -> Format.fprintf fmt "HALT"
   | NOP -> Format.fprintf fmt "NOP"

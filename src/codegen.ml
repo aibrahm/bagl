@@ -76,6 +76,10 @@ let emit_binop state op =
     | IrFSub -> FSUB
     | IrFMul -> FMUL
     | IrFDiv -> FDIV
+    | IrTAdd -> TADD
+    | IrTSub -> TSUB
+    | IrTMul -> TMUL
+    | IrTDiv -> TDIV
     | IrEq -> IEQ
     | IrNeq -> INEQ
     | IrLt -> ILT

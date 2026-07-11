@@ -180,11 +180,26 @@ let infer_binop span op t1 t2 =
          operand is defaulted to int. The rule is symmetric, so [x + 1.0]
          and [1.0 + x] behave identically, and [fn x -> x + x] is int. *)
       begin match find_ty t1, find_ty t2 with
-      | TTensor _, _ | _, TTensor _ ->
-          (* The VM has no element-wise tensor opcodes, so this is rejected
-             here rather than crashing at runtime. *)
-          type_error span
-            "Element-wise tensor arithmetic is not implemented; tensors support dot, transpose, and reshape"
+      | TTensor _, TTensor _ ->
+          (* Element-wise arithmetic: element types and shapes must agree,
+             and the result has the operands' unified tensor type. *)
+          unify span t1 t2;
+          find_ty t1
+      | TTensor (elem, _), other | other, TTensor (elem, _) ->
+          (* Scalar broadcast. Tensors are float-backed, so the scalar side
+             must be float; give ints a direct message rather than a bare
+             unification failure. An unresolved scalar side is committed to
+             float here, mirroring how a float operand resolves the op. *)
+          begin match other with
+          | TInt ->
+              type_error span
+                "Tensor-scalar arithmetic requires a float scalar, not int"
+          | _ -> ()
+          end;
+          unify span elem TFloat;
+          let scalar = match find_ty t1 with TTensor _ -> t2 | _ -> t1 in
+          unify span scalar TFloat;
+          (match find_ty t1 with TTensor _ -> find_ty t1 | _ -> find_ty t2)
       | TFloat, _ | _, TFloat ->
           unify span t1 TFloat;
           unify span t2 TFloat;

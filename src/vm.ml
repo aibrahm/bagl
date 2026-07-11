@@ -163,6 +163,34 @@ let tensor_get t indices =
 let tensor_set t indices v =
   t.data.(flat_index indices t.strides) <- v
 
+(** Element-wise combination of two same-shape tensors. Shapes were already
+    checked at compile time, but the VM validates again so hand-crafted or
+    corrupted bytecode cannot read out of bounds or silently misalign. *)
+let tensor_map2 name f a b =
+  if a.shape <> b.shape then
+    raise (Runtime_error (Printf.sprintf
+      "Shape mismatch in element-wise %s: [%s] vs [%s]" name
+      (String.concat "," (List.map string_of_int a.shape))
+      (String.concat "," (List.map string_of_int b.shape))));
+  { a with data = Array.map2 f a.data b.data }
+
+(** Element-wise binop where either operand may be a broadcast float scalar.
+    Operand kinds are resolved dynamically so one opcode family covers
+    tensor-tensor, tensor-scalar, and scalar-tensor. *)
+let tensor_binop vm name f =
+  let b = pop vm in
+  let a = pop vm in
+  match a, b with
+  | VTensor ta, VTensor tb -> push vm (VTensor (tensor_map2 name f ta tb))
+  | VTensor ta, VFloat s ->
+      push vm (VTensor { ta with data = Array.map (fun x -> f x s) ta.data })
+  | VFloat s, VTensor tb ->
+      push vm (VTensor { tb with data = Array.map (fun x -> f s x) tb.data })
+  | a, b ->
+      raise (Runtime_error (Printf.sprintf
+        "Expected tensor operands for element-wise %s, got %s and %s"
+        name (string_of_value a) (string_of_value b)))
+
 (** Matrix multiplication *)
 let tensor_dot a b =
   match a.shape, b.shape with
@@ -559,6 +587,15 @@ let step vm =
   | TENSOR_RESHAPE shape ->
       let t = pop_tensor vm in
       push vm (VTensor (tensor_reshape t shape));
+      true
+
+  | TADD -> tensor_binop vm "add" ( +. ); true
+  | TSUB -> tensor_binop vm "sub" ( -. ); true
+  | TMUL -> tensor_binop vm "mul" ( *. ); true
+  | TDIV ->
+      (* Same zero-divide policy as FDIV: raise rather than produce inf. *)
+      tensor_binop vm "div" (fun a b ->
+        if b = 0.0 then raise (Runtime_error "Division by zero") else a /. b);
       true
 
   | PRINT ->

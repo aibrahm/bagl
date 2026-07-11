@@ -391,10 +391,10 @@ let test_accept_dim_var_square () =
   let t = run_tensor "let m: tensor<float>['n,'n] = [[1.0,2.0],[3.0,4.0]] in m" in
   Alcotest.(check (list int)) "shape" [2; 2] t.Vm.shape
 
-(* These used to typecheck and then crash or lie in the VM. *)
-let test_reject_tensor_arith () =
-  Alcotest.(check bool) "tensor + tensor is rejected" true
-    (is_rejected "[1.0, 2.0] + [3.0, 4.0]")
+(* Element-wise arithmetic is implemented, but only for matching shapes. *)
+let test_reject_tensor_arith_mismatch () =
+  Alcotest.(check bool) "mismatched element-wise add is rejected" true
+    (is_rejected "[1.0, 2.0] + [3.0, 4.0, 5.0]")
 
 let test_reject_tensor_eq () =
   Alcotest.(check bool) "tensor equality is rejected" true
@@ -550,6 +550,94 @@ let test_run_transpose () =
   Alcotest.(check (list (float 0.0))) "data"
     [1.0; 4.0; 2.0; 5.0; 3.0; 6.0] (Array.to_list t.Vm.data)
 
+(* ===== Element-wise tensor arithmetic ===== *)
+
+let check_tensor msg expected_shape expected_data t =
+  Alcotest.(check (list int)) (msg ^ " shape") expected_shape t.Vm.shape;
+  Alcotest.(check (list (float 1e-9))) (msg ^ " data")
+    expected_data (Array.to_list t.Vm.data)
+
+let test_elementwise_add () =
+  check_tensor "add" [2] [4.0; 6.0] (run_tensor "[1.0, 2.0] + [3.0, 4.0]")
+
+let test_elementwise_sub () =
+  check_tensor "sub" [3] [4.0; 3.0; 2.0]
+    (run_tensor "[5.0, 5.0, 5.0] - [1.0, 2.0, 3.0]")
+
+let test_elementwise_mul () =
+  check_tensor "hadamard" [2] [3.0; 8.0] (run_tensor "[1.0, 2.0] * [3.0, 4.0]")
+
+let test_elementwise_div () =
+  check_tensor "div" [2] [2.0; 3.0] (run_tensor "[8.0, 9.0] / [4.0, 3.0]")
+
+let test_elementwise_matrix_add () =
+  check_tensor "matrix add" [2; 2] [6.0; 8.0; 10.0; 12.0]
+    (run_tensor "[[1.0, 2.0], [3.0, 4.0]] + [[5.0, 6.0], [7.0, 8.0]]")
+
+let test_scalar_broadcast_mul () =
+  check_tensor "s * t" [2] [2.0; 4.0] (run_tensor "2.0 * [1.0, 2.0]");
+  check_tensor "t * s" [2] [3.0; 6.0] (run_tensor "[1.0, 2.0] * 3.0")
+
+let test_scalar_broadcast_add () =
+  check_tensor "s + t" [2] [2.0; 3.0] (run_tensor "1.0 + [1.0, 2.0]");
+  check_tensor "t + s" [2] [2.0; 3.0] (run_tensor "[1.0, 2.0] + 1.0")
+
+(* Subtraction and division are not commutative: both operand orders. *)
+let test_scalar_broadcast_sub_directions () =
+  check_tensor "t - s" [2] [2.0; 3.0] (run_tensor "[3.0, 4.0] - 1.0");
+  check_tensor "s - t" [2] [7.0; 6.0] (run_tensor "10.0 - [3.0, 4.0]")
+
+let test_scalar_broadcast_div_directions () =
+  check_tensor "t / s" [2] [1.0; 2.0] (run_tensor "[2.0, 4.0] / 2.0");
+  check_tensor "s / t" [2] [4.0; 2.0] (run_tensor "8.0 / [2.0, 4.0]")
+
+(* Element-wise arithmetic flows through function parameters too. *)
+let test_elementwise_through_fn () =
+  check_tensor "fn" [2] [4.0; 6.0]
+    (run_tensor
+      "let scale = fn a: tensor<float>[2] -> 2.0 * a in scale [2.0, 3.0]")
+
+let test_reject_elementwise_rank_mismatch () =
+  Alcotest.(check bool) "matrix + vector is rejected" true
+    (is_rejected "[[1.0, 2.0], [3.0, 4.0]] + [1.0, 2.0]")
+
+let test_reject_int_scalar_broadcast () =
+  Alcotest.(check bool) "int + tensor is rejected" true
+    (is_rejected "1 + [1.0, 2.0]")
+
+(* Serialization round-trip through .baglc for the new opcodes. *)
+let test_serialize_tensor_arith () =
+  let program = parse_program "([1.0, 2.0] + [3.0, 4.0]) * 2.0" in
+  let typed = Typeinfer.infer_program program in
+  let ir = Ir.lower_program typed in
+  let optimized = Optimize.optimize_default ir in
+  let bytecode = Codegen.generate optimized in
+  let path = Filename.temp_file "bagl_test" ".baglc" in
+  Serialize.write_file path bytecode;
+  let loaded = Serialize.read_file path in
+  Sys.remove path;
+  match Vm.execute loaded with
+  | Vm.VTensor t -> check_tensor "round-trip" [2] [8.0; 12.0] t
+  | v -> Alcotest.failf "Expected tensor, got %s" (Vm.string_of_value v)
+
+(* The compiler cannot emit mismatched element-wise shapes (checked
+   statically), so feed the VM a hand-built chunk to prove the runtime
+   defense holds on its own. *)
+let test_runtime_shape_defense () =
+  let code = [|
+    Bytecode.PUSH_FLOAT 1.0; Bytecode.PUSH_FLOAT 2.0;
+    Bytecode.TENSOR_CREATE [2];
+    Bytecode.PUSH_FLOAT 1.0; Bytecode.PUSH_FLOAT 2.0; Bytecode.PUSH_FLOAT 3.0;
+    Bytecode.TENSOR_CREATE [3];
+    Bytecode.TADD;
+    Bytecode.RETURN;
+  |] in
+  let chunk = { Bytecode.code; num_locals = 0; num_params = 0; num_captures = 0 } in
+  let program = { Bytecode.chunks = [| chunk |]; entry = 0 } in
+  match Vm.execute program with
+  | exception Vm.Runtime_error _ -> ()
+  | v -> Alcotest.failf "Expected runtime shape error, got %s" (Vm.string_of_value v)
+
 (* ===== Negative tests: programs that must be rejected ===== *)
 
 let test_reject_shape_mismatch () =
@@ -642,11 +730,28 @@ let lowering_tests = [
   "tensor_param", `Quick, test_run_tensor_param;
   "dim_var_mismatch", `Quick, test_reject_dim_var_mismatch;
   "dim_var_square", `Quick, test_accept_dim_var_square;
-  "reject_tensor_arith", `Quick, test_reject_tensor_arith;
+  "reject_tensor_arith_mismatch", `Quick, test_reject_tensor_arith_mismatch;
   "reject_tensor_eq", `Quick, test_reject_tensor_eq;
   "reject_fn_eq", `Quick, test_reject_fn_eq;
   "serialize_negative_int", `Quick, test_serialize_negative_int;
   "many_locals_unoptimized", `Quick, test_run_many_locals_unoptimized;
+]
+
+let tensor_arith_tests = [
+  "elementwise_add", `Quick, test_elementwise_add;
+  "elementwise_sub", `Quick, test_elementwise_sub;
+  "elementwise_mul", `Quick, test_elementwise_mul;
+  "elementwise_div", `Quick, test_elementwise_div;
+  "elementwise_matrix_add", `Quick, test_elementwise_matrix_add;
+  "scalar_broadcast_mul", `Quick, test_scalar_broadcast_mul;
+  "scalar_broadcast_add", `Quick, test_scalar_broadcast_add;
+  "scalar_broadcast_sub_directions", `Quick, test_scalar_broadcast_sub_directions;
+  "scalar_broadcast_div_directions", `Quick, test_scalar_broadcast_div_directions;
+  "elementwise_through_fn", `Quick, test_elementwise_through_fn;
+  "reject_rank_mismatch", `Quick, test_reject_elementwise_rank_mismatch;
+  "reject_int_broadcast", `Quick, test_reject_int_scalar_broadcast;
+  "serialize_round_trip", `Quick, test_serialize_tensor_arith;
+  "runtime_shape_defense", `Quick, test_runtime_shape_defense;
 ]
 
 let autodiff_tests = [
@@ -675,5 +780,6 @@ let () =
     "Tensor", tensor_tests;
     "Negative", negative_tests;
     "Lowering", lowering_tests;
+    "TensorArith", tensor_arith_tests;
     "Autodiff", autodiff_tests;
   ]

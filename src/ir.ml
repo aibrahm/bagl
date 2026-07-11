@@ -19,6 +19,9 @@ type constant =
 type ir_binop =
   | IrAdd | IrSub | IrMul | IrDiv  (* Integer arithmetic *)
   | IrFAdd | IrFSub | IrFMul | IrFDiv  (* Float arithmetic *)
+  | IrTAdd | IrTSub | IrTMul | IrTDiv
+      (* Element-wise tensor arithmetic; either operand may be a broadcast
+         float scalar, resolved dynamically by the VM *)
   | IrEq | IrNeq | IrLt | IrGt | IrLe | IrGe  (* Integer comparison *)
   | IrFLt | IrFGt | IrFLe | IrFGe  (* Float comparison *)
   | IrAnd | IrOr  (* Logical *)
@@ -211,6 +214,17 @@ let is_float_expr ctx expr =
     | _ -> false
   with Typeinfer.Type_error _ -> false
 
+(** Check if an expression has tensor type. Checked explicitly (rather than
+    "not float") because the try/with must default to false for expressions
+    that do not infer in the local environment. *)
+let is_tensor_expr ctx expr =
+  try
+    let ty = Typeinfer.infer_expr ctx.type_env expr in
+    match Types.find_ty ty with
+    | Types.TTensor _ -> true
+    | _ -> false
+  with Typeinfer.Type_error _ -> false
+
 (** Look up a variable in the build context *)
 let lookup_var ctx name =
   match List.assoc_opt name ctx.env with
@@ -247,6 +261,16 @@ let lower_binop is_float = function
   | Ast.Ge -> if is_float then IrFGe else IrGe
   | Ast.And -> IrAnd
   | Ast.Or -> IrOr
+
+(** Lower an arithmetic binop with a tensor operand. The type checker only
+    lets + - * / through with tensors, so anything else here is a compiler
+    bug rather than a user error. *)
+let lower_tensor_binop = function
+  | Ast.Add -> IrTAdd
+  | Ast.Sub -> IrTSub
+  | Ast.Mul -> IrTMul
+  | Ast.Div -> IrTDiv
+  | op -> failwith (Format.asprintf "Non-arithmetic operator %a on tensor operands" Ast.pp_binop op)
 
 (** Lower AST unop to IR unop *)
 let lower_unop is_float = function
@@ -463,10 +487,15 @@ let rec lower_expr ctx expr =
       let v1 = lower_expr ctx e1 in
       let v2 = lower_expr ctx e2 in
       let result = fresh_var ctx.func in
-      (* Float if either operand is float: mirrors the type checker, which
-         resolves an operation to float when either side is float. *)
-      let is_float = is_float_expr ctx e1 || is_float_expr ctx e2 in
-      let ir_op = lower_binop is_float op in
+      (* Tensor if either operand is a tensor (the other side may be a
+         broadcast scalar); otherwise float if either operand is float.
+         Both rules mirror how the type checker resolves the operation. *)
+      let ir_op =
+        if is_tensor_expr ctx e1 || is_tensor_expr ctx e2 then
+          lower_tensor_binop op
+        else
+          lower_binop (is_float_expr ctx e1 || is_float_expr ctx e2) op
+      in
       add_instr !(ctx.block) (IBinop (result, ir_op, v1, v2));
       result
 
@@ -594,6 +623,10 @@ let pp_binop fmt = function
   | IrFSub -> Format.fprintf fmt "fsub"
   | IrFMul -> Format.fprintf fmt "fmul"
   | IrFDiv -> Format.fprintf fmt "fdiv"
+  | IrTAdd -> Format.fprintf fmt "tadd"
+  | IrTSub -> Format.fprintf fmt "tsub"
+  | IrTMul -> Format.fprintf fmt "tmul"
+  | IrTDiv -> Format.fprintf fmt "tdiv"
   | IrEq -> Format.fprintf fmt "eq"
   | IrNeq -> Format.fprintf fmt "neq"
   | IrLt -> Format.fprintf fmt "lt"
