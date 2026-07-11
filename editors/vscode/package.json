@@ -1,0 +1,52 @@
+{
+  "name": "bagl-language",
+  "displayName": "Bagl",
+  "description": "Language support for Bagl: diagnostics, hover types and syntax highlighting via bagl-lsp",
+  "version": "0.1.0",
+  "publisher": "bagl",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onLanguage:bagl"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "bagl",
+        "aliases": [
+          "Bagl"
+        ],
+        "extensions": [
+          ".bagl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bagl",
+        "scopeName": "source.bagl",
+        "path": "./syntaxes/bagl.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Bagl",
+      "properties": {
+        "baglLsp.path": {
+          "type": "string",
+          "default": "bagl-lsp",
+          "description": "Path to the bagl-lsp executable. Defaults to looking it up on PATH."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}
