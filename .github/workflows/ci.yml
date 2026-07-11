@@ -28,6 +28,12 @@ jobs:
       - name: Test
         run: opam exec -- dune test
 
+      - name: Build LSP server
+        run: opam exec -- dune build lsp/lsp_main.exe
+
+      - name: LSP protocol test
+        run: opam exec -- dune test lsp/test --force
+
       - name: Run examples
         run: |
           for f in examples/*.bagl; do

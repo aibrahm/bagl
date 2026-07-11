@@ -199,10 +199,27 @@ bagl/
 │   └── errors.ml      -- Error handling
 ├── bin/
 │   └── main.ml        -- CLI entry point
+├── lsp/
+│   └── lsp_main.ml    -- Language server (bagl-lsp)
+├── editors/
+│   └── vscode/        -- VS Code extension
 ├── examples/          -- Example programs
 ├── test/              -- Test suite
 └── docs/
     └── language-spec/ -- Full language specification
+```
+
+## Editor Support
+
+The `bagl-lsp` executable (built from `lsp/`) is a Language Server Protocol
+server over stdio. It publishes compiler diagnostics as you type and shows
+inferred types on hover for top-level bindings. A minimal VS Code client
+lives in [editors/vscode/](editors/vscode/), whose README also covers
+Neovim setup. Build and install the server with:
+
+```bash
+dune build
+dune install   # puts bagl-lsp on your PATH
 ```
 
 ## Documentation
