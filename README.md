@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/aibrahm/bagl/actions/workflows/ci.yml/badge.svg)](https://github.com/aibrahm/bagl/actions/workflows/ci.yml)
 ![OCaml](https://img.shields.io/badge/OCaml-5.2-orange)
-![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-94%20passing-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A statically-typed functional programming language with first-class tensor support and compile-time shape checking.
@@ -21,7 +21,8 @@ A statically-typed functional programming language with first-class tensor suppo
 - **First-Class Tensors** - Native tensor types with compile-time dimension checking
 - **Dimension Variables** - Polymorphic tensor operations with shape inference
 - **Functional Core** - First-class functions, closures, and recursion
-- **Automatic Differentiation** - `grad (fn x -> ...)` rewrites a scalar function into its derivative at compile time
+- **Automatic Differentiation** - `grad` rewrites scalar functions into derivatives and tensor losses into reverse-mode gradients at compile time
+- **Element-wise Tensor Arithmetic** - `+ - * /` on same-shape tensors, with float scalar broadcast
 - **Stack-Based VM** - Efficient bytecode execution
 - **Bytecode Serialization** - Compile once, run anywhere with `.baglc` files
 - **Browser Playground** - The full compiler compiled to 147 KB of JavaScript, [live here](https://aibrahm.github.io/bagl/playground/)
@@ -179,8 +180,26 @@ grad (fn x -> x * x * x) 2.0
 It covers the scalar-float subset: literals, the parameter, `+ - * /`,
 unary negation, `if` (each branch is differentiated, the condition is
 data), and `let` (chained through). Differentiating through a function
-call, a tensor operation, or `letrec` is reported as an error rather than
-silently returning a wrong answer.
+call or `letrec` is reported as an error rather than silently returning
+a wrong answer.
+
+With a tensor parameter annotation, `grad` switches to reverse mode and
+returns the gradient of a scalar loss with the parameter's shape:
+
+```ml
+-- dL/dw = 2 X^T (Xw - y), derived by the compiler
+let dloss = grad (fn w: tensor<float>[3] ->
+  let e = dot(x, w) - y in
+  dot(e, e)) in
+w - 0.1 * dloss w
+```
+
+The tensor rules cover `dot` (matrix-matrix, matrix-vector, vector-vector),
+`transpose`, element-wise arithmetic, scalar broadcast, and `let`. A model
+can be trained entirely in Bagl: `examples/train_xor.bagl` runs 200 steps
+of gradient descent on feature-mapped XOR and converges to the exact
+solution `[1, 1, -2]`. Pullbacks Bagl cannot express (outer products,
+reductions) are compile errors, never wrong gradients.
 
 ## Project Structure
 

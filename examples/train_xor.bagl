@@ -1,0 +1,27 @@
+// A model trained entirely in Bagl.
+//
+// XOR is not linearly separable in (x1, x2), but it is with the feature
+// map (x1, x2, x1*x2). The model is pred = dot(X, w); the loss is the
+// squared error dot(e, e); and the gradient of the loss with respect to
+// the weights is derived BY THE COMPILER: grad rewrites the loss into
+// its reverse-mode gradient function before type inference, so the
+// whole training loop is shape-checked like any other code.
+//
+// The exact solution is w = [1, 1, -2] (loss 0). Gradient descent from
+// w = [0, 0, 0] converges to it; this program returns the final weights.
+
+let x = [[0.0, 0.0, 0.0],
+         [0.0, 1.0, 0.0],
+         [1.0, 0.0, 0.0],
+         [1.0, 1.0, 1.0]] in
+let y = [0.0, 1.0, 1.0, 0.0] in
+
+let dloss = grad (fn w: tensor<float>[3] ->
+  let e = dot(x, w) - y in
+  dot(e, e)) in
+
+letrec train = fn n ->
+  if n < 0.5 then [0.0, 0.0, 0.0] else
+  let w = train (n - 1.0) in
+  w - 0.1 * dloss w
+in train 200.0

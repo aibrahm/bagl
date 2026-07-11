@@ -737,6 +737,103 @@ let lowering_tests = [
   "many_locals_unoptimized", `Quick, test_run_many_locals_unoptimized;
 ]
 
+(* ===== Tensor-mode automatic differentiation ===== *)
+
+(* d/dw dot(w, w) = 2w *)
+let test_tgrad_dot_self () =
+  check_tensor "2w" [3] [2.0; 4.0; 6.0]
+    (run_tensor "grad (fn w: tensor<float>[3] -> dot(w, w)) [1.0, 2.0, 3.0]")
+
+(* Least-squares gradient: dL/dw = 2 X^T (Xw - y). At w = 0 with
+   X = [[1,2],[3,4]] and y = [1,2] this is exactly [-14, -20]. *)
+let test_tgrad_matvec_loss () =
+  check_tensor "2XT(Xw-y)" [2] [-14.0; -20.0]
+    (run_tensor
+      "let x = [[1.0, 2.0], [3.0, 4.0]] in \
+       let y = [1.0, 2.0] in \
+       grad (fn w: tensor<float>[2] -> \
+         let e = dot(x, w) - y in dot(e, e)) [0.0, 0.0]")
+
+(* Element-wise and scalar-broadcast pullbacks:
+   d/dw dot(3.0 * w, w) = 6w. *)
+let test_tgrad_scaled () =
+  check_tensor "6w" [2] [6.0; 12.0]
+    (run_tensor "grad (fn w: tensor<float>[2] -> dot(3.0 * w, w)) [1.0, 2.0]")
+
+(* Numerical check: central finite differences elementwise against the
+   compiler's gradient for a non-trivial loss. *)
+let test_tgrad_numerical () =
+  let loss_src w0 w1 =
+    Printf.sprintf
+      "let x = [[1.0, 2.0], [3.0, 4.0]] in \
+       let y = [5.0, 6.0] in \
+       let w = [%.17g, %.17g] in \
+       let e = dot(x, w) - y in dot(e, e) + dot(w, w)" w0 w1
+  in
+  let eval w0 w1 = run_float (loss_src w0 w1) in
+  let w0 = 0.3 and w1 = -0.7 and h = 1e-5 in
+  let fd0 = (eval (w0 +. h) w1 -. eval (w0 -. h) w1) /. (2.0 *. h) in
+  let fd1 = (eval w0 (w1 +. h) -. eval w0 (w1 -. h)) /. (2.0 *. h) in
+  let g = run_tensor
+    (Printf.sprintf
+      "let x = [[1.0, 2.0], [3.0, 4.0]] in \
+       let y = [5.0, 6.0] in \
+       grad (fn w: tensor<float>[2] -> \
+         let e = dot(x, w) - y in dot(e, e) + dot(w, w)) [%.17g, %.17g]" w0 w1)
+  in
+  Alcotest.(check (float 1e-4)) "d/dw0" fd0 g.Vm.data.(0);
+  Alcotest.(check (float 1e-4)) "d/dw1" fd1 g.Vm.data.(1)
+
+(* Training end to end: gradient descent on the feature-mapped XOR
+   problem converges to the exact solution [1, 1, -2]. *)
+let test_tgrad_xor_training () =
+  let w = run_tensor
+    "let x = [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 1.0]] in \
+     let y = [0.0, 1.0, 1.0, 0.0] in \
+     let dloss = grad (fn w: tensor<float>[3] -> \
+       let e = dot(x, w) - y in dot(e, e)) in \
+     letrec train = fn n -> \
+       if n < 0.5 then [0.0, 0.0, 0.0] else \
+       let w = train (n - 1.0) in \
+       w - 0.1 * dloss w \
+     in train 200.0"
+  in
+  Alcotest.(check (float 1e-3)) "w0" 1.0 w.Vm.data.(0);
+  Alcotest.(check (float 1e-3)) "w1" 1.0 w.Vm.data.(1);
+  Alcotest.(check (float 1e-3)) "w2" (-2.0) w.Vm.data.(2)
+
+let tgrad_raises s =
+  try ignore (run s); false
+  with Autodiff.Grad_error _ -> true
+
+(* Tensor bodies without the annotation cannot be ranked; rejected. *)
+let test_tgrad_reject_unannotated () =
+  Alcotest.(check bool) "unannotated tensor grad is rejected" true
+    (tgrad_raises "grad (fn w -> dot(w, w)) [1.0, 2.0]")
+
+(* The matrix side of a matrix-vector dot needs an outer product. *)
+let test_tgrad_reject_outer_product () =
+  Alcotest.(check bool) "matrix-side pullback is rejected" true
+    (tgrad_raises
+      "let v = [1.0, 2.0] in \
+       grad (fn m: tensor<float>[2,2] -> dot(dot(m, v), v)) [[1.0, 0.0], [0.0, 1.0]]")
+
+(* Loss must be scalar. *)
+let test_tgrad_reject_tensor_valued () =
+  Alcotest.(check bool) "tensor-valued body is rejected" true
+    (tgrad_raises "grad (fn w: tensor<float>[2] -> 2.0 * w) [1.0, 2.0]")
+
+let tensor_grad_tests = [
+  "dot_self", `Quick, test_tgrad_dot_self;
+  "matvec_loss", `Quick, test_tgrad_matvec_loss;
+  "scaled", `Quick, test_tgrad_scaled;
+  "numerical_check", `Quick, test_tgrad_numerical;
+  "xor_training", `Quick, test_tgrad_xor_training;
+  "reject_unannotated", `Quick, test_tgrad_reject_unannotated;
+  "reject_outer_product", `Quick, test_tgrad_reject_outer_product;
+  "reject_tensor_valued", `Quick, test_tgrad_reject_tensor_valued;
+]
+
 let tensor_arith_tests = [
   "elementwise_add", `Quick, test_elementwise_add;
   "elementwise_sub", `Quick, test_elementwise_sub;
@@ -781,5 +878,6 @@ let () =
     "Negative", negative_tests;
     "Lowering", lowering_tests;
     "TensorArith", tensor_arith_tests;
+    "TensorGrad", tensor_grad_tests;
     "Autodiff", autodiff_tests;
   ]
