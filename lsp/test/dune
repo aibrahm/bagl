@@ -1,0 +1,5 @@
+(test
+ (name test_lsp)
+ (libraries yojson unix)
+ (action
+  (run %{test} %{exe:../lsp_main.exe})))
