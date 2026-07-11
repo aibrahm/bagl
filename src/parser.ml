@@ -124,52 +124,51 @@ let parse_shape p =
   end
 
 (** Parse a type annotation *)
-let parse_type_annot_impl p =
-  let rec parse_arrow_type () =
-    let left = parse_simple_type () in
-    if match_token p ARROW then
-      TAArrow (left, parse_arrow_type ())
-    else
-      left
+let rec parse_arrow_type p =
+  let left = parse_simple_type p in
+  if match_token p ARROW then
+    TAArrow (left, parse_arrow_type p)
+  else
+    left
 
-  and parse_simple_type () =
-    match p.current.value with
-    | INT_TYPE ->
-        advance p;
-        TAInt
-    | FLOAT_TYPE ->
-        advance p;
-        TAFloat
-    | BOOL_TYPE ->
-        advance p;
-        TABool
-    | STRING_TYPE ->
-        advance p;
-        TAString
-    | TENSOR ->
-        advance p;
-        (* tensor<elem>[shape] *)
-        ignore (expect p LT "Expected '<' after 'tensor'");
-        let elem = parse_arrow_type () in
-        ignore (expect p GT "Expected '>' after element type");
-        let shape = parse_shape p in
-        TATensor (elem, shape)
-    | QUOTE ->
-        advance p;
-        begin match p.current.value with
-        | IDENT s ->
-            advance p;
-            TAVar s
-        | _ -> error p "Expected identifier after ' in type variable"
-        end
-    | LPAREN ->
-        advance p;
-        let t = parse_arrow_type () in
-        ignore (expect p RPAREN "Expected ')' after type");
-        t
-    | _ -> error p "Expected type"
-  in
-  parse_arrow_type ()
+and parse_simple_type p =
+  match p.current.value with
+  | INT_TYPE ->
+      advance p;
+      TAInt
+  | FLOAT_TYPE ->
+      advance p;
+      TAFloat
+  | BOOL_TYPE ->
+      advance p;
+      TABool
+  | STRING_TYPE ->
+      advance p;
+      TAString
+  | TENSOR ->
+      advance p;
+      (* tensor<elem>[shape] *)
+      ignore (expect p LT "Expected '<' after 'tensor'");
+      let elem = parse_arrow_type p in
+      ignore (expect p GT "Expected '>' after element type");
+      let shape = parse_shape p in
+      TATensor (elem, shape)
+  | QUOTE ->
+      advance p;
+      begin match p.current.value with
+      | IDENT s ->
+          advance p;
+          TAVar s
+      | _ -> error p "Expected identifier after ' in type variable"
+      end
+  | LPAREN ->
+      advance p;
+      let t = parse_arrow_type p in
+      ignore (expect p RPAREN "Expected ')' after type");
+      t
+  | _ -> error p "Expected type"
+
+let parse_type_annot_impl = parse_arrow_type
 
 let () = parse_type_annot := parse_type_annot_impl
 
@@ -177,6 +176,15 @@ let () = parse_type_annot := parse_type_annot_impl
 let parse_type_annot_opt p =
   if match_token p COLON then
     Some (!parse_type_annot p)
+  else
+    None
+
+(** Parse an optional parameter annotation. A parameter annotation must not
+    consume the fn's own '->', so it parses a non-arrow type; an arrow type
+    is still expressible with parentheses: [fn f: (int -> int) -> ...]. *)
+let parse_param_annot_opt p =
+  if match_token p COLON then
+    Some (parse_simple_type p)
   else
     None
 
@@ -371,7 +379,7 @@ let parse_fn p =
     | IDENT s -> advance p; s
     | _ -> error p "Expected parameter name after 'fn'"
   in
-  let param_annot = parse_type_annot_opt p in
+  let param_annot = parse_param_annot_opt p in
   ignore (expect p ARROW "Expected '->' after function parameter");
   let body = !parse_expr p in
   let span = merge_spans start_pos body.loc in
