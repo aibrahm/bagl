@@ -328,9 +328,16 @@ let rec lower_expr ctx expr =
           let param_var = 0 in
           let nested_func = create_func ctx.program "<lambda>" [param_var] (List.length free_vars) in
 
-          (* Set up captures in nested function *)
+          (* Set up captures in nested function. Seed the parameter's type
+             from the recursive binding's arrow type so float-vs-int opcode
+             selection is correct inside the body. *)
           let nested_ctx = create_ctx ctx.program nested_func ctx.type_env in
-          let nested_ctx = { nested_ctx with env = [(param, param_var)] } in
+          let param_env = match Types.find_ty rec_ty with
+            | Types.TArrow (pt, _) -> [(param, Types.mono_scheme pt)]
+            | _ -> []
+          in
+          let nested_ctx = { nested_ctx with env = [(param, param_var)];
+                                             type_env = param_env @ nested_ctx.type_env } in
 
           (* Add capture loads - all free vars including self *)
           let nested_ctx = List.fold_left2 (fun nctx fname idx ->
@@ -361,12 +368,23 @@ let rec lower_expr ctx expr =
       let param_var = 0 in  (* Parameter is always var 0 *)
       let nested_func = create_func ctx.program "<lambda>" [param_var] (List.length free_vars) in
 
-      (* Set up captures in nested function. When the parameter is annotated,
-         seed the type environment with its type so float-vs-int opcode
-         selection is correct for a body that mentions only the parameter. *)
+      (* Set up captures in nested function. Seed the type environment with
+         the parameter's type so float-vs-int opcode selection is correct for
+         a body that mentions only the parameter: use the annotation if there
+         is one, otherwise infer the lambda itself in the enclosing type
+         environment and take the arrow's domain. *)
       let nested_ctx = create_ctx ctx.program nested_func ctx.type_env in
-      let param_env = match param_annot with
-        | Some annot -> [(param, Types.mono_scheme (Typeinfer.type_annot_to_ty annot))]
+      let param_ty = match param_annot with
+        | Some annot -> Some (Typeinfer.type_annot_to_ty annot)
+        | None ->
+            (try
+              match Types.find_ty (Typeinfer.infer_expr ctx.type_env expr) with
+              | Types.TArrow (pt, _) -> Some pt
+              | _ -> None
+            with Typeinfer.Type_error _ -> None)
+      in
+      let param_env = match param_ty with
+        | Some ty -> [(param, Types.mono_scheme ty)]
         | None -> []
       in
       let nested_ctx = { nested_ctx with env = [(param, param_var)];
