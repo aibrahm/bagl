@@ -95,27 +95,59 @@ let rec unify span t1 t2 =
       type_error span (Printf.sprintf "Cannot unify %s with %s"
         (string_of_ty t1) (string_of_ty t2))
 
-(** Convert AST type annotation to internal type *)
-let rec type_annot_to_ty annot =
-  match annot with
-  | TAInt -> TInt
-  | TAFloat -> TFloat
-  | TABool -> TBool
-  | TAString -> TString
-  | TAVar _ ->
-      (* Type variables in annotations become fresh type variables *)
-      fresh_ty_var (get_level ())
-  | TAArrow (t1, t2) ->
-      TArrow (type_annot_to_ty t1, type_annot_to_ty t2)
-  | TATensor (elem, shape) ->
-      TTensor (type_annot_to_ty elem, ast_shape_to_shape shape)
+(** Convert AST type annotation to internal type. Within one annotation, all
+    occurrences of the same named variable ('a, 'n) share a single fresh
+    variable, so tensor<float>['n,'n] really constrains the tensor to be
+    square and 'a -> 'a really constrains domain and codomain to match. *)
+let type_annot_to_ty annot =
+  let ty_vars = Hashtbl.create 4 in
+  let dim_vars = Hashtbl.create 4 in
+  let rec go annot =
+    match annot with
+    | TAInt -> TInt
+    | TAFloat -> TFloat
+    | TABool -> TBool
+    | TAString -> TString
+    | TAVar name ->
+        begin match Hashtbl.find_opt ty_vars name with
+        | Some t -> t
+        | None ->
+            let t = fresh_ty_var (get_level ()) in
+            Hashtbl.add ty_vars name t;
+            t
+        end
+    | TAArrow (t1, t2) ->
+        TArrow (go t1, go t2)
+    | TATensor (elem, shape) ->
+        TTensor (go elem, List.map go_dim shape)
+  and go_dim = function
+    | DimConst n -> SDimConst n
+    | DimVar name ->
+        begin match Hashtbl.find_opt dim_vars name with
+        | Some d -> d
+        | None ->
+            let d = fresh_dim_var () in
+            Hashtbl.add dim_vars name d;
+            d
+        end
+  in
+  go annot
 
-and ast_shape_to_shape shape =
-  List.map ast_dim_to_dim shape
-
-and ast_dim_to_dim = function
-  | DimConst n -> SDimConst n
-  | DimVar _ -> fresh_dim_var ()
+(** Convert a bare AST shape (outside a full annotation): each named
+    dimension variable is shared within the shape. *)
+let ast_shape_to_shape shape =
+  let dim_vars = Hashtbl.create 4 in
+  List.map (function
+    | DimConst n -> SDimConst n
+    | DimVar name ->
+        begin match Hashtbl.find_opt dim_vars name with
+        | Some d -> d
+        | None ->
+            let d = fresh_dim_var () in
+            Hashtbl.add dim_vars name d;
+            d
+        end
+  ) shape
 
 (** Infer type for binary operators *)
 let infer_binop span op t1 t2 =
@@ -127,11 +159,11 @@ let infer_binop span op t1 t2 =
          operand is defaulted to int. The rule is symmetric, so [x + 1.0]
          and [1.0 + x] behave identically, and [fn x -> x + x] is int. *)
       begin match find_ty t1, find_ty t2 with
-      | TTensor (elem1, shape1), TTensor (elem2, shape2) ->
-          (* Element-wise operations on tensors *)
-          unify span elem1 elem2;
-          unify_shape span shape1 shape2;
-          TTensor (elem1, shape1)
+      | TTensor _, _ | _, TTensor _ ->
+          (* The VM has no element-wise tensor opcodes, so this is rejected
+             here rather than crashing at runtime. *)
+          type_error span
+            "Element-wise tensor arithmetic is not implemented; tensors support dot, transpose, and reshape"
       | TFloat, _ | _, TFloat ->
           unify span t1 TFloat;
           unify span t2 TFloat;
@@ -143,9 +175,15 @@ let infer_binop span op t1 t2 =
       end
 
   | Eq | Neq ->
-      (* Equality: both operands must have same type, result is bool *)
+      (* Equality: both operands must have same type, result is bool.
+         The VM compares scalar values only, so tensor and function
+         equality is rejected here rather than silently returning false. *)
       unify span t1 t2;
-      TBool
+      begin match find_ty t1 with
+      | TTensor _ -> type_error span "Equality is not defined for tensors"
+      | TArrow _ -> type_error span "Equality is not defined for functions"
+      | _ -> TBool
+      end
 
   | Lt | Gt | Le | Ge ->
       (* Comparison: same numeric resolution as arithmetic, result is bool. *)
@@ -373,6 +411,14 @@ let rec infer env expr =
       let shapes = List.map (fun t ->
         match find_ty t with
         | TTensor (_, shape) -> shape
+        | TVar _ ->
+            (* Not yet resolved (e.g. a lambda parameter): unify it with a
+               fresh rank-2 float tensor so functions over tensors work.
+               Rank defaults to 2 when nothing else constrains it; a 1D
+               argument needs an annotation like tensor<float>['n]. *)
+            let shape = [fresh_dim_var (); fresh_dim_var ()] in
+            unify span t (TTensor (TFloat, shape));
+            shape
         | _ -> type_error span "Tensor operation requires tensor arguments"
       ) arg_types in
       (* Get element type (all tensors should have same element type) *)
