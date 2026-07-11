@@ -46,10 +46,11 @@ type t = {
 (** Runtime error *)
 exception Runtime_error of string
 
-(** Create initial VM state *)
+(** Create initial VM state. Locals are sized from the entry chunk so a
+    program with many bindings cannot run off the end of the array. *)
 let create program =
   let stack_size = 1024 in
-  let locals_size = 256 in
+  let locals_size = max 256 program.chunks.(program.entry).num_locals in
   {
     program;
     stack = Array.make stack_size VUnit;
@@ -492,10 +493,11 @@ let step vm =
       } in
       vm.frames <- frame :: vm.frames;
 
-      (* Set up new frame *)
+      (* Set up new frame; locals sized from the callee's chunk *)
       vm.chunk_id <- closure.func_id;
       vm.pc <- 0;
-      vm.locals <- Array.make 256 VUnit;
+      let callee = vm.program.chunks.(closure.func_id) in
+      vm.locals <- Array.make (max 256 callee.num_locals) VUnit;
 
       (* Copy arguments to locals *)
       Array.iteri (fun i arg -> vm.locals.(i) <- arg) args;

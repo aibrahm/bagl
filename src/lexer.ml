@@ -148,7 +148,9 @@ let read_number lexer =
   if is_float then
     { value = FLOAT_LIT (float_of_string str); loc = span }
   else
-    { value = INT_LIT (int_of_string str); loc = span }
+    match int_of_string_opt str with
+    | Some n -> { value = INT_LIT n; loc = span }
+    | None -> error lexer start_pos "Integer literal out of range"
 
 (** Read an identifier or keyword *)
 let read_identifier lexer =

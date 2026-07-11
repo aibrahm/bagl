@@ -112,8 +112,12 @@ let compile_file options filename =
 (** Run a source file *)
 let run_file options filename =
   let bytecode = compile_file options filename in
-  let result = Vm.execute bytecode in
-  print_endline (Vm.string_of_value result)
+  try
+    let result = Vm.execute bytecode in
+    print_endline (Vm.string_of_value result)
+  with Vm.Runtime_error msg ->
+    Printf.eprintf "Runtime error: %s\n" msg;
+    exit 1
 
 (** Compile to .baglc file *)
 let compile_to_file options filename =
@@ -132,8 +136,12 @@ let compile_to_file options filename =
 (** Run a .baglc file *)
 let run_bytecode_file filename =
   let bytecode = Serialize.read_file filename in
-  let result = Vm.execute bytecode in
-  print_endline (Vm.string_of_value result)
+  try
+    let result = Vm.execute bytecode in
+    print_endline (Vm.string_of_value result)
+  with Vm.Runtime_error msg ->
+    Printf.eprintf "Runtime error: %s\n" msg;
+    exit 1
 
 (** REPL state *)
 type repl_state = {

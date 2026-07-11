@@ -18,13 +18,15 @@ let write_int32 oc n =
   output_char oc (Char.chr ((n lsr 8) land 0xff));
   output_char oc (Char.chr (n land 0xff))
 
-(** Read an integer as 4 bytes (big-endian) *)
+(** Read an integer as 4 bytes (big-endian), sign-extending so negative
+    integers round-trip correctly *)
 let read_int32 ic =
   let b0 = Char.code (input_char ic) in
   let b1 = Char.code (input_char ic) in
   let b2 = Char.code (input_char ic) in
   let b3 = Char.code (input_char ic) in
-  (b0 lsl 24) lor (b1 lsl 16) lor (b2 lsl 8) lor b3
+  let n = (b0 lsl 24) lor (b1 lsl 16) lor (b2 lsl 8) lor b3 in
+  if n land 0x80000000 <> 0 then n - 0x100000000 else n
 
 (** Write a float as 8 bytes *)
 let write_float oc f =
