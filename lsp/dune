@@ -1,0 +1,5 @@
+(executable
+ (name lsp_main)
+ (public_name bagl-lsp)
+ (package bagl)
+ (libraries bagl yojson))
