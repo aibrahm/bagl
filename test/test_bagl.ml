@@ -37,6 +37,17 @@ let run s =
   let bytecode = Codegen.generate optimized in
   Vm.execute bytecode
 
+(* Helper: run and expect a tensor result *)
+let run_tensor s =
+  match run s with
+  | Vm.VTensor t -> t
+  | v -> Alcotest.failf "Expected tensor, got %s" (Vm.string_of_value v)
+
+(* Helper: true when the program is rejected by the type checker *)
+let is_rejected s =
+  try ignore (typecheck s); false
+  with Typeinfer.Type_error _ -> true
+
 (* ===== Lexer Tests ===== *)
 
 let test_lexer_integers () =
@@ -191,8 +202,13 @@ let test_type_fn () =
   match typed with
   | [(_, ty)] ->
       begin match Types.find_ty ty with
-      | Types.TArrow (Types.TInt, Types.TInt) -> ()
-      | Types.TArrow _ -> ()  (* Could have type variable *)
+      | Types.TArrow (dom, cod) ->
+          begin match Types.find_ty dom, Types.find_ty cod with
+          | Types.TInt, Types.TInt -> ()
+          | d, c ->
+              Alcotest.failf "Expected int -> int, got %s -> %s"
+                (Types.string_of_ty d) (Types.string_of_ty c)
+          end
       | _ -> Alcotest.fail "Expected TArrow"
       end
   | _ -> Alcotest.fail "Expected one declaration"
@@ -326,6 +342,98 @@ let test_run_letrec_sum () =
   | Vm.VInt 55 -> ()
   | _ -> Alcotest.fail "Expected VInt 55"
 
+(* ===== Regression: type-directed lowering and annotations ===== *)
+
+(* A float parameter used on its own must lower to float opcodes even
+   without an annotation; this used to crash the VM with "Expected int". *)
+let test_run_float_param () =
+  let result = run "let f = fn x -> (x + 1.0) + x in f 2.0" in
+  match result with
+  | Vm.VFloat f -> Alcotest.(check (float 1e-9)) "float param" 5.0 f
+  | v -> Alcotest.failf "Expected VFloat, got %s" (Vm.string_of_value v)
+
+(* Parameter annotations used to be unparseable: the type parser consumed
+   the fn's own arrow. *)
+let test_run_annotated_param () =
+  let result = run "let f = fn x: int -> x + 1 in f 2" in
+  match result with
+  | Vm.VInt 3 -> ()
+  | v -> Alcotest.failf "Expected VInt 3, got %s" (Vm.string_of_value v)
+
+let test_run_annotated_float_param () =
+  let result = run "let f = fn x: float -> x + x in f 2.5" in
+  match result with
+  | Vm.VFloat f -> Alcotest.(check (float 1e-9)) "annotated float" 5.0 f
+  | v -> Alcotest.failf "Expected VFloat, got %s" (Vm.string_of_value v)
+
+(* An arrow-typed parameter is still expressible with parentheses. *)
+let test_run_arrow_annotated_param () =
+  let result = run "let apply = fn f: (int -> int) -> f 4 in apply (fn y -> y + 1)" in
+  match result with
+  | Vm.VInt 5 -> ()
+  | v -> Alcotest.failf "Expected VInt 5, got %s" (Vm.string_of_value v)
+
+(* Functions over tensors: the tensor op unifies its argument instead of
+   demanding an already-concrete tensor. *)
+let test_run_tensor_param () =
+  let t = run_tensor
+    "let f = fn a -> dot(a, [[1.0, 0.0], [0.0, 1.0]]) in f [[1.0, 2.0], [3.0, 4.0]]" in
+  Alcotest.(check (list int)) "shape" [2; 2] t.Vm.shape;
+  Alcotest.(check (list (float 0.0))) "data"
+    [1.0; 2.0; 3.0; 4.0] (Array.to_list t.Vm.data)
+
+(* Repeated dimension variables constrain: ['n,'n] means square. *)
+let test_reject_dim_var_mismatch () =
+  Alcotest.(check bool) "2x3 into ['n,'n] is rejected" true
+    (is_rejected "let m: tensor<float>['n,'n] = [[1.0,2.0,3.0],[4.0,5.0,6.0]] in m")
+
+let test_accept_dim_var_square () =
+  let t = run_tensor "let m: tensor<float>['n,'n] = [[1.0,2.0],[3.0,4.0]] in m" in
+  Alcotest.(check (list int)) "shape" [2; 2] t.Vm.shape
+
+(* These used to typecheck and then crash or lie in the VM. *)
+let test_reject_tensor_arith () =
+  Alcotest.(check bool) "tensor + tensor is rejected" true
+    (is_rejected "[1.0, 2.0] + [3.0, 4.0]")
+
+let test_reject_tensor_eq () =
+  Alcotest.(check bool) "tensor equality is rejected" true
+    (is_rejected "[1.0, 2.0] == [1.0, 2.0]")
+
+let test_reject_fn_eq () =
+  Alcotest.(check bool) "function equality is rejected" true
+    (is_rejected "(fn x -> x) == (fn x -> x)")
+
+(* Serialization round-trip: negative ints must sign-extend. *)
+let test_serialize_negative_int () =
+  let program = parse_program "0 - 5" in
+  let typed = Typeinfer.infer_program program in
+  let ir = Ir.lower_program typed in
+  let bytecode = Codegen.generate ir in
+  let path = Filename.temp_file "bagl_test" ".baglc" in
+  Serialize.write_file path bytecode;
+  let loaded = Serialize.read_file path in
+  Sys.remove path;
+  match Vm.execute loaded with
+  | Vm.VInt (-5) -> ()
+  | v -> Alcotest.failf "Expected VInt -5, got %s" (Vm.string_of_value v)
+
+(* Locals are sized from the chunk: many bindings must not overflow the
+   fixed default, including unoptimized where nothing is folded away. *)
+let test_run_many_locals_unoptimized () =
+  let buf = Buffer.create 4096 in
+  for i = 0 to 299 do
+    Buffer.add_string buf (Printf.sprintf "let v%d = %d in\n" i i)
+  done;
+  Buffer.add_string buf "v299";
+  let program = parse_program (Buffer.contents buf) in
+  let typed = Typeinfer.infer_program program in
+  let ir = Ir.lower_program typed in
+  let bytecode = Codegen.generate ir in
+  match Vm.execute bytecode with
+  | Vm.VInt 299 -> ()
+  | v -> Alcotest.failf "Expected VInt 299, got %s" (Vm.string_of_value v)
+
 (* ===== Automatic differentiation ===== *)
 
 let run_float s =
@@ -387,11 +495,6 @@ let test_grad_reject_nonfn () =
 
 (* ===== Tensor numeric results end to end ===== *)
 
-let run_tensor s =
-  match run s with
-  | Vm.VTensor t -> t
-  | v -> Alcotest.failf "Expected tensor, got %s" (Vm.string_of_value v)
-
 let test_run_matmul () =
   let t = run_tensor
     "let a = [[1.0, 2.0], [3.0, 4.0]] in \
@@ -413,10 +516,6 @@ let test_run_transpose () =
     [1.0; 4.0; 2.0; 5.0; 3.0; 6.0] (Array.to_list t.Vm.data)
 
 (* ===== Negative tests: programs that must be rejected ===== *)
-
-let is_rejected s =
-  try ignore (typecheck s); false
-  with Typeinfer.Type_error _ -> true
 
 let test_reject_shape_mismatch () =
   Alcotest.(check bool) "dot with incompatible inner dims is rejected" true
@@ -500,6 +599,21 @@ let negative_tests = [
   "int_tensor", `Quick, test_reject_int_tensor;
 ]
 
+let lowering_tests = [
+  "float_param", `Quick, test_run_float_param;
+  "annotated_param", `Quick, test_run_annotated_param;
+  "annotated_float_param", `Quick, test_run_annotated_float_param;
+  "arrow_annotated_param", `Quick, test_run_arrow_annotated_param;
+  "tensor_param", `Quick, test_run_tensor_param;
+  "dim_var_mismatch", `Quick, test_reject_dim_var_mismatch;
+  "dim_var_square", `Quick, test_accept_dim_var_square;
+  "reject_tensor_arith", `Quick, test_reject_tensor_arith;
+  "reject_tensor_eq", `Quick, test_reject_tensor_eq;
+  "reject_fn_eq", `Quick, test_reject_fn_eq;
+  "serialize_negative_int", `Quick, test_serialize_negative_int;
+  "many_locals_unoptimized", `Quick, test_run_many_locals_unoptimized;
+]
+
 let autodiff_tests = [
   "square", `Quick, test_grad_square;
   "cube", `Quick, test_grad_cube;
@@ -521,5 +635,6 @@ let () =
     "Run", run_tests;
     "Tensor", tensor_tests;
     "Negative", negative_tests;
+    "Lowering", lowering_tests;
     "Autodiff", autodiff_tests;
   ]
