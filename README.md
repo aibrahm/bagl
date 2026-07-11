@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/aibrahm/bagl/actions/workflows/ci.yml/badge.svg)](https://github.com/aibrahm/bagl/actions/workflows/ci.yml)
 ![OCaml](https://img.shields.io/badge/OCaml-5.2-orange)
-![Tests](https://img.shields.io/badge/tests-68%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A statically-typed functional programming language with first-class tensor support and compile-time shape checking.

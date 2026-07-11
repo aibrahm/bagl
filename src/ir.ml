@@ -300,8 +300,18 @@ let rec lower_expr ctx expr =
   | Ast.ELetRec { name; value; body; _ } ->
       (* For recursive bindings, the function must capture itself *)
       let rec_var = fresh_var ctx.func in
-      (* Get the type of the recursive binding *)
-      let rec_ty = try Typeinfer.infer_expr ctx.type_env value with Typeinfer.Type_error _ -> Types.TInt in
+      (* Get the type of the recursive binding. The value mentions the
+         binding itself, so infer it the way typeinfer does: with the name
+         bound to a fresh variable that the result is unified with. *)
+      let rec_ty =
+        try
+          let tv = Types.fresh_ty_var 0 in
+          let rec_env = (name, Types.mono_scheme tv) :: ctx.type_env in
+          let inferred = Typeinfer.infer_expr rec_env value in
+          Typeinfer.unify value.loc tv inferred;
+          Types.find_ty inferred
+        with Typeinfer.Type_error _ -> Types.TInt
+      in
       (* Add it to the environment so the function body can reference it *)
       let ctx' = extend_env_typed ctx name rec_var rec_ty in
       (* Now lower the function value with the recursive binding in scope *)
@@ -328,10 +338,12 @@ let rec lower_expr ctx expr =
           let param_var = 0 in
           let nested_func = create_func ctx.program "<lambda>" [param_var] (List.length free_vars) in
 
-          (* Set up captures in nested function. Seed the parameter's type
-             from the recursive binding's arrow type so float-vs-int opcode
-             selection is correct inside the body. *)
-          let nested_ctx = create_ctx ctx.program nested_func ctx.type_env in
+          (* Set up captures in nested function. Use the type environment
+             that already contains the recursive binding, and seed the
+             parameter's type from the binding's arrow type, so float-vs-int
+             opcode selection is correct inside the body (including for the
+             results of recursive calls). *)
+          let nested_ctx = create_ctx ctx.program nested_func ctx'.type_env in
           let param_env = match Types.find_ty rec_ty with
             | Types.TArrow (pt, _) -> [(param, Types.mono_scheme pt)]
             | _ -> []

@@ -31,6 +31,27 @@ let enter_level () = incr current_level
 let leave_level () = decr current_level
 let get_level () = !current_level
 
+(** Numeric operands whose int-vs-float choice is deferred. Arithmetic on two
+    still-unresolved operands unifies them with each other and records them
+    here instead of committing to int on the spot; any that are still
+    unresolved when their binding is generalized default to int then. This
+    keeps the documented int-defaulting while making it order-independent:
+    [fn x -> (x + x) + 1.0] is float, [fn x -> x + x] is int. *)
+let numeric_pending : ty list ref = ref []
+
+let default_numeric_vars () =
+  numeric_pending := List.filter (fun t ->
+    match find_ty t with
+    | TVar ({ contents = Unbound (_, lvl) } as r) ->
+        if lvl > get_level () then begin
+          r := Link TInt;
+          false
+        end else
+          true  (* owned by an outer binding; leave it pending *)
+    | TVar _ -> true
+    | _ -> false  (* resolved concretely in the meantime *)
+  ) !numeric_pending
+
 (** Unification of dimensions *)
 let rec unify_dim span d1 d2 =
   let d1 = find_dim d1 in
@@ -168,6 +189,17 @@ let infer_binop span op t1 t2 =
           unify span t1 TFloat;
           unify span t2 TFloat;
           TFloat
+      | (TInt | TVar _), (TInt | TVar _) ->
+          (* Neither side resolved yet: tie them together and defer the
+             int default until this binding is generalized, so a later
+             float constraint can still win regardless of operand order. *)
+          unify span t1 t2;
+          begin match find_ty t1 with
+          | TVar _ as t ->
+              numeric_pending := t1 :: !numeric_pending;
+              t
+          | t -> t
+          end
       | _ ->
           unify span t1 TInt;
           unify span t2 TInt;
@@ -192,6 +224,13 @@ let infer_binop span op t1 t2 =
           unify span t1 TFloat;
           unify span t2 TFloat;
           TBool
+      | (TInt | TVar _), (TInt | TVar _) ->
+          unify span t1 t2;
+          begin match find_ty t1 with
+          | TVar _ -> numeric_pending := t1 :: !numeric_pending
+          | _ -> ()
+          end;
+          TBool
       | _ ->
           unify span t1 TInt;
           unify span t2 TInt;
@@ -211,6 +250,9 @@ let infer_unop span op t =
       begin match find_ty t with
       | TInt -> TInt
       | TFloat -> TFloat
+      | TVar _ as tv ->
+          numeric_pending := t :: !numeric_pending;
+          tv
       | _ ->
           unify span t TInt;
           TInt
@@ -346,7 +388,8 @@ let rec infer env expr =
           unify value.loc expected value_ty
       | None -> ()
       end;
-      (* Generalize the value type *)
+      (* Default deferred numeric operands, then generalize *)
+      default_numeric_vars ();
       let scheme = generalize (get_level ()) value_ty in
       let env' = extend_env env name scheme in
       infer env' body
@@ -366,7 +409,8 @@ let rec infer env expr =
       (* Unify the recursive type with inferred type *)
       unify value.loc rec_ty value_ty;
       leave_level ();
-      (* Generalize and add to environment for body *)
+      (* Default deferred numeric operands, then generalize *)
+      default_numeric_vars ();
       let scheme = generalize (get_level ()) rec_ty in
       let env'' = extend_env env name scheme in
       infer env'' body
@@ -451,6 +495,7 @@ let infer_decl env decl =
           unify value.loc expected value_ty
       | None -> ()
       end;
+      default_numeric_vars ();
       let scheme = generalize (get_level ()) value_ty in
       let env' = extend_env env name scheme in
       (env', value_ty)
@@ -462,6 +507,7 @@ let infer_decl env decl =
 let infer_program program =
   Types.reset_counters ();
   current_level := 0;
+  numeric_pending := [];
   let env = [] in
   let rec loop env results = function
     | [] -> List.rev results

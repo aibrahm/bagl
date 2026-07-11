@@ -481,6 +481,41 @@ let test_grad_if () =
   Alcotest.(check (float 1e-9)) "if branch at 4" 8.0
     (run_float "grad (fn x -> if x > 0.0 then x * x else x) 4.0")
 
+(* Numeric defaulting is deferred, so a float constraint wins regardless of
+   operand order: (x + x) + 1.0 used to fail because x*x committed to int. *)
+let test_float_op_order () =
+  Alcotest.(check (float 1e-9)) "(x+x)+1.0 at 2" 5.0
+    (run_float "let f = fn x -> (x + x) + 1.0 in f 2.0")
+
+(* The result of a recursive call must lower with its real type: this used to
+   emit int opcodes for x and crash the VM. *)
+let test_letrec_float_rec_call () =
+  Alcotest.(check (float 1e-9)) "float through rec call" 8.0
+    (run_float "letrec pow = fn n -> if n < 0.5 then 1.0 else 2.0 * pow (n - 1.0) in pow 3.0")
+
+(* End to end: Newton's method for sqrt(2) with a compiler-derived derivative. *)
+let test_grad_newton () =
+  Alcotest.(check (float 1e-9)) "sqrt 2" (sqrt 2.0)
+    (run_float
+      "let f = fn x -> x * x - 2.0 in \
+       let df = grad (fn x -> x * x - 2.0) in \
+       letrec newton = fn n -> \
+         if n < 0.5 then 1.0 else \
+         let x = newton (n - 1.0) in \
+         x - f x / df x \
+       in newton 6.0")
+
+(* End to end: gradient descent on (x-3)^2 converges to 3. *)
+let test_grad_descent () =
+  Alcotest.(check (float 1e-4)) "argmin" 3.0
+    (run_float
+      "let df = grad (fn x -> (x - 3.0) * (x - 3.0)) in \
+       letrec go = fn n -> \
+         if n < 0.5 then 0.0 else \
+         let x = go (n - 1.0) in \
+         x - 0.2 * df x \
+       in go 30.0")
+
 let grad_raises s =
   try ignore (run s); false
   with Autodiff.Grad_error _ -> true
@@ -623,6 +658,10 @@ let autodiff_tests = [
   "neg", `Quick, test_grad_neg;
   "let_chain", `Quick, test_grad_let;
   "if_branch", `Quick, test_grad_if;
+  "float_op_order", `Quick, test_float_op_order;
+  "letrec_float_rec_call", `Quick, test_letrec_float_rec_call;
+  "newton_sqrt2", `Quick, test_grad_newton;
+  "gradient_descent", `Quick, test_grad_descent;
   "reject_call", `Quick, test_grad_reject_call;
   "reject_nonfn", `Quick, test_grad_reject_nonfn;
 ]
