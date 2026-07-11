@@ -154,6 +154,24 @@ letrec newton = fn n ->
   x - f x / df x
 in newton 6.0`,
 
+  "train xor": `// A model trained in your browser, in Bagl.
+// The gradient of the loss is derived by the compiler
+// (reverse mode), and every step is shape-checked.
+// Exact solution: [1, 1, -2].
+let x = [[0.0, 0.0, 0.0],
+         [0.0, 1.0, 0.0],
+         [1.0, 0.0, 0.0],
+         [1.0, 1.0, 1.0]] in
+let y = [0.0, 1.0, 1.0, 0.0] in
+let dloss = grad (fn w: tensor<float>[3] ->
+  let e = dot(x, w) - y in
+  dot(e, e)) in
+letrec train = fn n ->
+  if n < 0.5 then [0.0, 0.0, 0.0] else
+  let w = train (n - 1.0) in
+  w - 0.1 * dloss w
+in train 200.0`,
+
   "markov": `// Steady state of a Markov chain by power iteration.
 // Every dot() in the loop is shape-checked at compile time.
 let p = [[0.9, 0.1], [0.5, 0.5]] in
