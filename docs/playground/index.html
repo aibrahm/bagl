@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bagl Playground</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #11161d;
+    --edge: #1f2630;
+    --ink: #d6dde6;
+    --dim: #6b7686;
+    --amber: #e8b04b;
+    --green: #7ec699;
+    --red: #e06c75;
+    --blue: #6cb2eb;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 500px at 70% -10%, #16202c 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+    padding: 1.1rem 1.4rem 0.9rem;
+    border-bottom: 1px solid var(--edge);
+  }
+  header h1 {
+    font-size: 1.05rem; letter-spacing: 0.22em; font-weight: 600;
+    color: var(--amber);
+  }
+  header h1::before { content: "λ "; color: var(--dim); }
+  header p { color: var(--dim); font-size: 0.8rem; }
+  header a { color: var(--blue); text-decoration: none; margin-left: auto; font-size: 0.8rem; }
+  header a:hover { text-decoration: underline; }
+  nav {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    padding: 0.7rem 1.4rem;
+  }
+  nav button {
+    font: inherit; font-size: 0.75rem;
+    background: transparent; color: var(--dim);
+    border: 1px solid var(--edge); border-radius: 999px;
+    padding: 0.28rem 0.85rem; cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  nav button:hover, nav button.active { color: var(--amber); border-color: var(--amber); }
+  main {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1px; background: var(--edge); min-height: 0;
+  }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  .pane { background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+  .pane-label {
+    font-size: 0.68rem; letter-spacing: 0.18em; color: var(--dim);
+    padding: 0.55rem 1rem 0.45rem; border-bottom: 1px solid var(--edge);
+    display: flex; justify-content: space-between;
+  }
+  .editor-wrap { flex: 1; display: flex; min-height: 0; }
+  #gutter {
+    padding: 0.9rem 0.4rem 0.9rem 0.9rem; text-align: right;
+    color: #3a4454; font-size: 0.85rem; line-height: 1.55;
+    user-select: none; overflow: hidden; white-space: pre;
+  }
+  #src {
+    flex: 1; background: transparent; color: var(--ink);
+    border: 0; outline: none; resize: none;
+    font: inherit; font-size: 0.85rem; line-height: 1.55;
+    padding: 0.9rem 1rem 0.9rem 0.4rem;
+    white-space: pre; overflow: auto;
+    caret-color: var(--amber);
+  }
+  #out {
+    flex: 1; overflow: auto; padding: 0.9rem 1rem;
+    font-size: 0.85rem; line-height: 1.55; white-space: pre-wrap;
+  }
+  .ok-value { color: var(--green); }
+  .ok-type { color: var(--dim); }
+  .err-head { color: var(--red); font-weight: 600; }
+  .err-src { color: var(--ink); display: block; margin-top: 0.5rem; }
+  .err-caret { color: var(--red); display: block; }
+  .err-loc { color: var(--dim); }
+  .hint { color: var(--dim); }
+  footer {
+    padding: 0.45rem 1.4rem; border-top: 1px solid var(--edge);
+    color: var(--dim); font-size: 0.7rem; display: flex; gap: 1.2rem;
+  }
+  #timing { color: var(--green); }
+</style>
+</head>
+<body>
+<header>
+  <h1>BAGL</h1>
+  <p>a shape-checked, differentiable little language &middot; the whole compiler runs in your browser</p>
+  <a href="https://github.com/aibrahm/bagl">source on GitHub</a>
+</header>
+<nav id="examples"></nav>
+<main>
+  <section class="pane">
+    <div class="pane-label"><span>SOURCE</span><span class="hint">&#8984;&#9166; to run</span></div>
+    <div class="editor-wrap">
+      <div id="gutter">1</div>
+      <textarea id="src" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+    </div>
+  </section>
+  <section class="pane">
+    <div class="pane-label"><span>RESULT</span><span id="timing"></span></div>
+    <div id="out"><span class="hint">loading compiler&hellip;</span></div>
+  </section>
+</main>
+<footer>
+  <span>lexer &rarr; parser &rarr; autodiff &rarr; Hindley-Milner + shapes &rarr; IR &rarr; optimizer &rarr; bytecode VM</span>
+</footer>
+
+<script src="bagl.js"></script>
+<script>
+const EXAMPLES = {
+  "hello": `// Bagl in one snippet: values, functions, recursion
+let square = fn x -> x * x in
+letrec sum = fn n -> if n == 0 then 0 else square n + sum (n - 1)
+in sum 10`,
+
+  "shapes": `// Tensor shapes are types. (2x3) . (3x2) = (2x2)
+let a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in
+let b = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]] in
+dot(a, b)`,
+
+  "shape error": `// Change nothing: this is SUPPOSED to fail.
+// The inner dimensions disagree (3 vs 2), so the
+// compiler rejects it before anything runs.
+let a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in
+let b = [[1.0, 2.0], [3.0, 4.0]] in
+dot(a, b)`,
+
+  "grad": `// The compiler differentiates for you.
+// d/dx (x^3) = 3x^2, so at x = 2 this is 12.
+grad (fn x -> x * x * x) 2.0`,
+
+  "newton": `// Newton's method for sqrt(2). The derivative is not
+// written by hand: grad derives it at compile time.
+let f  = fn x -> x * x - 2.0 in
+let df = grad (fn x -> x * x - 2.0) in
+letrec newton = fn n ->
+  if n < 0.5 then 1.0 else
+  let x = newton (n - 1.0) in
+  x - f x / df x
+in newton 6.0`,
+
+  "markov": `// Steady state of a Markov chain by power iteration.
+// Every dot() in the loop is shape-checked at compile time.
+let p = [[0.9, 0.1], [0.5, 0.5]] in
+letrec iter = fn n ->
+  if n < 0.5 then [[1.0, 0.0], [0.0, 1.0]]
+  else dot(p, iter (n - 1.0))
+in dot([0.5, 0.5], iter 20.0)`
+};
+
+const src = document.getElementById("src");
+const out = document.getElementById("out");
+const gutter = document.getElementById("gutter");
+const timing = document.getElementById("timing");
+const nav = document.getElementById("examples");
+
+const compiler = (typeof bagl !== "undefined") ? bagl
+  : (typeof globalThis.bagl !== "undefined" ? globalThis.bagl : null);
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderLines() {
+  const n = src.value.split("\n").length;
+  gutter.textContent = Array.from({length: n}, (_, i) => i + 1).join("\n");
+}
+
+function render(res, ms) {
+  timing.textContent = ms.toFixed(1) + " ms";
+  if (res.ok) {
+    out.innerHTML = '<span class="ok-value">= ' + esc(res.value) + '</span>' +
+                    '<span class="ok-type"> : ' + esc(res.type) + '</span>';
+    return;
+  }
+  if (res.runtime) {
+    out.innerHTML = '<span class="err-head">runtime error:</span> ' + esc(res.error);
+    return;
+  }
+  const lines = src.value.split("\n");
+  const line = lines[res.line - 1] || "";
+  const from = Math.max(0, res.col - 1);
+  const to = res.endLine === res.line ? Math.max(from + 1, res.endCol - 1) : line.length;
+  const caret = " ".repeat(from) + "^".repeat(Math.max(1, to - from));
+  out.innerHTML =
+    '<span class="err-head">error:</span> ' + esc(res.error) +
+    '\n<span class="err-loc">--&gt; line ' + res.line + ', col ' + res.col + '</span>' +
+    '<span class="err-src">' + esc(line) + '</span>' +
+    '<span class="err-caret">' + esc(caret) + '</span>';
+}
+
+function compile() {
+  if (!compiler) { out.textContent = "compiler failed to load"; return; }
+  const t0 = performance.now();
+  const res = compiler.run(src.value);
+  render(res, performance.now() - t0);
+}
+
+let timer = null;
+src.addEventListener("input", () => {
+  renderLines();
+  clearTimeout(timer);
+  timer = setTimeout(compile, 250);
+});
+src.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); compile(); }
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const s = src.selectionStart, epos = src.selectionEnd;
+    src.setRangeText("  ", s, epos, "end");
+  }
+});
+src.addEventListener("scroll", () => { gutter.scrollTop = src.scrollTop; });
+
+Object.keys(EXAMPLES).forEach((name, i) => {
+  const b = document.createElement("button");
+  b.textContent = name;
+  b.onclick = () => {
+    document.querySelectorAll("nav button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    src.value = EXAMPLES[name];
+    renderLines();
+    compile();
+  };
+  nav.appendChild(b);
+  if (i === 0) b.classList.add("active");
+});
+
+src.value = EXAMPLES["hello"];
+renderLines();
+compile();
+</script>
+</body>
+</html>

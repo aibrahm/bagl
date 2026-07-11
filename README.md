@@ -7,9 +7,13 @@
 
 A statically-typed functional programming language with first-class tensor support and compile-time shape checking.
 
+**[Try it in your browser](https://aibrahm.github.io/bagl/playground/)** - the whole compiler runs client-side via js_of_ocaml.
+
 | Shape errors caught at compile time | REPL with Hindley-Milner inference |
 |---|---|
 | ![Compile-time shape checking](docs/screenshots/shape-error.png) | ![REPL](docs/screenshots/repl.png) |
+
+![Browser playground](docs/screenshots/playground.png)
 
 ## Features
 
@@ -20,6 +24,7 @@ A statically-typed functional programming language with first-class tensor suppo
 - **Automatic Differentiation** - `grad (fn x -> ...)` rewrites a scalar function into its derivative at compile time
 - **Stack-Based VM** - Efficient bytecode execution
 - **Bytecode Serialization** - Compile once, run anywhere with `.baglc` files
+- **Browser Playground** - The full compiler compiled to 147 KB of JavaScript, [live here](https://aibrahm.github.io/bagl/playground/)
 
 ## Installation
 
@@ -199,6 +204,8 @@ bagl/
 │   └── errors.ml      -- Error handling
 ├── bin/
 │   └── main.ml        -- CLI entry point
+├── js/
+│   └── bagl_js.ml     -- js_of_ocaml entry point for the browser playground
 ├── examples/          -- Example programs
 ├── test/              -- Test suite
 └── docs/

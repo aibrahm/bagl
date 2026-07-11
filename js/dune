@@ -1,0 +1,9 @@
+; The playground target is optional so a checkout without js_of_ocaml
+; still builds the compiler; CI installs js_of_ocaml and builds it.
+(executable
+ (name bagl_js)
+ (modes js)
+ (optional)
+ (libraries bagl js_of_ocaml)
+ (preprocess
+  (pps js_of_ocaml-ppx)))
