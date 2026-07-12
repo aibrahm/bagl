@@ -201,6 +201,27 @@ let tensor_binop vm name f =
         "Expected tensor operands for element-wise %s, got %s and %s"
         name (string_of_value a) (string_of_value b)))
 
+(** Math builtin on a float or element-wise on a tensor. Domain errors
+    (log of a non-positive number, sqrt of a negative) raise rather than
+    producing nan or inf, matching the division-by-zero policy. *)
+let math_unop vm name f =
+  match pop vm with
+  | VFloat x -> push vm (VFloat (f x))
+  | VTensor t -> push vm (VTensor { t with data = Array.map f t.data })
+  | v ->
+      raise (Runtime_error (Printf.sprintf
+        "%s expects a float or a tensor, got %s" name (string_of_value v)))
+
+let checked_log x =
+  if x <= 0.0 then
+    raise (Runtime_error (Printf.sprintf "log of a non-positive number: %g" x))
+  else log x
+
+let checked_sqrt x =
+  if x < 0.0 then
+    raise (Runtime_error (Printf.sprintf "sqrt of a negative number: %g" x))
+  else sqrt x
+
 (** Matrix multiplication *)
 let tensor_dot a b =
   match a.shape, b.shape with
@@ -607,6 +628,12 @@ let step vm =
       tensor_binop vm "div" (fun a b ->
         if b = 0.0 then raise (Runtime_error "Division by zero") else a /. b);
       true
+
+  | MEXP -> math_unop vm "exp" exp; true
+  | MLOG -> math_unop vm "log" checked_log; true
+  | MSQRT -> math_unop vm "sqrt" checked_sqrt; true
+  | MRELU -> math_unop vm "relu" (fun x -> if x > 0.0 then x else 0.0); true
+  | MSTEP -> math_unop vm "step" (fun x -> if x > 0.0 then 1.0 else 0.0); true
 
   | PRINT ->
       let v = peek vm in

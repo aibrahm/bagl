@@ -143,10 +143,40 @@ let run_bytecode_file filename =
     Printf.eprintf "Runtime error: %s\n" msg;
     exit 1
 
-(** REPL state *)
+(** REPL state. Bindings persist by textual accumulation: each accepted
+    [let]/[letrec] line is appended to [prefix] (with a trailing [in]),
+    and every later line compiles as [prefix ^ line]. Recompiling the
+    prefix per line is cheap at REPL scale, and it means closures,
+    recursion, and grad all work in bindings with no interpreter-level
+    global environment. *)
 type repl_state = {
-  mutable env: Typeinfer.env;
+  mutable prefix: string;
 }
+
+(** If [line] is a top-level binding ([let x = e] or [letrec f = e] with
+    no [in]), return the bound name. *)
+let binding_name line =
+  let words =
+    String.split_on_char ' ' (String.trim line)
+    |> List.filter (fun w -> w <> "")
+  in
+  match words with
+  | ("let" | "letrec") :: name :: _
+    when not (List.mem "in" words) && name <> "" -> Some name
+  | _ -> None
+
+(** Infer the type of an expression string in the REPL's accumulated
+    scope, reporting the type of the final expression. *)
+let repl_infer state expr_str =
+  let source = state.prefix ^ expr_str in
+  let lexer = Lexer.create ~filename:"<repl>" source in
+  let parser = Parser.create lexer in
+  let ast = Parser.parse_program parser in
+  let ast = Autodiff.expand_program ast in
+  let typed = Typeinfer.infer_program ast in
+  match List.rev typed with
+  | (_, ty) :: _ -> ty
+  | [] -> Types.TUnit
 
 (** Process a REPL command *)
 let process_repl_command state line =
@@ -154,22 +184,14 @@ let process_repl_command state line =
     (* Type query *)
     let expr_str = String.trim (String.sub line 5 (String.length line - 5)) in
     try
-      let lexer = Lexer.create ~filename:"<repl>" expr_str in
-      let parser = Parser.create lexer in
-      let expr = Parser.parse_single_expr parser in
-      let ty = Typeinfer.infer_expr state.env expr in
+      let ty = repl_infer state expr_str in
       Printf.printf ": %s\n" (Types.string_of_ty ty);
       true
     with
-    | Lexer.Lexer_error (msg, span) ->
-        let diag = Errors.error ~span ~message:msg () in
-        Errors.report diag;
-        true
-    | Parser.Parse_error (msg, span) ->
-        let diag = Errors.error ~span ~message:msg () in
-        Errors.report diag;
-        true
-    | Typeinfer.Type_error (msg, span) ->
+    | Lexer.Lexer_error (msg, span)
+    | Parser.Parse_error (msg, span)
+    | Typeinfer.Type_error (msg, span)
+    | Autodiff.Grad_error (msg, span) ->
         let diag = Errors.error ~span ~message:msg () in
         Errors.report diag;
         true
@@ -178,7 +200,7 @@ let process_repl_command state line =
 
 (** REPL loop *)
 let repl options =
-  let state = { env = Typeinfer.initial_env () } in
+  let state = { prefix = "" } in
 
   print_endline "Bagl REPL v0.1";
   print_endline "Type :quit to exit, :type <expr> to show type";
@@ -195,6 +217,7 @@ let repl options =
         print_endline "  :quit, :q     Exit the REPL";
         print_endline "  :type <expr>  Show the type of an expression";
         print_endline "  :help, :h     Show this help";
+        print_endline "  let x = e     Bind x for later lines";
         loop ()
     | line when String.length line = 0 ->
         loop ()
@@ -202,7 +225,14 @@ let repl options =
         loop ()
     | line ->
         begin try
-          let (ast, typed, ir, bytecode) = compile ~filename:"<repl>" line
+          (* A binding line is evaluated as [prefix; let x = e in x] so
+             its value and type print, then joins the prefix for later
+             lines. Anything else is an expression in the current scope. *)
+          let source, accepted_binding = match binding_name line with
+            | Some name -> state.prefix ^ line ^ " in " ^ name, Some name
+            | None -> state.prefix ^ line, None
+          in
+          let (ast, typed, ir, bytecode) = compile ~filename:"<repl>" source
             ~optimize:(not options.no_optimize) in
 
           if options.dump_ast then begin
@@ -229,21 +259,25 @@ let repl options =
           end;
 
           let result = Vm.execute bytecode in
-          let ty = match typed with
-            | [] -> Types.TUnit
+          let ty = match List.rev typed with
             | (_, t) :: _ -> t
+            | [] -> Types.TUnit
           in
-          Printf.printf "= %s : %s\n" (Vm.string_of_value result)
-            (Types.string_of_ty ty)
+          begin match accepted_binding with
+          | Some name ->
+              state.prefix <- state.prefix ^ line ^ " in\n";
+              Printf.printf "%s = %s : %s\n" name (Vm.string_of_value result)
+                (Types.string_of_ty ty)
+          | None ->
+              Printf.printf "= %s : %s\n" (Vm.string_of_value result)
+                (Types.string_of_ty ty)
+          end
         with
-        | Lexer.Lexer_error (msg, span) ->
-            let diag = Errors.error ~span ~message:msg ~source:line () in
-            Errors.report diag
-        | Parser.Parse_error (msg, span) ->
-            let diag = Errors.error ~span ~message:msg ~source:line () in
-            Errors.report diag
-        | Typeinfer.Type_error (msg, span) ->
-            let diag = Errors.error ~span ~message:msg ~source:line () in
+        | Lexer.Lexer_error (msg, span)
+        | Parser.Parse_error (msg, span)
+        | Typeinfer.Type_error (msg, span)
+        | Autodiff.Grad_error (msg, span) ->
+            let diag = Errors.error ~span ~message:msg ~source:(state.prefix ^ line) () in
             Errors.report diag
         | Vm.Runtime_error msg ->
             Printf.printf "Runtime error: %s\n" msg

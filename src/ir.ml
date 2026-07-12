@@ -30,6 +30,9 @@ type ir_binop =
 type ir_unop =
   | IrNeg | IrFNeg
   | IrNot
+  | IrExp | IrLog | IrSqrt | IrRelu | IrStep
+      (* Math builtins; the VM applies them to a float or element-wise
+         to a tensor, resolved dynamically like the tensor binops *)
 
 (** IR tensor operations *)
 type ir_tensor_op =
@@ -303,13 +306,18 @@ let rec lower_expr ctx expr =
   | Ast.EVar name ->
       lookup_var ctx name
 
-  | Ast.ETensor (rows, _shape_opt) ->
+  | Ast.ETensor (rows, matrix, _shape_opt) ->
       (* Flatten tensor elements *)
       let elements = List.concat rows in
       let elem_vars = List.map (lower_expr ctx) elements in
       let num_rows = List.length rows in
       let num_cols = if rows = [] then 0 else List.length (List.hd rows) in
-      let shape = if num_rows = 1 then [num_cols] else [num_rows; num_cols] in
+      (* Mirrors the shape rule in typeinfer: nested-bracket syntax is a
+         matrix even with a single row. *)
+      let shape =
+        if num_rows = 1 && not matrix then [num_cols]
+        else [num_rows; num_cols]
+      in
       let v = fresh_var ctx.func in
       add_instr !(ctx.block) (ITensorLit (v, elem_vars, shape));
       v
@@ -508,6 +516,16 @@ let rec lower_expr ctx expr =
       add_instr !(ctx.block) (IUnop (result, ir_op, v));
       result
 
+  | Ast.EMath (f, a) ->
+      let v = lower_expr ctx a in
+      let result = fresh_var ctx.func in
+      let ir_op = match f with
+        | Ast.MExp -> IrExp | Ast.MLog -> IrLog | Ast.MSqrt -> IrSqrt
+        | Ast.MRelu -> IrRelu | Ast.MStep -> IrStep
+      in
+      add_instr !(ctx.block) (IUnop (result, ir_op, v));
+      result
+
   | Ast.ETensorOp (op, args) ->
       let arg_vars = List.map (lower_expr ctx) args in
       let result = fresh_var ctx.func in
@@ -530,7 +548,7 @@ and collect_free_vars bound expr =
     | Ast.EInt _ | Ast.EFloat _ | Ast.EBool _ | Ast.EString _ -> []
     | Ast.EVar name ->
         if List.mem name bound then [] else [name]
-    | Ast.ETensor (rows, _) ->
+    | Ast.ETensor (rows, _, _) ->
         List.concat (List.map (fun row ->
           List.concat (List.map (fun e -> collect bound e.value) row)
         ) rows)
@@ -556,6 +574,7 @@ and collect_free_vars bound expr =
         collect bound e1.value @ collect bound e2.value
     | Ast.EUnop (_, e) ->
         collect bound e.value
+    | Ast.EMath (_, a) -> collect bound a.value
     | Ast.ETensorOp (_, args) ->
         List.concat (List.map (fun e -> collect bound e.value) args)
   in
@@ -644,6 +663,11 @@ let pp_unop fmt = function
   | IrNeg -> Format.fprintf fmt "neg"
   | IrFNeg -> Format.fprintf fmt "fneg"
   | IrNot -> Format.fprintf fmt "not"
+  | IrExp -> Format.fprintf fmt "exp"
+  | IrLog -> Format.fprintf fmt "log"
+  | IrSqrt -> Format.fprintf fmt "sqrt"
+  | IrRelu -> Format.fprintf fmt "relu"
+  | IrStep -> Format.fprintf fmt "step"
 
 let pp_tensor_op fmt = function
   | IrTensorDot -> Format.fprintf fmt "tensor.dot"

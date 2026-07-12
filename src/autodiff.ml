@@ -48,6 +48,7 @@ let rec simplify e =
        | Div when is_flit 1.0 b -> a
        | _ -> at loc (EBinop (op, a, b)))
   | EUnop (op, a) -> at loc (EUnop (op, simplify a))
+  | EMath (f, a) -> at loc (EMath (f, simplify a))
   | ELet r -> at loc (ELet { r with value = simplify r.value; body = simplify r.body })
   | EIf { cond; then_branch; else_branch } ->
       at loc (EIf { cond; then_branch = simplify then_branch; else_branch = simplify else_branch })
@@ -91,6 +92,22 @@ let rec diff env e =
       let dbody = diff env' body in
       at loc (ELet { name; annot = None; value;
         body = at loc (ELet { name = dname; annot = None; value = dvalue; body = dbody }) })
+  | EMath (MExp, a) ->
+      (* (exp a)' = a' * exp a *)
+      at loc (EBinop (Mul, d a, at loc (EMath (MExp, a))))
+  | EMath (MLog, a) ->
+      (* (log a)' = a' / a *)
+      at loc (EBinop (Div, d a, a))
+  | EMath (MSqrt, a) ->
+      (* (sqrt a)' = a' / (2 * sqrt a) *)
+      at loc (EBinop (Div, d a,
+        at loc (EBinop (Mul, flit loc 2.0, at loc (EMath (MSqrt, a))))))
+  | EMath (MRelu, a) ->
+      (* (relu a)' = a' * step a *)
+      at loc (EBinop (Mul, d a, at loc (EMath (MStep, a))))
+  | EMath (MStep, _) ->
+      (* Piecewise constant: derivative 0 almost everywhere *)
+      flit loc 0.0
   | EApp _ ->
       raise (Grad_error
         ("grad cannot differentiate through a function call yet; the body must be arithmetic on the parameter", loc))
@@ -148,7 +165,8 @@ let rec occurs param lets e =
       || (name <> param && occurs param ((name, value) :: lets) body)
   | EFn { param = p; body; _ } -> p <> param && occurs param lets body
   | ETensorOp (_, args) -> List.exists (occurs param lets) args
-  | ETensor (rows, _) -> List.exists (List.exists (occurs param lets)) rows
+  | EMath (_, a) -> occurs param lets a
+  | ETensor (rows, _, _) -> List.exists (List.exists (occurs param lets)) rows
 
 (* Rank of [e]'s value (0 scalar, 1 vector, 2 matrix), mirroring the
    shape rules in typeinfer over the supported family. *)
@@ -161,7 +179,8 @@ let rec rank_of param param_rank lets e =
       (match List.assoc_opt y lets with
        | Some defn -> rank_of param param_rank lets defn
        | None -> 0)  (* free variables are scalar constants to grad *)
-  | ETensor (rows, _) -> if List.length rows = 1 then 1 else 2
+  | ETensor (rows, matrix, _) ->
+      if List.length rows = 1 && not matrix then 1 else 2
   | EBinop ((Add | Sub | Mul | Div), a, b) ->
       max (rank_of param param_rank lets a) (rank_of param param_rank lets b)
   | EUnop (Neg, a) -> rank_of param param_rank lets a
@@ -177,6 +196,7 @@ let rec rank_of param param_rank lets e =
            raise (Grad_error
              (Printf.sprintf "grad cannot rank dot of rank-%d and rank-%d operands" ra rb, loc)))
   | ETensorOp (TensorTranspose, [_]) -> 2
+  | EMath (_, a) -> rank_of param param_rank lets a
   | _ ->
       raise (Grad_error
         ("grad cannot determine the tensor rank of this expression", loc))
@@ -205,12 +225,23 @@ let rec pull param param_rank lets e cbar =
   let rank x = rank_of param param_rank lets x in
   let occ x = occurs param lets x in
   let pull_e = pull param param_rank lets in
-  (* A broadcast scalar operand that mentions w would need its cotangent
-     reduced over the tensor side, which Bagl cannot express. *)
-  let check_broadcast side r_side r_result =
-    if r_side < r_result && occ side then
+  (* Ones with the same shape as [x], built from x itself so no static
+     shape is needed: 0.0 * x + 1.0. Used to express sum-reductions of a
+     rank-1 cotangent as a dot product. *)
+  let ones_like x = at loc (EBinop (Add, mul loc (flit loc 0.0) x, flit loc 1.0)) in
+  (* Pull one operand of a binop. When the operand's rank matches the
+     result, the cotangent passes through as [cot_full]. When the operand
+     is a broadcast scalar that mentions w, its cotangent is the SUM of
+     the element-wise cotangent, which is expressible as a dot product
+     for rank-1 results ([scalar_cot]); for rank-2 results a double
+     reduction would be needed, which Bagl cannot express. *)
+  let pull_side side r_side r_result ~cot_full ~scalar_cot =
+    if r_side = r_result then pull_e side (cot_full ())
+    else if not (occ side) then None
+    else if r_result = 1 then pull_e side (scalar_cot ())
+    else
       raise (Grad_error
-        ("grad cannot differentiate a scalar built from the tensor parameter used in tensor-scalar arithmetic; this needs a reduction", loc))
+        ("grad of a scalar built from the parameter, broadcast against a matrix, needs a double reduction that Bagl cannot express", loc))
   in
   match e.value with
   | EVar y when y = param -> Some cbar
@@ -219,35 +250,53 @@ let rec pull param param_rank lets e cbar =
        | Some defn -> pull_e defn cbar
        | None -> None)
   | EInt _ | EFloat _ | EBool _ | EString _ -> None
-  | ETensor (rows, _) ->
+  | ETensor (rows, _, _) ->
       if List.exists (List.exists occ) rows then
         raise (Grad_error
           ("grad cannot differentiate a tensor literal whose elements mention the parameter", loc))
       else None
   | EBinop (Add, a, b) ->
-      let r = max (rank a) (rank b) in
-      check_broadcast a (rank a) r;
-      check_broadcast b (rank b) r;
-      opt_add loc (pull_e a cbar) (pull_e b cbar)
-  | EBinop (Sub, a, b) ->
-      let r = max (rank a) (rank b) in
-      check_broadcast a (rank a) r;
-      check_broadcast b (rank b) r;
-      opt_add loc (pull_e a cbar) (pull_e b (neg loc cbar))
-  | EBinop (Mul, a, b) ->
-      let r = max (rank a) (rank b) in
-      check_broadcast a (rank a) r;
-      check_broadcast b (rank b) r;
+      let ra = rank a and rb = rank b in
+      let r = max ra rb in
       opt_add loc
-        (pull_e a (mul_s loc cbar b))
-        (pull_e b (mul_s loc a cbar))
+        (pull_side a ra r
+           ~cot_full:(fun () -> cbar)
+           ~scalar_cot:(fun () -> dot loc cbar (ones_like b)))
+        (pull_side b rb r
+           ~cot_full:(fun () -> cbar)
+           ~scalar_cot:(fun () -> dot loc cbar (ones_like a)))
+  | EBinop (Sub, a, b) ->
+      let ra = rank a and rb = rank b in
+      let r = max ra rb in
+      opt_add loc
+        (pull_side a ra r
+           ~cot_full:(fun () -> cbar)
+           ~scalar_cot:(fun () -> dot loc cbar (ones_like b)))
+        (pull_side b rb r
+           ~cot_full:(fun () -> neg loc cbar)
+           ~scalar_cot:(fun () -> neg loc (dot loc cbar (ones_like a))))
+  | EBinop (Mul, a, b) ->
+      let ra = rank a and rb = rank b in
+      let r = max ra rb in
+      opt_add loc
+        (pull_side a ra r
+           ~cot_full:(fun () -> mul_s loc cbar b)
+           ~scalar_cot:(fun () -> dot loc cbar b))
+        (pull_side b rb r
+           ~cot_full:(fun () -> mul_s loc a cbar)
+           ~scalar_cot:(fun () -> dot loc a cbar))
   | EBinop (Div, a, b) ->
-      let r = max (rank a) (rank b) in
-      check_broadcast a (rank a) r;
-      check_broadcast b (rank b) r;
-      let da = pull_e a (div loc cbar b) in
-      let db = pull_e b (neg loc (div loc (mul_s loc cbar a) (mul loc b b))) in
-      opt_add loc da db
+      let ra = rank a and rb = rank b in
+      let r = max ra rb in
+      opt_add loc
+        (pull_side a ra r
+           ~cot_full:(fun () -> div loc cbar b)
+           (* d(a/b_i)/da = 1/b_i, summed: dot(cbar, ones/b) *)
+           ~scalar_cot:(fun () -> dot loc cbar (div loc (ones_like b) b)))
+        (pull_side b rb r
+           ~cot_full:(fun () -> neg loc (div loc (mul_s loc cbar a) (mul loc b b)))
+           (* d(a_i/b)/db = -a_i/b^2, summed: -dot(cbar, a)/b^2 *)
+           ~scalar_cot:(fun () -> neg loc (div loc (dot loc cbar a) (mul loc b b))))
   | EUnop (Neg, a) -> pull_e a (neg loc cbar)
   | EIf { cond; then_branch; else_branch } ->
       if occ cond then
@@ -304,6 +353,18 @@ let rec pull param param_rank lets e cbar =
       in
       opt_add loc da db
   | ETensorOp (TensorTranspose, [a]) -> pull_e a (tr loc cbar)
+  | EMath (MExp, a) ->
+      (* pullback: cbar (.) exp a *)
+      pull_e a (mul loc cbar (at loc (EMath (MExp, a))))
+  | EMath (MLog, a) ->
+      pull_e a (div loc cbar a)
+  | EMath (MSqrt, a) ->
+      pull_e a (div loc cbar
+        (mul loc (flit loc 2.0) (at loc (EMath (MSqrt, a)))))
+  | EMath (MRelu, a) ->
+      (* pullback: cbar (.) step a *)
+      pull_e a (mul loc cbar (at loc (EMath (MStep, a))))
+  | EMath (MStep, _) -> None
   | ETensorOp (TensorReshape _, _) ->
       raise (Grad_error
         ("grad cannot differentiate through reshape; the original shape is not recoverable at expansion time", loc))
@@ -326,7 +387,8 @@ let rec pull param param_rank lets e cbar =
 let differentiate_tensor_fn loc param annot body ~outer =
   let param_rank = match annot with
     | TATensor (_, shape) -> List.length shape
-    | _ -> raise (Grad_error ("tensor grad requires a tensor parameter annotation", loc))
+    | TAFloat -> 0  (* scalar parameter differentiated through tensor code *)
+    | _ -> raise (Grad_error ("tensor grad requires a tensor or float parameter annotation", loc))
   in
   let lets = List.remove_assoc param outer in
   let body_rank = rank_of param param_rank lets body in
@@ -339,6 +401,20 @@ let differentiate_tensor_fn loc param annot body ~outer =
     | None -> mul loc (flit loc 0.0) (at loc (EVar param))
   in
   at loc (EFn { param; param_annot = Some annot; body = dbody })
+
+(* Does the expression contain any tensor syntax? Used to pick the grad
+   mode for annotated parameters and to reject unannotated tensor grads. *)
+let rec has_tensor e =
+  match e.value with
+  | ETensor _ | ETensorOp _ -> true
+  | EBinop (_, a, b) | EApp (a, b) -> has_tensor a || has_tensor b
+  | EUnop (_, a) | EMath (_, a) -> has_tensor a
+  | EIf { cond; then_branch; else_branch } ->
+      has_tensor cond || has_tensor then_branch || has_tensor else_branch
+  | ELet { value; body; _ } | ELetRec { value; body; _ } ->
+      has_tensor value || has_tensor body
+  | EFn { body; _ } -> has_tensor body
+  | EInt _ | EFloat _ | EBool _ | EString _ | EVar _ -> false
 
 (* Walk the tree bottom-up; rewrite every [grad (fn x -> ...)] application.
    [lets] tracks the enclosing let bindings for tensor-mode rank analysis. *)
@@ -353,22 +429,15 @@ let rec expand_expr lets e =
            (* Tensor mode is selected by the parameter annotation, which
               also supplies the rank the pullback rules need. *)
            differentiate_tensor_fn arg.loc param annot body ~outer:lets
+       | EVar "grad", EFn { param; param_annot = Some TAFloat; body }
+         when has_tensor body ->
+           (* Scalar parameter differentiated through tensor code: the
+              reverse-mode rules reduce rank-1 cotangents with dot. *)
+           differentiate_tensor_fn arg.loc param TAFloat body ~outer:lets
        | EVar "grad", EFn { param; body; _ } ->
-           if occurs param [] body
-              && (let rec has_tensor e = match e.value with
-                    | ETensor _ | ETensorOp _ -> true
-                    | EBinop (_, a, b) | EApp (a, b) -> has_tensor a || has_tensor b
-                    | EUnop (_, a) -> has_tensor a
-                    | EIf { cond; then_branch; else_branch } ->
-                        has_tensor cond || has_tensor then_branch || has_tensor else_branch
-                    | ELet { value; body; _ } | ELetRec { value; body; _ } ->
-                        has_tensor value || has_tensor body
-                    | EFn { body; _ } -> has_tensor body
-                    | _ -> false
-                  in has_tensor body)
-           then
+           if occurs param [] body && has_tensor body then
              raise (Grad_error
-               ("grad over tensors requires an annotated tensor parameter, e.g. grad (fn w: tensor<float>[3] -> ...)", loc))
+               ("grad over tensors requires an annotated parameter: tensor<float>[...] for a tensor, float for a scalar differentiated through tensor code", loc))
            else differentiate_fn arg.loc param body
        | EVar "grad", _ ->
            raise (Grad_error ("grad must be applied directly to a function literal, e.g. grad (fn x -> x * x)", loc))
@@ -388,7 +457,8 @@ let rec expand_expr lets e =
   | EBinop (op, a, b) -> at loc (EBinop (op, expand_expr' a, expand_expr' b))
   | EUnop (op, a) -> at loc (EUnop (op, expand_expr' a))
   | ETensorOp (op, args) -> at loc (ETensorOp (op, List.map expand_expr' args))
-  | ETensor (rows, s) -> at loc (ETensor (List.map (List.map expand_expr') rows, s))
+  | EMath (f, a) -> at loc (EMath (f, expand_expr' a))
+  | ETensor (rows, m, s) -> at loc (ETensor (List.map (List.map expand_expr') rows, m, s))
   | EInt _ | EFloat _ | EBool _ | EString _ | EVar _ -> e
 
 let expand_decl d =

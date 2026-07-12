@@ -823,6 +823,110 @@ let test_tgrad_reject_tensor_valued () =
   Alcotest.(check bool) "tensor-valued body is rejected" true
     (tgrad_raises "grad (fn w: tensor<float>[2] -> 2.0 * w) [1.0, 2.0]")
 
+(* ===== Math builtins ===== *)
+
+let test_math_scalar_values () =
+  Alcotest.(check (float 1e-9)) "exp 1" (exp 1.0) (run_float "exp(1.0)");
+  Alcotest.(check (float 1e-9)) "log exp 2" 2.0 (run_float "log(exp(2.0))");
+  Alcotest.(check (float 1e-9)) "sqrt 2" (sqrt 2.0) (run_float "sqrt(2.0)");
+  Alcotest.(check (float 1e-9)) "relu" 3.0 (run_float "relu(0.0 - 3.0) + relu(3.0)");
+  Alcotest.(check (float 1e-9)) "step" 1.0 (run_float "step(0.5) + step(0.0 - 0.5)")
+
+let test_math_elementwise () =
+  check_tensor "exp" [2] [1.0; exp 1.0] (run_tensor "exp([0.0, 1.0])");
+  check_tensor "relu" [4] [0.0; 2.0; 0.0; 4.0]
+    (run_tensor "relu([0.0 - 1.0, 2.0, 0.0 - 3.0, 4.0])")
+
+let test_math_reject_int () =
+  Alcotest.(check bool) "exp of int is rejected" true (is_rejected "exp(3)")
+
+let math_runtime_error s =
+  try ignore (run s); false with Vm.Runtime_error _ -> true
+
+let test_math_domain_errors () =
+  Alcotest.(check bool) "log 0 raises" true (math_runtime_error "log(0.0)");
+  Alcotest.(check bool) "sqrt -1 raises" true (math_runtime_error "sqrt(0.0 - 1.0)")
+
+(* Serialization round-trip through .baglc for the math opcodes. *)
+let test_math_serialize () =
+  let program = parse_program "exp([0.0, 1.0]) * 2.0" in
+  let typed = Typeinfer.infer_program program in
+  let ir = Ir.lower_program typed in
+  let bytecode = Codegen.generate (Optimize.optimize_default ir) in
+  let path = Filename.temp_file "bagl_test" ".baglc" in
+  Serialize.write_file path bytecode;
+  let loaded = Serialize.read_file path in
+  Sys.remove path;
+  match Vm.execute loaded with
+  | Vm.VTensor t -> check_tensor "round-trip" [2] [2.0; 2.0 *. exp 1.0] t
+  | v -> Alcotest.failf "Expected tensor, got %s" (Vm.string_of_value v)
+
+(* Scalar derivatives of the builtins. *)
+let test_math_scalar_grads () =
+  Alcotest.(check (float 1e-9)) "d exp(x^2) at 1" (2.0 *. exp 1.0)
+    (run_float "grad (fn x -> exp(x * x)) 1.0");
+  Alcotest.(check (float 1e-9)) "d log at 4" 0.25 (run_float "grad (fn x -> log(x)) 4.0");
+  Alcotest.(check (float 1e-9)) "d sqrt at 4" 0.25 (run_float "grad (fn x -> sqrt(x)) 4.0");
+  Alcotest.(check (float 1e-9)) "d relu both sides" 1.0
+    (run_float "let d = grad (fn x -> relu(x - 2.0)) in d 3.0 + d 1.0")
+
+(* Tensor pullback of exp: d/dw dot(exp(w), w) = exp(w) (.) (w + 1). *)
+let test_math_tensor_grad () =
+  check_tensor "exp pullback" [2] [1.0; 2.0 *. exp 1.0]
+    (run_tensor "grad (fn w: tensor<float>[2] -> dot(exp(w), w)) [0.0, 1.0]")
+
+(* ===== Scalar parameter through tensor code (pathwise derivatives) ===== *)
+
+(* d/ds mean(s * z) = mean(z) *)
+let test_sgrad_mean () =
+  Alcotest.(check (float 1e-9)) "mean(z)" 2.0
+    (run_float
+      "let z = [1.0, 2.0, 3.0] in \
+       let ones = [1.0, 1.0, 1.0] in \
+       grad (fn s: float -> dot(s * z, ones) / 3.0) 5.0")
+
+(* The pathwise Delta estimator: d/ds mean(relu(s*g - k)) = mean(g on ITM paths). *)
+let test_sgrad_pathwise_delta () =
+  Alcotest.(check (float 1e-9)) "pathwise delta" 0.65
+    (run_float
+      "let g = [0.8, 1.0, 1.2, 1.4] in \
+       let ones = [1.0, 1.0, 1.0, 1.0] in \
+       grad (fn s: float -> dot(relu(s * g - 1.0), ones) / 4.0) 1.0")
+
+(* Numerical check against central finite differences for a scalar
+   parameter flowing through exp, broadcast, and dot. *)
+let test_sgrad_numerical () =
+  let src s =
+    Printf.sprintf
+      "let z = [0.3, 0.9, 1.7] in \
+       let ones = [1.0, 1.0, 1.0] in \
+       let s = %.17g in \
+       dot(relu(s * exp(z) - 2.0), ones) / 3.0" s
+  in
+  let eval s = run_float (src s) in
+  let s0 = 1.1 and h = 1e-6 in
+  let fd = (eval (s0 +. h) -. eval (s0 -. h)) /. (2.0 *. h) in
+  let g = run_float
+    (Printf.sprintf
+      "let z = [0.3, 0.9, 1.7] in \
+       let ones = [1.0, 1.0, 1.0] in \
+       grad (fn s: float -> dot(relu(s * exp(z) - 2.0), ones) / 3.0) %.17g" s0)
+  in
+  Alcotest.(check (float 1e-4)) "pathwise vs FD" fd g
+
+let math_tests = [
+  "scalar_values", `Quick, test_math_scalar_values;
+  "elementwise", `Quick, test_math_elementwise;
+  "reject_int", `Quick, test_math_reject_int;
+  "domain_errors", `Quick, test_math_domain_errors;
+  "serialize", `Quick, test_math_serialize;
+  "scalar_grads", `Quick, test_math_scalar_grads;
+  "tensor_grad", `Quick, test_math_tensor_grad;
+  "sgrad_mean", `Quick, test_sgrad_mean;
+  "sgrad_pathwise_delta", `Quick, test_sgrad_pathwise_delta;
+  "sgrad_numerical", `Quick, test_sgrad_numerical;
+]
+
 let tensor_grad_tests = [
   "dot_self", `Quick, test_tgrad_dot_self;
   "matvec_loss", `Quick, test_tgrad_matvec_loss;
@@ -879,5 +983,6 @@ let () =
     "Lowering", lowering_tests;
     "TensorArith", tensor_arith_tests;
     "TensorGrad", tensor_grad_tests;
+    "Math", math_tests;
     "Autodiff", autodiff_tests;
   ]

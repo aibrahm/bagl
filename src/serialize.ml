@@ -80,6 +80,7 @@ type opcode_tag =
   | T_JUMP | T_JUMP_IF_FALSE | T_CALL | T_RETURN
   | T_TENSOR_CREATE | T_TENSOR_DOT | T_TENSOR_TRANSPOSE | T_TENSOR_RESHAPE
   | T_TADD | T_TSUB | T_TMUL | T_TDIV
+  | T_MEXP | T_MLOG | T_MSQRT | T_MRELU | T_MSTEP
   | T_PRINT | T_HALT | T_NOP
 
 let tag_of_opcode = function
@@ -100,6 +101,7 @@ let tag_of_opcode = function
   | PRINT -> 40 | HALT -> 41 | NOP -> 42
   | MAKE_REC_CLOSURE _ -> 43
   | TADD -> 48 | TSUB -> 49 | TMUL -> 50 | TDIV -> 51
+  | MEXP -> 52 | MLOG -> 53 | MSQRT -> 54 | MRELU -> 55 | MSTEP -> 56
 
 (** Write an opcode *)
 let write_opcode oc op =
@@ -128,6 +130,7 @@ let write_opcode oc op =
   | TENSOR_DOT | TENSOR_TRANSPOSE -> ()
   | TENSOR_RESHAPE shape -> write_shape oc shape
   | TADD | TSUB | TMUL | TDIV -> ()
+  | MEXP | MLOG | MSQRT | MRELU | MSTEP -> ()
   | PRINT | HALT | NOP -> ()
 
 (** Read an opcode *)
@@ -186,6 +189,11 @@ let read_opcode ic =
   | 49 -> TSUB
   | 50 -> TMUL
   | 51 -> TDIV
+  | 52 -> MEXP
+  | 53 -> MLOG
+  | 54 -> MSQRT
+  | 55 -> MRELU
+  | 56 -> MSTEP
   | n -> raise (Serialize_error (Printf.sprintf "Unknown opcode tag: %d" n))
 
 (** Write a chunk *)

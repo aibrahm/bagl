@@ -31,6 +31,13 @@ type token_kind =
   | TRANSPOSE
   | RESHAPE
 
+  (* Math builtin keywords; scalar or element-wise on tensors *)
+  | EXP
+  | LOG
+  | SQRT
+  | RELU
+  | STEP
+
   (* Identifiers *)
   | IDENT of string
 
@@ -89,6 +96,11 @@ let keywords = [
   ("dot", DOT);
   ("transpose", TRANSPOSE);
   ("reshape", RESHAPE);
+  ("exp", EXP);
+  ("log", LOG);
+  ("sqrt", SQRT);
+  ("relu", RELU);
+  ("step", STEP);
 ]
 
 (** Look up a keyword, returning IDENT if not found *)
@@ -120,6 +132,11 @@ let pp_token_kind fmt = function
   | DOT -> Format.fprintf fmt "DOT"
   | TRANSPOSE -> Format.fprintf fmt "TRANSPOSE"
   | RESHAPE -> Format.fprintf fmt "RESHAPE"
+  | EXP -> Format.fprintf fmt "EXP"
+  | LOG -> Format.fprintf fmt "LOG"
+  | SQRT -> Format.fprintf fmt "SQRT"
+  | RELU -> Format.fprintf fmt "RELU"
+  | STEP -> Format.fprintf fmt "STEP"
   | IDENT s -> Format.fprintf fmt "IDENT(%s)" s
   | PLUS -> Format.fprintf fmt "PLUS"
   | MINUS -> Format.fprintf fmt "MINUS"

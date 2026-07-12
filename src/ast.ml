@@ -48,6 +48,23 @@ type tensor_op =
   | TensorTranspose              (** Transpose (swap last two dims) *)
   | TensorReshape of shape       (** Reshape to new shape *)
 
+(** Math builtins: on a float they are the usual functions; on a tensor
+    they apply element-wise. [step] is the Heaviside function (1.0 for
+    x > 0, else 0.0), which is also relu's derivative. *)
+type math_fn =
+  | MExp
+  | MLog
+  | MSqrt
+  | MRelu
+  | MStep
+
+let string_of_math_fn = function
+  | MExp -> "exp"
+  | MLog -> "log"
+  | MSqrt -> "sqrt"
+  | MRelu -> "relu"
+  | MStep -> "step"
+
 (** Expression AST node *)
 type expr = expr_kind located
 
@@ -57,9 +74,11 @@ and expr_kind =
   | EFloat of float
   | EBool of bool
   | EString of string
-  | ETensor of expr list list * shape option
-      (** Tensor literal with nested lists and optional shape annotation.
-          [[1,2,3],[4,5,6]] : [2,3] *)
+  | ETensor of expr list list * bool * shape option
+      (** Tensor literal with nested lists, a flag recording whether the
+          source used nested (matrix) brackets, and an optional shape
+          annotation. [[1,2,3],[4,5,6]] : [2,3]. The flag is what makes
+          [[1.0, 2.0]] a 1x2 matrix while [1.0, 2.0] is a vector. *)
 
   (* Variables and bindings *)
   | EVar of string
@@ -95,6 +114,8 @@ and expr_kind =
   | EBinop of binop * expr * expr
   | EUnop of unop * expr
   | ETensorOp of tensor_op * expr list
+  | EMath of math_fn * expr
+      (** Math builtin applied to a scalar or element-wise to a tensor *)
       (** Tensor operations: dot(a,b), transpose(a), reshape(a, shape) *)
 
 (** Top-level declarations *)
@@ -168,7 +189,7 @@ and pp_expr_kind fmt = function
   | EFloat f -> Format.fprintf fmt "%f" f
   | EBool b -> Format.fprintf fmt "%b" b
   | EString s -> Format.fprintf fmt "%S" s
-  | ETensor (rows, shape_opt) ->
+  | ETensor (rows, _matrix, shape_opt) ->
       Format.fprintf fmt "[%a]%a"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
           (fun fmt row ->
@@ -207,6 +228,8 @@ and pp_expr_kind fmt = function
       Format.fprintf fmt "reshape(%a, %a)" pp_expr a pp_shape shape
   | ETensorOp (_, _) ->
       Format.fprintf fmt "<invalid tensor op>"
+  | EMath (f, a) ->
+      Format.fprintf fmt "%s(%a)" (string_of_math_fn f) pp_expr a
 
 let pp_decl fmt d =
   match d.value with

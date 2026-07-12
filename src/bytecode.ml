@@ -76,6 +76,13 @@ type opcode =
   | TMUL
   | TDIV
 
+  (* Math builtins on a float or element-wise on a tensor *)
+  | MEXP
+  | MLOG
+  | MSQRT
+  | MRELU
+  | MSTEP
+
   (* Debugging and control *)
   | PRINT
   | HALT
@@ -154,6 +161,11 @@ let pp_opcode fmt = function
   | TSUB -> Format.fprintf fmt "TSUB"
   | TMUL -> Format.fprintf fmt "TMUL"
   | TDIV -> Format.fprintf fmt "TDIV"
+  | MEXP -> Format.fprintf fmt "MEXP"
+  | MLOG -> Format.fprintf fmt "MLOG"
+  | MSQRT -> Format.fprintf fmt "MSQRT"
+  | MRELU -> Format.fprintf fmt "MRELU"
+  | MSTEP -> Format.fprintf fmt "MSTEP"
   | PRINT -> Format.fprintf fmt "PRINT"
   | HALT -> Format.fprintf fmt "HALT"
   | NOP -> Format.fprintf fmt "NOP"

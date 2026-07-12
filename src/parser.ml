@@ -215,7 +215,7 @@ let parse_tensor_literal p start_pos =
       else None
     in
     let span = merge_spans start_pos p.current.loc in
-    { value = ETensor ([], shape_opt); loc = span }
+    { value = ETensor ([], false, shape_opt); loc = span }
   end else if check p LBRACKET then begin
     (* 2D tensor [[...], [...]] *)
     let rows = ref [parse_tensor_row p] in
@@ -231,7 +231,7 @@ let parse_tensor_literal p start_pos =
       else None
     in
     let span = merge_spans start_pos p.current.loc in
-    { value = ETensor (List.rev !rows, shape_opt); loc = span }
+    { value = ETensor (List.rev !rows, true, shape_opt); loc = span }
   end else begin
     (* 1D tensor [1, 2, 3] *)
     let exprs = ref [!parse_expr p] in
@@ -245,7 +245,7 @@ let parse_tensor_literal p start_pos =
     in
     let span = merge_spans start_pos p.current.loc in
     (* Wrap as single row for 1D tensor *)
-    { value = ETensor ([List.rev !exprs], shape_opt); loc = span }
+    { value = ETensor ([List.rev !exprs], false, shape_opt); loc = span }
   end
 
 (** Parse a primary expression *)
@@ -284,6 +284,20 @@ let parse_primary p =
       ignore (expect p RPAREN "Expected ')' after dot arguments");
       let span = merge_spans start_pos p.current.loc in
       { value = ETensorOp (TensorDot, [a; b]); loc = span }
+  | (EXP | LOG | SQRT | RELU | STEP) as tok ->
+      (* Math builtin with call syntax: exp(a), log(a), ... *)
+      let f = match tok with
+        | EXP -> MExp | LOG -> MLog | SQRT -> MSqrt
+        | RELU -> MRelu | STEP -> MStep
+        | _ -> assert false
+      in
+      let name = string_of_math_fn f in
+      advance p;
+      ignore (expect p LPAREN (Printf.sprintf "Expected '(' after '%s'" name));
+      let a = !parse_expr p in
+      ignore (expect p RPAREN (Printf.sprintf "Expected ')' after %s argument" name));
+      let span = merge_spans start_pos p.current.loc in
+      { value = EMath (f, a); loc = span }
   | TRANSPOSE ->
       (* transpose(a) *)
       advance p;

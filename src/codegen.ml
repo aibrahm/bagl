@@ -101,6 +101,11 @@ let emit_unop state op =
     | IrNeg -> INEG
     | IrFNeg -> FNEG
     | IrNot -> NOT
+    | IrExp -> MEXP
+    | IrLog -> MLOG
+    | IrSqrt -> MSQRT
+    | IrRelu -> MRELU
+    | IrStep -> MSTEP
   in
   emit state opcode
 

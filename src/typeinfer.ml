@@ -352,7 +352,7 @@ let rec infer env expr =
 
   | EVar name -> lookup_var env name span
 
-  | ETensor (rows, shape_annot) ->
+  | ETensor (rows, matrix, shape_annot) ->
       (* Infer element type from contents *)
       let elem_ty =
         if rows = [] || List.hd rows = [] then
@@ -380,8 +380,10 @@ let rec infer env expr =
           type_error span "Tensor rows have inconsistent lengths"
       ) rows;
       let inferred_shape =
-        if num_rows = 1 then [SDimConst num_cols]  (* 1D tensor *)
-        else [SDimConst num_rows; SDimConst num_cols]  (* 2D tensor *)
+        (* Nested-bracket syntax is a matrix even with one row, so 1xN
+           matrices are representable; bare brackets are a vector. *)
+        if num_rows = 1 && not matrix then [SDimConst num_cols]
+        else [SDimConst num_rows; SDimConst num_cols]
       in
       let final_shape = match shape_annot with
         | Some annot_shape ->
@@ -462,6 +464,24 @@ let rec infer env expr =
   | EUnop (op, e) ->
       let t = infer env e in
       infer_unop span op t
+
+  | EMath (f, arg) ->
+      let arg_ty = infer env arg in
+      begin match find_ty arg_ty with
+      | TTensor (elem, shape) ->
+          (* Element-wise over a float-backed tensor *)
+          unify span elem TFloat;
+          TTensor (elem, shape)
+      | TInt ->
+          type_error span
+            (Printf.sprintf "%s expects a float or a tensor, not an int"
+               (string_of_math_fn f))
+      | _ ->
+          (* Unresolved operands default to scalar float; annotate the
+             parameter as a tensor for the element-wise form. *)
+          unify span arg_ty TFloat;
+          TFloat
+      end
 
   | ETensorOp (op, args) ->
       (* Infer types of all arguments *)
