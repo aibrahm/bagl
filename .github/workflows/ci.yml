@@ -51,3 +51,6 @@ jobs:
             if (!r.ok || r.value !== '12.') { console.error(r); process.exit(1); }
             console.log('playground bundle OK:', JSON.stringify(r));
           "
+
+      - name: Verify language reference examples
+        run: node docs/reference/verify.js _build/default/js/bagl_js.bc.js docs/reference/index.html

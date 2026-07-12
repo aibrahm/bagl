@@ -7,7 +7,7 @@
 
 A statically-typed functional programming language with first-class tensor support and compile-time shape checking.
 
-**[Try it in your browser](https://aibrahm.github.io/bagl/playground/)** - the whole compiler runs client-side via js_of_ocaml.
+**[Try it in your browser](https://aibrahm.github.io/bagl/playground/)** - the whole compiler runs client-side via js_of_ocaml. The **[language reference](https://aibrahm.github.io/bagl/reference/)** has editable, runnable examples, each verified in CI.
 
 | Shape errors caught at compile time | REPL with Hindley-Milner inference |
 |---|---|

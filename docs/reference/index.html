@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bagl Language Reference</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #11161d;
+    --edge: #1f2630;
+    --ink: #d6dde6;
+    --dim: #6b7686;
+    --amber: #e8b04b;
+    --green: #7ec699;
+    --red: #e06c75;
+    --blue: #6cb2eb;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background:
+      radial-gradient(1200px 500px at 70% -10%, #16202c 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+    padding: 1.1rem 1.6rem 0.9rem;
+    border-bottom: 1px solid var(--edge);
+    position: sticky; top: 0; background: var(--bg); z-index: 3;
+  }
+  header h1 { font-size: 1rem; letter-spacing: 0.2em; color: var(--amber); font-weight: 600; }
+  header h1::before { content: "λ "; color: var(--dim); }
+  header p { color: var(--dim); font-size: 0.78rem; }
+  header nav { margin-left: auto; display: flex; gap: 1rem; font-size: 0.78rem; }
+  .layout { display: grid; grid-template-columns: 230px 1fr; max-width: 1100px; margin: 0 auto; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+  .toc {
+    position: sticky; top: 3.6rem; align-self: start;
+    padding: 1.4rem 1rem; font-size: 0.78rem;
+    max-height: calc(100vh - 4rem); overflow-y: auto;
+  }
+  .toc a { display: block; color: var(--dim); padding: 0.14rem 0; }
+  .toc a:hover { color: var(--amber); text-decoration: none; }
+  .toc .h { color: var(--ink); margin-top: 0.7rem; font-weight: 600; }
+  main { padding: 1.6rem 1.6rem 5rem; min-width: 0; }
+  h2 {
+    color: var(--amber); font-size: 1rem; letter-spacing: 0.08em;
+    margin: 2.6rem 0 0.8rem; padding-top: 0.8rem;
+    border-top: 1px solid var(--edge);
+  }
+  main > h2:first-of-type { border-top: 0; margin-top: 0.6rem; }
+  h3 { color: var(--ink); font-size: 0.9rem; margin: 1.6rem 0 0.5rem; }
+  p { margin: 0.6rem 0; }
+  p code, li code, td code {
+    background: var(--panel); border: 1px solid var(--edge);
+    padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 0.84em;
+  }
+  ul, ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+  li { margin: 0.25rem 0; }
+  table { border-collapse: collapse; margin: 0.8rem 0; font-size: 0.84rem; width: 100%; }
+  th, td { border: 1px solid var(--edge); padding: 0.4rem 0.6rem; text-align: left; }
+  th { color: var(--dim); font-weight: 600; background: var(--panel); }
+  .ex { margin: 0.9rem 0; border: 1px solid var(--edge); border-radius: 8px; overflow: hidden; }
+  .ex textarea {
+    display: block; width: 100%; border: 0; outline: none; resize: vertical;
+    background: var(--panel); color: var(--ink);
+    font: inherit; font-size: 0.84rem; line-height: 1.6;
+    padding: 0.8rem 1rem; white-space: pre; overflow-x: auto;
+    caret-color: var(--amber); min-height: 2.4rem;
+  }
+  .ex .bar {
+    display: flex; align-items: center; gap: 0.8rem;
+    border-top: 1px solid var(--edge); background: #0e1319;
+    padding: 0.3rem 0.7rem;
+  }
+  .ex button {
+    font: inherit; font-size: 0.72rem; letter-spacing: 0.1em;
+    background: transparent; color: var(--amber);
+    border: 1px solid var(--amber); border-radius: 999px;
+    padding: 0.12rem 0.8rem; cursor: pointer;
+  }
+  .ex button:hover { background: var(--amber); color: var(--bg); }
+  .ex .out { font-size: 0.82rem; white-space: pre-wrap; min-height: 1.2rem; flex: 1; }
+  .ok-value { color: var(--green); }
+  .ok-type { color: var(--dim); }
+  .err { color: var(--red); }
+  .note {
+    border-left: 3px solid var(--amber); background: var(--panel);
+    padding: 0.6rem 0.9rem; margin: 0.9rem 0; font-size: 0.84rem;
+  }
+  pre.plain {
+    background: var(--panel); border: 1px solid var(--edge); border-radius: 8px;
+    padding: 0.8rem 1rem; overflow-x: auto; font-size: 0.82rem; margin: 0.9rem 0;
+  }
+  .kbd { color: var(--dim); font-size: 0.78rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BAGL</h1>
+  <p>language reference &middot; every example below is editable and runs in your browser</p>
+  <nav>
+    <a href="../playground/">playground</a>
+    <a href="https://github.com/aibrahm/bagl">GitHub</a>
+  </nav>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <a class="h" href="#overview">Overview</a>
+  <a class="h" href="#basics">Basics</a>
+  <a href="#literals">Literals &amp; comments</a>
+  <a href="#bindings">Bindings</a>
+  <a href="#functions">Functions</a>
+  <a href="#recursion">Recursion</a>
+  <a href="#conditionals">Conditionals</a>
+  <a class="h" href="#types">The type system</a>
+  <a href="#inference">Inference</a>
+  <a href="#numerics">Numeric operators</a>
+  <a href="#annotations">Annotations</a>
+  <a class="h" href="#tensors">Tensors</a>
+  <a href="#tensor-literals">Literals &amp; rank</a>
+  <a href="#tensor-ops">dot, transpose, reshape</a>
+  <a href="#elementwise">Element-wise arithmetic</a>
+  <a href="#shapes">Shape checking</a>
+  <a class="h" href="#math">Math builtins</a>
+  <a class="h" href="#autodiff">Differentiation</a>
+  <a href="#grad-scalar">Scalar mode</a>
+  <a href="#grad-tensor">Tensor mode</a>
+  <a href="#grad-pathwise">Pathwise derivatives</a>
+  <a href="#grad-rejected">What is rejected</a>
+  <a class="h" href="#runtime">Runtime &amp; tooling</a>
+  <a class="h" href="#limits">Limits</a>
+  <a class="h" href="#grammar">Grammar</a>
+</nav>
+
+<main>
+
+<h2 id="overview">Overview</h2>
+<p>Bagl is a small statically-typed functional language with three unusual
+properties for its size: tensor shapes are part of the type system, so a
+matrix-dimension mismatch is a compile error; the compiler performs
+automatic differentiation, so <code>grad</code> turns functions into their
+derivatives before type inference ever runs; and the whole compiler runs in
+your browser, which is what powers this page.</p>
+<p>The pipeline is a real compiler, not an interpreter:</p>
+<pre class="plain">source &rarr; lexer &rarr; parser &rarr; autodiff expansion &rarr; Hindley-Milner inference (+ shapes)
+       &rarr; control-flow-graph IR &rarr; optimizer &rarr; stack bytecode &rarr; VM</pre>
+<p>The design bias throughout: <strong>an error beats a silently wrong
+answer</strong>. Anything the compiler cannot handle correctly is a
+diagnostic, never a guess.</p>
+
+<h2 id="basics">Basics</h2>
+
+<h3 id="literals">Literals and comments</h3>
+<p>Four scalar types: <code>int</code>, <code>float</code>, <code>bool</code>,
+<code>string</code>. Integers and floats are distinct types with no implicit
+conversion. Line comments start with <code>//</code>, block comments are
+<code>/* ... */</code>.</p>
+<div class="ex"><textarea rows="2" spellcheck="false">/* a program is one expression */
+42  // the answer</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 42 : int"></div></div></div>
+
+<h3 id="bindings">Bindings</h3>
+<p><code>let name = value in body</code> binds a name for the body. Bindings
+nest and shadow. A program evaluates to the value of its final
+expression.</p>
+<div class="ex"><textarea rows="3" spellcheck="false">let x = 5 in
+let y = x * 2 in
+x + y</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 15 : int"></div></div></div>
+
+<h3 id="functions">Functions</h3>
+<p>Functions take exactly one parameter; multiple arguments are curried
+with nested <code>fn</code>. Application is juxtaposition and
+left-associative. Functions are first-class values and close over their
+environment.</p>
+<div class="ex"><textarea rows="3" spellcheck="false">let add = fn x -> fn y -> x + y in
+let add3 = add 3 in   // partial application
+add3 4</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 7 : int"></div></div></div>
+
+<h3 id="recursion">Recursion</h3>
+<p><code>letrec</code> makes the name visible inside its own definition. At
+runtime this is a self-capturing closure the VM back-patches after
+allocation.</p>
+<div class="ex"><textarea rows="4" spellcheck="false">letrec fact = fn n ->
+  if n == 0 then 1
+  else n * fact (n - 1)
+in fact 10</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 3628800 : int"></div></div></div>
+
+<h3 id="conditionals">Conditionals</h3>
+<p><code>if</code> is an expression; both branches must have the same type
+and the condition must be <code>bool</code>. Comparison operators are
+<code>== != &lt; &gt; &lt;= &gt;=</code>; logic is <code>&amp;&amp;
+|| !</code>. Equality is defined for scalars only (see
+<a href="#limits">Limits</a>).</p>
+<div class="ex"><textarea rows="1" spellcheck="false">if 3 > 2 && !(1 == 2) then "yes" else "no"</textarea><div class="bar"><button>run</button><div class="out" data-expect='= "yes" : string'></div></div></div>
+
+<h2 id="types">The type system</h2>
+
+<h3 id="inference">Inference</h3>
+<p>Bagl uses Hindley-Milner type inference: you rarely write a type, and
+the checker finds the most general one. <code>let</code>-bound values
+generalize, so one definition serves many types. Inference is implemented
+with union-find unification and level-based generalization, the same
+technique OCaml's own checker uses.</p>
+<div class="ex"><textarea rows="2" spellcheck="false">let id = fn x -> x in
+if id true then id 1 else id 2   // one id, used at bool and int</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 1 : int"></div></div></div>
+<p>The occurs check rejects infinite types: <code>fn x -&gt; x x</code> is a
+compile error, not a hang.</p>
+<div class="ex"><textarea rows="1" spellcheck="false">fn x -> x x</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: Recursive type detected"></div></div></div>
+
+<h3 id="numerics">Numeric operators</h3>
+<p>Bagl has no type classes, so <code>+ - * /</code> and the comparisons
+resolve by inspecting their operands: if either side is a
+<code>float</code>, the operation is float. When both sides are still
+unresolved, the choice is <em>deferred</em> and only defaults to
+<code>int</code> when the enclosing binding is generalized, so operand
+order never matters:</p>
+<div class="ex"><textarea rows="2" spellcheck="false">let f = fn x -> (x + x) + 1.0 in   // the later 1.0 wins; f is float -> float
+f 2.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 5. : float"></div></div></div>
+<p>With no constraint at all, numeric parameters default to
+<code>int</code>: <code>fn x -&gt; x + x</code> is <code>int -&gt;
+int</code>. This trades principal types for a simple single-pass checker;
+annotate the parameter to get the float version. Division by zero is a
+runtime error, integer or float, never <code>inf</code>.</p>
+
+<h3 id="annotations">Annotations</h3>
+<p>Optional annotations appear after a binding name or parameter. A
+parameter annotation is a non-arrow type; wrap arrows in parentheses.
+Named type variables (<code>'a</code>) and dimension variables
+(<code>'n</code>) are shared within one annotation, so
+<code>tensor&lt;float&gt;['n,'n]</code> really means square:</p>
+<div class="ex"><textarea rows="2" spellcheck="false">let m: tensor<float>['n,'n] = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in
+m   // 2x3 into a square annotation: rejected</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: Dimension mismatch: 2 vs 3"></div></div></div>
+
+<h2 id="tensors">Tensors</h2>
+
+<h3 id="tensor-literals">Literals and rank</h3>
+<p>Tensors are float-backed, rank 1 (vectors) or rank 2 (matrices). The
+bracket syntax decides the rank, and single-row matrices are distinct
+from vectors: <code>[1.0, 2.0]</code> is a vector with shape
+<code>[2]</code>, while <code>[[1.0, 2.0]]</code> is a 1&times;2 matrix.
+Integer tensors are rejected at compile time rather than silently
+coerced.</p>
+<div class="ex"><textarea rows="1" spellcheck="false">transpose([[1.0, 2.0, 3.0]])   // 1x3 matrix -> 3x1</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [[1], [2], [3]] : tensor<float>[3, 1]"></div></div></div>
+
+<h3 id="tensor-ops">dot, transpose, reshape</h3>
+<p><code>dot</code> covers four rank combinations, unifying the shared
+dimension in each:</p>
+<table>
+<tr><th>operands</th><th>result</th><th>meaning</th></tr>
+<tr><td>[m,k] &middot; [k,n]</td><td>[m,n]</td><td>matrix product</td></tr>
+<tr><td>[m,k] &middot; [k]</td><td>[m]</td><td>matrix-vector</td></tr>
+<tr><td>[k] &middot; [k,n]</td><td>[n]</td><td>vector-matrix</td></tr>
+<tr><td>[k] &middot; [k]</td><td>float</td><td>inner product</td></tr>
+</table>
+<div class="ex"><textarea rows="3" spellcheck="false">let a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in   // 2x3
+let b = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]] in  // 3x2
+dot(a, b)</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [[22, 28], [49, 64]] : tensor<float>[2, 2]"></div></div></div>
+<p><code>transpose</code> works on matrices; <code>reshape</code> takes a
+literal shape and checks the element count when both sizes are known.</p>
+
+<h3 id="elementwise">Element-wise arithmetic</h3>
+<p><code>+ - * /</code> on two same-shape tensors apply element-wise
+(<code>*</code> is the Hadamard product, not matrix multiplication; that
+is <code>dot</code>). A float on either side broadcasts. Shapes are
+checked at compile time and re-validated by the VM.</p>
+<div class="ex"><textarea rows="2" spellcheck="false">let v = [1.0, 2.0, 3.0] in
+2.0 * v + [10.0, 20.0, 30.0]</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [12, 24, 36] : tensor<float>[3]"></div></div></div>
+
+<h3 id="shapes">Shape checking</h3>
+<p>Shapes live in the type system as a second unification domain:
+dimensions are union-find variables with their own occurs check,
+unified in parallel with ordinary types. A mismatch is a compile-time
+diagnostic pointing at the offending expression, and it composes: passing
+a bad shape <em>through a function</em> still reports the mismatch.</p>
+<div class="ex"><textarea rows="2" spellcheck="false">let f = fn a -> dot(a, [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]) in
+f [[1.0, 2.0]]   // 1x2 . 3x2: inner dimensions disagree</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: Dimension mismatch: 3 vs 2"></div></div></div>
+
+<h2 id="math">Math builtins</h2>
+<p><code>exp</code>, <code>log</code>, <code>sqrt</code>,
+<code>relu</code>, and <code>step</code> apply to a float or element-wise
+to a tensor. <code>step</code> is the Heaviside function (1.0 for x &gt; 0,
+else 0.0) and is exactly relu's derivative. Domain errors raise at
+runtime instead of producing <code>nan</code>: <code>log</code> of a
+non-positive number and <code>sqrt</code> of a negative number are
+errors.</p>
+<div class="ex"><textarea rows="1" spellcheck="false">relu([-1.5, 0.0, 2.5]) + exp([0.0, 0.0, 0.0])</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [1, 1, 3.5] : tensor<float>[3]"></div></div></div>
+<div class="ex"><textarea rows="1" spellcheck="false">log(0.0)</textarea><div class="bar"><button>run</button><div class="out" data-expect="runtime error: log of a non-positive number: 0"></div></div></div>
+
+<h2 id="autodiff">Differentiation</h2>
+<p><code>grad</code> is a source-to-source transform that runs before type
+inference: <code>grad (fn x -&gt; body)</code> is rewritten into an
+ordinary Bagl function computing the derivative, which then flows through
+inference, the optimizer, and the VM like any other code. The derivative
+is type- and shape-checked. There are two modes, selected by the
+parameter annotation.</p>
+
+<h3 id="grad-scalar">Scalar mode (forward)</h3>
+<p>For an unannotated or <code>float</code> parameter over scalar code,
+<code>grad</code> applies the sum, product, quotient, and chain rules
+symbolically. <code>if</code> differentiates each branch (the condition is
+data); <code>let</code> chains through; the builtins carry their
+calculus-textbook rules.</p>
+<div class="ex"><textarea rows="2" spellcheck="false">let d = grad (fn x -> exp(x * x)) in
+d 1.0   // d/dx e^(x^2) = 2x e^(x^2) = 2e at x=1</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 5.43656365692 : float"></div></div></div>
+<p>Derivatives are ordinary functions, so they compose with everything
+else. Newton's method where the compiler supplies f&prime;:</p>
+<div class="ex"><textarea rows="7" spellcheck="false">let f  = fn x -> x * x - 2.0 in
+let df = grad (fn x -> x * x - 2.0) in
+letrec newton = fn n ->
+  if n < 0.5 then 1.0 else
+  let x = newton (n - 1.0) in
+  x - f x / df x
+in newton 6.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 1.41421356237 : float"></div></div></div>
+
+<h3 id="grad-tensor">Tensor mode (reverse)</h3>
+<p>With a tensor parameter annotation, <code>grad</code> switches to
+reverse-mode differentiation and returns the gradient of a scalar loss
+with the parameter's shape. The pullback rules cover <code>dot</code>
+(all four rank cases), <code>transpose</code>, element-wise arithmetic,
+the math builtins, scalar broadcast, and <code>let</code>. The annotation
+is required because the transform runs before inference and the
+<code>dot</code> pullbacks depend on operand ranks.</p>
+<div class="ex"><textarea rows="4" spellcheck="false">let x = [[1.0, 2.0], [3.0, 4.0]] in
+let y = [1.0, 2.0] in
+grad (fn w: tensor<float>[2] ->
+  let e = dot(x, w) - y in dot(e, e)) [0.0, 0.0]   // 2 X^T (Xw - y)</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [-14, -20] : tensor<float>[2]"></div></div></div>
+<p>This is enough to train a model entirely in the language. Feature-mapped
+XOR by gradient descent, converging to the exact solution
+<code>[1, 1, -2]</code>:</p>
+<div class="ex"><textarea rows="12" spellcheck="false">let x = [[0.0, 0.0, 0.0],
+         [0.0, 1.0, 0.0],
+         [1.0, 0.0, 0.0],
+         [1.0, 1.0, 1.0]] in
+let y = [0.0, 1.0, 1.0, 0.0] in
+let dloss = grad (fn w: tensor<float>[3] ->
+  let e = dot(x, w) - y in
+  dot(e, e)) in
+letrec train = fn n ->
+  if n < 0.5 then [0.0, 0.0, 0.0] else
+  let w = train (n - 1.0) in
+  w - 0.1 * dloss w
+in train 200.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [0.999987, 0.999987, -1.99996] : tensor<float>[3]"></div></div></div>
+
+<h3 id="grad-pathwise">Pathwise derivatives</h3>
+<p>A <code>float</code>-annotated parameter can be differentiated
+<em>through</em> tensor code. The rank-1 sum-reductions this needs are
+expressed internally as dot products. This is the pathwise derivative
+estimator from computational finance: the sensitivity of a Monte Carlo
+average, computed by differentiating through the simulation itself.</p>
+<div class="ex"><textarea rows="3" spellcheck="false">let g = [0.8, 1.0, 1.2, 1.4] in
+let ones = [1.0, 1.0, 1.0, 1.0] in
+grad (fn s: float -> dot(relu(s * g - 1.0), ones) / 4.0) 1.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 0.65 : float"></div></div></div>
+<p>0.65 is exactly the estimator E[g &middot; 1<sub>ITM</sub>]: the two
+in-the-money paths contribute (1.2 + 1.4)/4.</p>
+
+<h3 id="grad-rejected">What is rejected, and why</h3>
+<p>Every gradient Bagl returns is exact for the program you wrote. Anything
+it cannot differentiate correctly is a compile error:</p>
+<ul>
+<li><strong>Function calls in the body</strong>: the transform is
+syntactic and cannot see through a call boundary yet.</li>
+<li><strong>Unannotated tensor parameters</strong>: the <code>dot</code>
+pullbacks need operand ranks, and the transform runs before
+inference.</li>
+<li><strong>Outer-product pullbacks</strong> (the matrix side of a
+matrix-vector <code>dot</code>) and <strong>double reductions</strong>
+(a scalar broadcast against a matrix): Bagl has no outer product or
+matrix reduction to express them with.</li>
+<li><code>letrec</code>, nested <code>fn</code>, tensor literals
+mentioning the parameter, and conditions on the parameter.</li>
+</ul>
+<div class="ex"><textarea rows="1" spellcheck="false">grad (fn w -> dot(w, w)) [1.0, 2.0]</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: grad over tensors requires an annotated parameter: tensor<float>[...] for a tensor, float for a scalar differentiated through tensor code"></div></div></div>
+
+<h2 id="runtime">Runtime and tooling</h2>
+<p>Bagl compiles to a dense stack bytecode executed by a virtual machine
+with dynamically-sized frames. Programs serialize to <code>.baglc</code>
+binaries (<code>baglc -c file.bagl</code>) and reload byte-identically,
+negative numbers included. The optimizer runs constant folding, dead-code
+elimination, copy propagation, and block-local common-subexpression
+elimination over a control-flow-graph IR; <code>-O0</code> disables it and
+<code>--dump-ast/-types/-ir/-bytecode</code> show every intermediate
+stage.</p>
+<ul>
+<li><strong>REPL</strong>: <code>baglc</code> with no file. Bindings
+persist across lines; <code>letrec</code>, closures, and
+<code>grad</code> all work interactively; <code>:type e</code> shows an
+inferred type.</li>
+<li><strong>Editor support</strong>: <code>bagl-lsp</code> speaks the
+Language Server Protocol over stdio, publishing real compiler
+diagnostics as you type; a VS Code extension and Neovim setup live in
+<code>editors/</code>.</li>
+<li><strong>Browser</strong>: the compiler builds to 150 KB of JavaScript
+via js_of_ocaml. That bundle runs this page and the
+<a href="../playground/">playground</a>.</li>
+</ul>
+
+<h2 id="limits">Limits</h2>
+<p>Stated plainly, because knowing the edges is part of knowing the
+language:</p>
+<ul>
+<li>No I/O, lists, tuples, records, or string operations; strings support
+literals and equality only. A program is one expression.</li>
+<li>Tensors are rank 1 or 2 and float-only; no indexing or slicing
+(components are extracted with basis-vector dot products), no
+broadcasting beyond scalars, no outer product.</li>
+<li>Numeric operators default unconstrained operands to
+<code>int</code> at generalization; <code>fn x -&gt; x + x</code> is
+<code>int -&gt; int</code> unless annotated. The principled fix is type
+classes; the trade was made for a single-pass checker.</li>
+<li>Equality on tensors or functions is a compile error rather than a
+structural comparison.</li>
+<li><code>grad</code> has the restrictions in
+<a href="#grad-rejected">the section above</a>; every one of them is a
+diagnostic, not a wrong number.</li>
+<li>An unannotated tensor argument to a tensor op defaults to rank 2 in
+one corner of inference; annotate 1-D parameters as
+<code>tensor&lt;float&gt;['n]</code>.</li>
+</ul>
+
+<h2 id="grammar">Grammar</h2>
+<pre class="plain">program   ::= expr
+expr      ::= "let" NAME [":" type] "=" expr "in" expr
+            | "letrec" NAME [":" type] "=" expr "in" expr
+            | "fn" NAME [":" simple-type] "->" expr
+            | "if" expr "then" expr "else" expr
+            | binop-expr
+binop-expr::= unary { binop unary }        // precedence: || < && < ==,!= < <,>,<=,>= < +,- < *,/
+unary     ::= ["-" | "!"] postfix
+postfix   ::= primary { primary }          // application, left-associative
+primary   ::= INT | FLOAT | STRING | "true" | "false" | NAME
+            | "(" expr ")" | tensor
+            | "dot" "(" expr "," expr ")" | "transpose" "(" expr ")"
+            | "reshape" "(" expr "," shape ")"
+            | ("exp"|"log"|"sqrt"|"relu"|"step") "(" expr ")"
+            | "grad" ...                    // ordinary application; special-cased on fn literals
+tensor    ::= "[" expr {"," expr} "]"       // vector
+            | "[" row {"," row} "]"         // matrix, even with one row
+type      ::= simple-type ["->" type]
+simple-type ::= "int" | "float" | "bool" | "string" | "'" NAME
+            | "tensor" "&lt;" type "&gt;" shape | "(" type ")"
+shape     ::= "[" dim {"," dim} "]"         // dim ::= INT | "'" NAME</pre>
+
+<p class="kbd" style="margin-top:3rem">Every example on this page is compiled and executed by the Bagl compiler
+running in this tab, and each one's expected output is verified in CI.</p>
+
+</main>
+</div>
+
+<script src="../playground/bagl.js"></script>
+<script>
+const compiler = (typeof bagl !== "undefined") ? bagl : null;
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function render(out, res) {
+  if (res.ok) {
+    out.innerHTML = '<span class="ok-value">= ' + esc(res.value) + '</span>' +
+                    '<span class="ok-type"> : ' + esc(res.type) + '</span>';
+  } else if (res.runtime) {
+    out.innerHTML = '<span class="err">runtime error: ' + esc(res.error) + '</span>';
+  } else {
+    out.innerHTML = '<span class="err">error: ' + esc(res.error) +
+      ' <span class="ok-type">(line ' + res.line + ', col ' + res.col + ')</span></span>';
+  }
+}
+
+document.querySelectorAll(".ex").forEach(ex => {
+  const ta = ex.querySelector("textarea");
+  const btn = ex.querySelector("button");
+  const out = ex.querySelector(".out");
+  const run = () => {
+    if (!compiler) { out.textContent = "compiler failed to load"; return; }
+    render(out, compiler.run(ta.value));
+  };
+  btn.addEventListener("click", run);
+  ta.addEventListener("keydown", e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); run(); }
+  });
+});
+</script>
+</body>
+</html>
