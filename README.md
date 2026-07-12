@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/aibrahm/bagl/actions/workflows/ci.yml/badge.svg)](https://github.com/aibrahm/bagl/actions/workflows/ci.yml)
 ![OCaml](https://img.shields.io/badge/OCaml-5.2-orange)
-![Tests](https://img.shields.io/badge/tests-94%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A statically-typed functional programming language with first-class tensor support and compile-time shape checking.
@@ -23,6 +23,7 @@ A statically-typed functional programming language with first-class tensor suppo
 - **Functional Core** - First-class functions, closures, and recursion
 - **Automatic Differentiation** - `grad` rewrites scalar functions into derivatives and tensor losses into reverse-mode gradients at compile time
 - **Element-wise Tensor Arithmetic** - `+ - * /` on same-shape tensors, with float scalar broadcast
+- **Math Builtins** - `exp`, `log`, `sqrt`, `relu`, `step` on floats or element-wise on tensors, with derivative rules
 - **Stack-Based VM** - Efficient bytecode execution
 - **Bytecode Serialization** - Compile once, run anywhere with `.baglc` files
 - **Browser Playground** - The full compiler compiled to 147 KB of JavaScript, [live here](https://aibrahm.github.io/bagl/playground/)
@@ -58,17 +59,23 @@ dune exec baglc
 Bagl REPL v0.1
 Type :quit to exit, :type <expr> to show type
 
-> 1 + 2
-= 3 : int
+> let square = fn x -> x * x
+square = <closure@1> : int -> int
 
-> let square = fn x -> x * x in square 5
+> square 5
 = 25 : int
 
-> :type fn x -> x + 1
-: int -> int
+> let df = grad (fn x -> x * x * x)
+df = <closure@2> : float -> float
+
+> df 2.0
+= 12. : float
 
 > :quit
 ```
+
+Bindings persist across lines; `letrec`, closures, and `grad` all work
+interactively.
 
 ### Run a File
 
@@ -112,10 +119,10 @@ Functions take a single parameter; multiple arguments are curried with
 nested `fn`. Recursive bindings use `letrec`.
 
 ```ml
--- Anonymous, curried functions
+// Anonymous, curried functions
 let add = fn x -> fn y -> x + y in add 2 3
 
--- Recursive functions
+// Recursive functions
 letrec factorial = fn n ->
   if n <= 1 then 1
   else n * factorial (n - 1)
@@ -125,7 +132,7 @@ in factorial 5
 ### Tensors
 
 ```ml
--- 1D tensor (vector) and 2D tensor (matrix)
+// 1D tensor (vector) and 2D tensor (matrix)
 let v = [1.0, 2.0, 3.0] in
 let m = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in
 
@@ -135,6 +142,19 @@ dot(m, v)                          -- matrix-vector product -> [2]
 ```ml
 transpose([[1.0, 2.0], [3.0, 4.0]])   -- transpose -> [2, 2]
 reshape([1.0, 2.0, 3.0, 4.0], [2, 2]) -- reshape   -> [2, 2]
+```
+
+### Math Builtins
+
+`exp`, `log`, `sqrt`, `relu`, and `step` apply to a float, or element-wise
+to a tensor. `step` is the Heaviside function (1.0 for x > 0, else 0.0)
+and is also relu's derivative. `log` of a non-positive number and `sqrt`
+of a negative number raise a runtime error rather than producing nan.
+
+```ml
+exp(1.0)                     // 2.71828...
+relu([-1.0, 2.0, -3.0])      // [0, 2, 0]
+grad (fn x -> exp(x * x)) 1.0  // 2e = 5.43656...
 ```
 
 ### Type Annotations
@@ -153,12 +173,12 @@ dimension, so an incompatible product is a type error before the program
 ever runs:
 
 ```ml
--- (2x3) . (3x2) type-checks and yields a (2x2)
+// (2x3) . (3x2) type-checks and yields a (2x2)
 let a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in
 let b = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]] in
 dot(a, b)
 
--- (2x3) . (2x2) is rejected: "Dimension mismatch: 3 vs 2"
+// (2x3) . (2x2) is rejected: "Dimension mismatch: 3 vs 2"
 ```
 
 Shape annotations may use dimension variables (written `'n`), which the
@@ -173,7 +193,7 @@ normal function, so it goes through inference, IR, optimization, and the
 VM unchanged, and the derivative is type-checked like any other code.
 
 ```ml
--- d/dx (x*x*x) = 3*x^2, so the derivative at x = 2 is 12
+// d/dx (x*x*x) = 3*x^2, so the derivative at x = 2 is 12
 grad (fn x -> x * x * x) 2.0
 ```
 
@@ -187,7 +207,7 @@ With a tensor parameter annotation, `grad` switches to reverse mode and
 returns the gradient of a scalar loss with the parameter's shape:
 
 ```ml
--- dL/dw = 2 X^T (Xw - y), derived by the compiler
+// dL/dw = 2 X^T (Xw - y), derived by the compiler
 let dloss = grad (fn w: tensor<float>[3] ->
   let e = dot(x, w) - y in
   dot(e, e)) in
@@ -195,11 +215,24 @@ w - 0.1 * dloss w
 ```
 
 The tensor rules cover `dot` (matrix-matrix, matrix-vector, vector-vector),
-`transpose`, element-wise arithmetic, scalar broadcast, and `let`. A model
-can be trained entirely in Bagl: `examples/train_xor.bagl` runs 200 steps
-of gradient descent on feature-mapped XOR and converges to the exact
-solution `[1, 1, -2]`. Pullbacks Bagl cannot express (outer products,
-reductions) are compile errors, never wrong gradients.
+`transpose`, element-wise arithmetic, the math builtins, scalar broadcast,
+and `let`. A model can be trained entirely in Bagl: `examples/train_xor.bagl`
+runs 200 steps of gradient descent on feature-mapped XOR and converges to
+the exact solution `[1, 1, -2]`.
+
+A `float`-annotated parameter can also be differentiated through tensor
+code; the rank-1 sum-reductions this needs are expressed as dot products.
+This is the pathwise derivative estimator from computational finance:
+
+```ml
+// d/ds of a Monte Carlo average, straight through relu and the payoff
+let g = [0.8, 1.0, 1.2, 1.4] in
+let ones = [1.0, 1.0, 1.0, 1.0] in
+grad (fn s: float -> dot(relu(s * g - 1.0), ones) / 4.0) 1.0   // 0.65
+```
+
+Pullbacks Bagl cannot express (outer products, double reductions over
+matrices) are compile errors, never wrong gradients.
 
 ## Project Structure
 
