@@ -254,7 +254,7 @@ round-trip tests for exactly these.
   synthetic declarations so hover can type individual bindings.
 - **Browser** (`js/bagl_js.ml`): `Js.export` wraps the pipeline as
   `bagl.run(source)` returning `{ok, value, type}` or a structured error
-  with span. js_of_ocaml compiles the whole compiler to ~150 KB; the
+  with span. js_of_ocaml compiles the whole compiler to about 160 KB; the
   playground and the language reference are static pages over that one
   function, and CI executes every example in the reference against it.
 

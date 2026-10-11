@@ -26,7 +26,7 @@ A statically-typed functional programming language with first-class tensor suppo
 - **Math Builtins** - `exp`, `log`, `sqrt`, `relu`, `step` on floats or element-wise on tensors, with derivative rules
 - **Stack-Based VM** - Efficient bytecode execution
 - **Bytecode Serialization** - Compile once, run anywhere with `.baglc` files
-- **Browser Playground** - The full compiler compiled to 147 KB of JavaScript, [live here](https://aibrahm.github.io/bagl/playground/)
+- **Browser Playground** - The full compiler compiled to about 160 KB of JavaScript (50 KB compressed), [live here](https://aibrahm.github.io/bagl/playground/)
 
 ## Installation
 
