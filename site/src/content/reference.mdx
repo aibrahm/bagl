@@ -1,0 +1,207 @@
+# Language reference
+
+The reference describes each part of Bagl, from literals and functions to tensors and `grad`. You can edit the examples and run them. [The specification](/bagl/spec/) gives the complete rules.
+
+## Overview
+
+Bagl is a small functional language with static types. A tensor's shape is part of its type, so a mismatch in matrix dimensions is a compile error, and `grad` turns a function into its derivative before type inference runs.
+
+The compiler runs these stages in order.
+
+```text
+source → lexer → parser → grad expansion → Hindley-Milner inference (with shapes)
+       → control flow graph IR → optimizer → stack bytecode → VM
+```
+
+The compiler prefers an error to a wrong answer. If it can't handle a program correctly, it reports an error instead of guessing.
+
+## Basics
+
+### Literals and comments
+
+There are four scalar types, `int`, `float`, `bool` and `string`. Integers and floats are separate types, and Bagl never converts one into the other on its own. Line comments start with `//`, and block comments look like `/* ... */`.
+
+<Example id="literals" />
+
+### Bindings
+
+`let name = value in body` binds a name inside the body. Bindings can nest, and an inner binding hides an outer one with the same name. A program evaluates to the value of its last expression.
+
+<Example id="bindings" />
+
+### Functions
+
+A function takes exactly one parameter, so a function of several arguments is written as nested `fn`, which is called currying. You call a function by writing the argument after it, and calls group to the left. Functions are values, and they keep the variables around them, which makes them closures.
+
+<Example id="functions" />
+
+### Recursion
+
+`letrec` makes a name visible inside its own definition. At run time, the virtual machine (VM) creates a closure that refers to itself, and it fills in that reference right after it allocates the closure.
+
+<Example id="recursion" />
+
+### Conditionals
+
+`if` is an expression. Both branches must have the same type, and the condition must be a `bool`. The comparison operators are `== != < > <= >=`, and the logical operators are `&& || !`. Equality works on scalars only, as [the limits](#limits) explain.
+
+<Example id="conditionals" />
+
+## The type system
+
+### Inference
+
+Bagl uses Hindley-Milner type inference, so you rarely write a type, and the checker finds the most general one. A value bound with `let` is generalized, so one definition can be used at several types. The checker uses union-find unification and level-based generalization, which is the technique that OCaml's own checker uses.
+
+<Example id="inference" />
+
+The occurs check rejects infinite types, so `fn x -> x x` is a compile error instead of a hang.
+
+<Example id="occurs-check" />
+
+### Numeric operators
+
+Bagl has no type classes, so `+ - * /` and the comparisons choose between int and float by looking at their operands. If either side is a `float`, the operation works on floats. When neither side is known yet, the checker waits, and it only defaults to `int` when the enclosing binding is generalized. Because of the wait, the order of the operands never matters.
+
+<Example id="numerics" />
+
+With no constraint at all, a numeric parameter defaults to `int`, so `fn x -> x + x` has the type `int -> int`. The design gives up principal types to keep a checker that runs in one pass, and you can annotate the parameter to get the float version. Division by zero is a runtime error for integers and floats alike, and it never produces `inf`.
+
+### Annotations
+
+You can add a type after a binding name or a parameter. A parameter annotation can't be a function type unless you wrap it in parentheses. Named type variables, like `'a`, and dimension variables, like `'n`, are shared within one annotation, so `tensor<float>['n,'n]` means a square matrix.
+
+<Example id="annotations" />
+
+## Tensors
+
+### Literals and rank
+
+Tensors hold floats, and they have rank 1 (vectors) or rank 2 (matrices). The brackets decide the rank, and a matrix with one row is different from a vector. For example, `[1.0, 2.0]` is a vector with shape `[2]`, and `[[1.0, 2.0]]` is a 1x2 matrix. The compiler rejects integer tensors instead of converting them.
+
+<Example id="tensor-literals" />
+
+### dot, transpose and reshape
+
+`dot` works on four combinations of ranks, and it unifies the shared dimension in each one.
+
+| Operand shapes | Result | Meaning |
+| --- | --- | --- |
+| `[m,k]` and `[k,n]` | `[m,n]` | matrix product |
+| `[m,k]` and `[k]` | `[m]` | matrix times vector |
+| `[k]` and `[k,n]` | `[n]` | vector times matrix |
+| `[k]` and `[k]` | `float` | inner product |
+
+<Example id="dot" />
+
+`transpose` works on matrices. `reshape` takes a literal shape, and it checks the number of elements when both sizes are known.
+
+### Element-wise arithmetic
+
+`+ - * /` on two tensors of the same shape work element by element. Here `*` is the element-wise product, and matrix multiplication is `dot`. A float on either side is applied to every element. The compiler checks the shapes, and the VM checks them again at run time.
+
+<Example id="elementwise" />
+
+### Shape checking
+
+Shapes live in the type system as a second set of unification variables. Each dimension is a union-find variable with its own occurs check, and the checker unifies dimensions alongside ordinary types. A mismatch is a compile error that points at the expression at fault. The check also works across function calls, so a bad shape passed through a function still reports the mismatch.
+
+<Example id="shapes" />
+
+## Math builtins
+
+`exp`, `log`, `sqrt`, `relu` and `step` work on a float, or element by element on a tensor. `step` is the Heaviside function, which is 1.0 for x > 0 and 0.0 otherwise, and it is exactly the derivative of `relu`.
+
+<Example id="math" />
+
+Domain errors stop the program at run time instead of producing `nan`, so `log` of a number that isn't positive and `sqrt` of a negative number are errors.
+
+<Example id="math-domain" />
+
+## Differentiation
+
+`grad` is a source to source transform that runs before type inference. The compiler rewrites `grad (fn x -> body)` into an ordinary Bagl function that computes the derivative, and that function goes through inference, the optimizer and the VM like any other code. The derivative is therefore checked for types and shapes too. The parameter annotation selects the mode.
+
+### Scalar mode
+
+For a parameter with no annotation or a `float` annotation, over scalar code, `grad` applies the sum, product, quotient and chain rules symbolically. For an `if`, it differentiates each branch and keeps the condition as it is. It passes through `let`, and each builtin has its usual derivative rule.
+
+<Example id="grad-scalar" />
+
+Derivatives are ordinary functions, so you can combine them with anything else. The example below is Newton's method, where the compiler supplies the derivative of f.
+
+<Example id="newton" />
+
+### Tensor mode
+
+With a tensor parameter annotation, `grad` uses reverse mode differentiation, and it returns the gradient of a scalar loss in the shape of the parameter. The rules cover `dot` in all four rank cases, `transpose`, element-wise arithmetic, the math builtins, scalar broadcast and `let`. The annotation is required, because the transform runs before inference and the rules for `dot` depend on the ranks of its operands.
+
+<Example id="grad-tensor" />
+
+Tensor mode is enough to train a model in the language. The example below trains XOR on mapped features by gradient descent, and it converges to the exact solution `[1, 1, -2]`.
+
+<Example id="train-xor" />
+
+### Pathwise derivatives
+
+You can also differentiate a parameter annotated as `float` through tensor code, and the compiler expresses the sums this needs as dot products. Computational finance calls the technique the pathwise derivative estimator. It computes how sensitive a Monte Carlo average is by differentiating through the simulation itself.
+
+<Example id="pathwise" />
+
+The answer, 0.65, is exactly the estimator E[g × 1<sub>ITM</sub>], because the two paths that end in the money contribute (1.2 + 1.4) / 4.
+
+### What is rejected
+
+Every gradient that Bagl returns is exact for the program you wrote. If Bagl can't differentiate something correctly, it reports a compile error, and it rejects these cases.
+
+- A function call in the body, because the transform works on the syntax and can't see inside a call yet.
+- A tensor parameter without an annotation, because the rules for `dot` need the ranks of the operands, and the transform runs before inference.
+- The matrix side of a matrix times vector `dot`, which needs an outer product, and a scalar broadcast against a matrix, which needs a sum over the matrix. Bagl has neither operation.
+- `letrec`, nested `fn`, tensor literals that mention the parameter, and, in tensor mode, conditions on the parameter.
+
+<Example id="grad-rejected" />
+
+## Runtime and tooling
+
+Bagl compiles to a compact stack bytecode, and a VM with frames of varying size runs it. You can save a program as a `.baglc` file with `baglc -c file.bagl`, and it reloads byte for byte, negative numbers included. The optimizer runs on an intermediate representation (IR) made of basic blocks, and within each block it runs constant folding, dead code elimination, copy propagation and common subexpression elimination. `-O0` turns the optimizer off, and [the command line options](/bagl/start/#command-line-options) show each stage.
+
+- The REPL starts when you run `baglc` with no file. Bindings stay across lines, and `letrec`, closures and `grad` all work. `:type e` shows the inferred type of an expression.
+- For editors, `bagl-lsp` speaks the Language Server Protocol, and it shows the compiler's errors as you type. A VS Code extension is in `editors/`, and [the getting started page](/bagl/start/#set-up-your-editor) shows the Neovim setup.
+- In the browser, js_of_ocaml builds the compiler into about 160 KB of JavaScript (50 KB compressed). The same bundle runs this page and [the playground](/bagl/playground/).
+
+## Limits
+
+Bagl has these limits.
+
+- There's no I/O, and there are no lists, tuples, records or string operations. Strings support literals and equality only, and a program is one expression.
+- Tensors are rank 1 or 2, and they hold floats only. There's no indexing or slicing, so you extract a component with a dot product against a basis vector. Broadcasting works only with scalars, and there's no outer product.
+- Numeric operators default operands with no constraint to `int` when a binding is generalized, so `fn x -> x + x` is `int -> int` unless you annotate it. Type classes would fix the problem, and Bagl gives them up to keep a checker that runs in one pass.
+- Equality on tensors or functions is a compile error, and Bagl doesn't compare them structurally.
+- `grad` has the limits in [the section above](#what-is-rejected), and each of them is a compile error, never a wrong number.
+- In one corner of inference, a tensor argument without an annotation defaults to rank 2, so annotate a vector parameter as `tensor<float>['n]`.
+
+## Grammar
+
+```text
+program     ::= expr
+expr        ::= "let" NAME [":" type] "=" expr "in" expr
+              | "letrec" NAME [":" type] "=" expr "in" expr
+              | "fn" NAME [":" simple-type] "->" expr
+              | "if" expr "then" expr "else" expr
+              | binop-expr
+binop-expr  ::= unary { binop unary }       // precedence: || < && < ==,!= < <,>,<=,>= < +,- < *,/
+unary       ::= ["-" | "!"] postfix
+postfix     ::= primary { primary }         // application, left-associative
+primary     ::= INT | FLOAT | STRING | "true" | "false" | NAME
+              | "(" expr ")" | tensor
+              | "dot" "(" expr "," expr ")" | "transpose" "(" expr ")"
+              | "reshape" "(" expr "," shape ")"
+              | ("exp" | "log" | "sqrt" | "relu" | "step") "(" expr ")"
+              | "grad" ...                   // ordinary application, special-cased on fn literals
+tensor      ::= "[" expr {"," expr} "]"      // vector
+              | "[" row {"," row} "]"        // matrix, even with one row
+type        ::= simple-type ["->" type]
+simple-type ::= "int" | "float" | "bool" | "string" | "'" NAME
+              | "tensor" "<" type ">" shape | "(" type ")"
+shape       ::= "[" dim {"," dim} "]"        // dim ::= INT | "'" NAME
+```

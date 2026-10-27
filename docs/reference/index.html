@@ -2,475 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Bagl language reference</title>
-<meta name="description" content="The Bagl language reference. Bagl is a small typed language with tensor shapes in its types and automatic differentiation in its compiler, and every example on the page runs in your browser.">
-<link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="preload" href="../fonts/victor-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<script>/* follow the light/dark choice saved by abdelrahmanibrm.com, if any */try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}</script>
-<link rel="stylesheet" href="../bagl.css">
-<style>
-  html{scroll-padding-block-start:5rem}
-  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-  .top{position:sticky;inset-block-start:0;z-index:3;background:var(--bg)}
-  .layout{display:grid;grid-template-columns:13rem minmax(0,44rem);gap:0 3.5rem;max-width:64rem;margin-inline:auto;
-    padding-inline:1.25rem}
-  @media (max-width:900px){ .layout{grid-template-columns:minmax(0,1fr)} .toc{display:none} }
-  .toc{position:sticky;inset-block-start:4.5rem;align-self:start;max-block-size:calc(100svh - 5rem);overflow-y:auto;
-    overscroll-behavior:contain;padding-block:2rem;font-size:.85rem}
-  .toc a{display:block;color:var(--faint);text-decoration:none;padding-block:.12rem}
-  .toc a.h{color:var(--muted);margin-block-start:.6rem}
-  .toc a.sub{padding-inline-start:.9rem;border-inline-start:1px solid var(--line2)}
-  .toc a.is-current{color:var(--ink);font-style:italic}
-  @media (hover:hover) and (pointer:fine){ .toc a:hover{color:var(--ink)} }
-  main{padding-block:2rem 5rem;min-width:0}
-  main > * + *{margin-block-start:.9rem}
-  h2{margin-block-start:3rem;padding-block-start:1.5rem;border-block-start:1px solid var(--line);font-size:1.15rem;
-    font-weight:700;letter-spacing:-.01em}
-  main > h2:first-child{margin-block-start:0;padding-block-start:0;border:0}
-  h3{margin-block-start:2rem;font-size:1em;font-weight:700}
-  p,ul,table,pre{margin-block-end:0}
-  ul{padding-inline-start:1.25rem;list-style:disc}
-  li + li{margin-block-start:.35rem}
-  li::marker{color:var(--faint)}
-  code{font-size:.92em}
-  p code,li code,td code{padding-inline:.25rem;background:var(--bg2);border:1px solid var(--line2);border-radius:3px}
-  main a{color:var(--ink);text-decoration:underline}
-  @media (hover:hover) and (pointer:fine){ main a:hover{opacity:.65} }
-  table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
-  th,td{border-block-end:1px solid var(--line);padding-block:.4rem;padding-inline:0 1rem;text-align:start}
-  th{color:var(--faint);font-weight:400}
-  pre.plain{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding-block:.8rem;padding-inline:1rem;
-    overflow-x:auto;overscroll-behavior-x:contain;font-size:.85rem;line-height:1.55}
-  .ex{border:1px solid var(--line);border-radius:var(--r);overflow:clip}
-  .ex textarea{display:block;inline-size:100%;border:0;outline:none;background:var(--bg2);color:var(--ink);
-    font:inherit;font-size:max(16px,1rem);line-height:1.55;padding-block:.8rem;padding-inline:1rem;
-    white-space:pre;overflow-x:auto;min-height:2.6rem;field-sizing:content;max-block-size:30lh;resize:none;caret-color:var(--ink)}
-  .ex:focus-within{border-color:var(--ink)}
-  .ex .bar{display:flex;align-items:baseline;gap:.8rem;border-block-start:1px solid var(--line);padding-block:.4rem;padding-inline:.6rem 1rem}
-  .ex button{flex:none;background:transparent;border:1px solid var(--line);border-radius:var(--r);color:var(--muted);
-    font-size:.8rem;padding-block:.1rem;padding-inline:.6rem}
-  @media (hover:hover) and (pointer:fine){ .ex button:hover{color:var(--ink);border-color:var(--ink)} }
-  .ex .out{flex:1;font-size:.9rem;white-space:pre-wrap;min-height:1.4rem}
-  .note{margin-block-start:3rem;color:var(--faint);font-size:.85rem}
-</style>
+<meta name="description" content="The Bagl language reference. Every example on the page can be edited and runs in your browser.">
+<link rel="canonical" href="https://aibrahm.github.io/bagl/reference/">
+<link rel="icon" href="/bagl/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/bagl/brand/apple-touch-icon.png">
+<meta property="og:title" content="Bagl language reference">
+<meta property="og:description" content="The Bagl language reference. Every example on the page can be edited and runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aibrahm.github.io/bagl/reference/">
+<meta property="og:image" content="https://aibrahm.github.io/bagl/brand/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="The Bagl logo, a bitten bagel next to the word bagl.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#FFF8ED" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#282420" media="(prefers-color-scheme: dark)">
+<script>/* the light or dark choice saved by this site or abdelrahmanibrm.com */try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
+  <script type="module" crossorigin src="/bagl/assets/preload-helper-CkyS6jwL.js"></script>
+  <script type="module" crossorigin src="/bagl/assets/entry-client-Ciy7CGvT.js"></script>
+  <link rel="stylesheet" crossorigin href="/bagl/assets/entry-client-DP1UEmvC.css">
 </head>
 <body>
-<header class="top">
-  <a class="mark" href="../playground/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="box" x=".5" y=".5" width="23" height="23" rx="3"/><path class="l" d="M6 4.75h2.1L18 19.25M12.85 11.6 6.5 19.25" fill="none" stroke-width="2.1" stroke-linecap="square"/></svg>bagl</a>
-  <p class="tagline">The language reference. Every example on this page can be edited and runs in your browser.</p>
-  <nav aria-label="Bagl">
-    <a href="../playground/">playground</a>
-    <a href="../reference/" aria-current="page">reference</a>
-    <a href="https://github.com/aibrahm/bagl">source code</a>
-    <a href="https://abdelrahmanibrm.com/projects/bagl-compiler">about the project</a>
-  </nav>
-</header>
-
-<div class="layout">
-<nav class="toc" aria-label="Contents">
-  <a class="h" href="#overview">Overview</a>
-  <a class="h" href="#basics">Basics</a>
-  <a class="sub" href="#literals">Literals and comments</a>
-  <a class="sub" href="#bindings">Bindings</a>
-  <a class="sub" href="#functions">Functions</a>
-  <a class="sub" href="#recursion">Recursion</a>
-  <a class="sub" href="#conditionals">Conditionals</a>
-  <a class="h" href="#types">The type system</a>
-  <a class="sub" href="#inference">Inference</a>
-  <a class="sub" href="#numerics">Numeric operators</a>
-  <a class="sub" href="#annotations">Annotations</a>
-  <a class="h" href="#tensors">Tensors</a>
-  <a class="sub" href="#tensor-literals">Literals and rank</a>
-  <a class="sub" href="#tensor-ops">dot, transpose and reshape</a>
-  <a class="sub" href="#elementwise">Element-wise arithmetic</a>
-  <a class="sub" href="#shapes">Shape checking</a>
-  <a class="h" href="#math">Math builtins</a>
-  <a class="h" href="#autodiff">Differentiation</a>
-  <a class="sub" href="#grad-scalar">Scalar mode</a>
-  <a class="sub" href="#grad-tensor">Tensor mode</a>
-  <a class="sub" href="#grad-pathwise">Pathwise derivatives</a>
-  <a class="sub" href="#grad-rejected">What is rejected</a>
-  <a class="h" href="#runtime">Runtime and tooling</a>
-  <a class="h" href="#limits">Limits</a>
-  <a class="h" href="#grammar">Grammar</a>
-</nav>
-
-<main>
+<div id="root" data-page="reference"><a href="#main" class="sr-only z-50 rounded-sm bg-text px-4 py-2 font-semibold text-bg focus:not-sr-only focus:fixed focus:start-4 focus:top-3">Skip to the content</a><header class="sticky top-0 z-40 border-b border-line bg-[color-mix(in_oklch,var(--bg)_92%,transparent)] backdrop-blur-md supports-[not(backdrop-filter:blur(1px))]:bg-bg"><div class="mx-auto flex h-[var(--header-h)] max-w-[90rem] items-center gap-2 px-4 sm:px-6"><button type="button" aria-label="Open menu" class="grid size-10 flex-none place-items-center rounded-sm text-text hover:bg-line-soft active:opacity-70 lg:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left lucide-sidebar size-5" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg></button><a href="/bagl/" class="me-2 flex-none rounded-sm py-2 pe-1 active:opacity-70" aria-label="Bagl home"><svg viewBox="32 32 547 204" role="img" aria-label="Bagl" class="h-auto w-[140px]"><path transform="translate(6 6)" fill-rule="evenodd" d="M181 41C165 31 147 26 128 26C71.7 26 26 71.7 26 128C26 184.3 71.7 230 128 230C184.3 230 230 184.3 230 128C230 123 229.6 118 229 113C215 121 201 111 203 96C187 100 173 87 178 71C161 65 165 47 181 41ZM156 134C156 153 143 166 124 166C104 166 91 152 92 133C93 113 106 101 126 102C145 103 157 115 156 134ZM99.605 59.847C100.212 56.293 107.114 52.126 111.988 53.239C115.035 55.166 108.540 60.247 103.159 60.454C100.925 60.354 100.012 60.761 99.605 59.847ZM62.186 99.447C60.941 96.256 64.522 89.486 69.036 88.008C72.460 88.086 69.658 95.401 65.377 98.203C63.509 99.214 62.964 99.992 62.186 99.447ZM51.510 148.378C54.488 146.345 62.280 148.415 64.865 152.695C65.595 156.226 57.429 155.083 53.542 151.356C52.062 149.680 51.135 149.305 51.510 148.378ZM104.185 202.753C104.952 199.046 112.347 194.926 117.421 196.273C120.549 198.407 113.547 203.501 107.893 203.520C105.552 203.334 104.579 203.727 104.185 202.753ZM182.429 173.733C181.707 170.422 186.254 164.360 190.895 163.614C194.229 164.220 190.358 170.936 185.740 173.011C183.758 173.710 183.105 174.386 182.429 173.733Z" style="fill:light-dark(var(--toast), var(--cream))"></path><g transform="translate(272.72 50.36) scale(0.82) translate(-9.5 -3.5)" fill="currentColor"><path d="M9.500,10.000L22.500,3.500L22.500,144.000L9.500,144.000Z"></path><path d="M22.500,91.000C22.500,70.294 32.879,59.500 53.000,59.500C73.121,59.500 83.500,70.294 83.500,91.000L83.500,106.000C83.500,126.706 73.121,137.500 53.000,137.500C32.879,137.500 22.500,126.706 22.500,106.000L22.500,91.000ZM9.500,91.000L9.500,106.000C9.500,133.774 25.583,150.500 53.000,150.500C80.417,150.500 96.500,133.774 96.500,106.000L96.500,91.000C96.500,63.226 80.417,46.500 53.000,46.500C25.583,46.500 9.500,63.226 9.500,91.000Z"></path><path d="M130.500,91.000C130.500,70.189 140.984,59.500 162.000,59.500C183.016,59.500 193.500,70.189 193.500,91.000L193.500,106.000C193.500,126.811 183.016,137.500 162.000,137.500C140.984,137.500 130.500,126.811 130.500,106.000L130.500,91.000ZM117.500,91.000L117.500,106.000C117.500,133.934 133.747,150.500 162.000,150.500C190.253,150.500 206.500,133.934 206.500,106.000L206.500,91.000C206.500,63.066 190.253,46.500 162.000,46.500C133.747,46.500 117.500,63.066 117.500,91.000Z"></path><path d="M193.500,53.000L193.500,144.000L206.500,144.000L206.500,53.000L193.500,53.000Z"></path><path d="M242.500,91.000C242.500,70.189 252.984,59.500 274.000,59.500C295.016,59.500 305.500,70.189 305.500,91.000L305.500,106.000C305.500,126.811 295.016,137.500 274.000,137.500C252.984,137.500 242.500,126.811 242.500,106.000L242.500,91.000ZM229.500,91.000L229.500,106.000C229.500,133.934 245.747,150.500 274.000,150.500C302.253,150.500 318.500,133.934 318.500,106.000L318.500,91.000C318.500,63.066 302.253,46.500 274.000,46.500C245.747,46.500 229.500,63.066 229.500,91.000Z"></path><path d="M305.500,53.000L305.500,165.000C305.500,185.502 296.315,194.500 275.000,194.500L249.000,194.500L249.000,207.500L275.000,207.500C303.435,207.500 318.500,192.743 318.500,165.000L318.500,53.000L305.500,53.000Z"></path><path d="M341.500,10.000L354.500,3.500L354.500,117.000L341.500,117.000Z"></path><path d="M341.500,112.000L341.500,124.000C341.500,141.757 350.579,150.500 369.000,150.500L383.000,150.500L383.000,137.500L369.000,137.500C357.651,137.500 354.500,134.465 354.500,124.000L354.500,112.000L341.500,112.000Z"></path></g></svg></a><nav aria-label="Pages" class="hidden lg:block"><ul class="flex items-center gap-1"><li><a href="/bagl/start/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Get started</a></li><li><a href="/bagl/playground/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Playground</a></li><li><a href="/bagl/reference/" aria-current="page" class="rounded-sm px-3 py-2 text-[0.9375rem] active:opacity-70 font-semibold text-text underline decoration-accent decoration-2 underline-offset-[6px]">Reference</a></li><li><a href="/bagl/spec/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Specification</a></li><li><a href="/bagl/internals/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Internals</a></li></ul></nav><div class="ms-auto flex items-center gap-1"><button type="button" class="flex h-10 items-center gap-2 rounded-sm border border-line px-3 text-sm text-muted hover:border-text hover:text-text active:opacity-70" aria-keyshortcuts="Meta+K"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search size-4" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><span class="hidden sm:inline">Search</span><kbd class="hidden rounded-sm border border-line px-1 font-mono text-[11px] sm:inline">⌘K</kbd></button><button type="button" aria-label="Use the dark theme" title="Use the dark theme" class="grid size-10 flex-none place-items-center rounded-sm text-text hover:bg-line-soft active:opacity-70"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon size-[18px]" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg></button><a href="https://github.com/aibrahm/bagl" class="grid size-10 place-items-center rounded-sm text-text hover:bg-line-soft active:opacity-70" aria-label="Bagl on GitHub" title="Bagl on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" class="size-[18px]" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"></path></svg></a></div></div></header><div class="mx-auto grid max-w-[78rem] gap-x-12 px-4 sm:px-6 lg:grid-cols-[15rem_minmax(0,46rem)]"><aside class="hidden lg:block sticky top-[calc(var(--header-h)+1px)] max-h-[calc(100dvh-var(--header-h)-1px)] self-start overflow-y-auto overscroll-contain py-6 [scrollbar-width:thin]"><nav aria-label="Sections" class="relative px-2 py-2"><div class="space-y-0.5"><div><a href="#overview" aria-current="location" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 font-semibold text-text"><span class="absolute inset-0 rounded-sm bg-[color-mix(in_oklch,var(--accent)_16%,transparent)]"></span><span class="relative">Overview</span></a></div><div><a href="#basics" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Basics</span></a><div class="ms-[1.1rem] space-y-0.5 border-s border-line py-0.5 ps-2.5"><a href="#literals-and-comments" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Literals and comments</span></a><a href="#bindings" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Bindings</span></a><a href="#functions" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Functions</span></a><a href="#recursion" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Recursion</span></a><a href="#conditionals" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Conditionals</span></a></div></div><div><a href="#the-type-system" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">The type system</span></a><div class="ms-[1.1rem] space-y-0.5 border-s border-line py-0.5 ps-2.5"><a href="#inference" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Inference</span></a><a href="#numeric-operators" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Numeric operators</span></a><a href="#annotations" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Annotations</span></a></div></div><div><a href="#tensors" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Tensors</span></a><div class="ms-[1.1rem] space-y-0.5 border-s border-line py-0.5 ps-2.5"><a href="#literals-and-rank" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Literals and rank</span></a><a href="#dot-transpose-and-reshape" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">dot, transpose and reshape</span></a><a href="#element-wise-arithmetic" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Element-wise arithmetic</span></a><a href="#shape-checking" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Shape checking</span></a></div></div><div><a href="#math-builtins" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Math builtins</span></a></div><div><a href="#differentiation" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Differentiation</span></a><div class="ms-[1.1rem] space-y-0.5 border-s border-line py-0.5 ps-2.5"><a href="#scalar-mode" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Scalar mode</span></a><a href="#tensor-mode" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Tensor mode</span></a><a href="#pathwise-derivatives" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">Pathwise derivatives</span></a><a href="#what-is-rejected" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">What is rejected</span></a></div></div><div><a href="#runtime-and-tooling" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Runtime and tooling</span></a></div><div><a href="#limits" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Limits</span></a></div><div><a href="#grammar" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">Grammar</span></a></div></div></nav></aside><main id="main" class="prose min-w-0 pb-24 pt-10"><h1 id="language-reference">Language reference</h1>
+<p>The reference describes each part of Bagl, from literals and functions to tensors and <code>grad</code>. You can edit the examples and run them. <a href="/bagl/spec/">The specification</a> gives the complete rules.</p>
 <h2 id="overview">Overview</h2>
-<p>Bagl is a small functional language with static types, and it has three
-features that are unusual for a language of its size.</p>
-<ul>
-<li>Tensor shapes are part of the type system, so a mismatch in matrix
-dimensions is a compile error.</li>
-<li>The compiler does automatic differentiation, so <code>grad</code> turns a
-function into its derivative before type inference runs.</li>
-<li>The whole compiler runs in your browser, and it runs every example on
-this page.</li>
-</ul>
+<p>Bagl is a small functional language with static types. A tensor&#x27;s shape is part of its type, so a mismatch in matrix dimensions is a compile error, and <code>grad</code> turns a function into its derivative before type inference runs.</p>
 <p>The compiler runs these stages in order.</p>
-<pre class="plain">source → lexer → parser → autodiff expansion → Hindley-Milner inference (with shapes)
-       → control flow graph IR → optimizer → stack bytecode → VM</pre>
-<p>The compiler prefers an error to a wrong answer. If it can't handle a
-program correctly, it reports a diagnostic instead of guessing.</p>
-
+<pre><code class="language-text">source → lexer → parser → grad expansion → Hindley-Milner inference (with shapes)
+       → control flow graph IR → optimizer → stack bytecode → VM
+</code></pre>
+<p>The compiler prefers an error to a wrong answer. If it can&#x27;t handle a program correctly, it reports an error instead of guessing.</p>
 <h2 id="basics">Basics</h2>
-
-<h3 id="literals">Literals and comments</h3>
-<p>There are four scalar types, <code>int</code>, <code>float</code>,
-<code>bool</code> and <code>string</code>. Integers and floats are separate
-types, and Bagl never converts one into the other on its own. Line comments
-start with <code>//</code>, and block comments look like
-<code>/* ... */</code>.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">/* a program is one expression */
-42  // the answer</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 42 : int"></div></div></div>
-
+<h3 id="literals-and-comments">Literals and comments</h3>
+<p>There are four scalar types, <code>int</code>, <code>float</code>, <code>bool</code> and <code>string</code>. Integers and floats are separate types, and Bagl never converts one into the other on its own. Line comments start with <code>//</code>, and block comments look like <code>/* ... */</code>.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-comment">/* a program is one expression */</span>
+<span class="tok-number">42</span>  <span class="tok-comment">// the answer</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 42</span><span class="text-muted"> : int</span></p></div></figcaption></figure>
 <h3 id="bindings">Bindings</h3>
-<p><code>let name = value in body</code> binds a name inside the body.
-Bindings can nest, and an inner binding hides an outer one with the same
-name. A program evaluates to the value of its last expression.</p>
-<div class="ex"><textarea rows="3" spellcheck="false">let x = 5 in
-let y = x * 2 in
-x + y</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 15 : int"></div></div></div>
-
+<p><code>let name = value in body</code> binds a name inside the body. Bindings can nest, and an inner binding hides an outer one with the same name. A program evaluates to the value of its last expression.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> y <span class="tok-operator">=</span> x <span class="tok-operator">*</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span>
+x <span class="tok-operator">+</span> y</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 15</span><span class="text-muted"> : int</span></p></div></figcaption></figure>
 <h3 id="functions">Functions</h3>
-<p>A function takes exactly one parameter, so a function of several
-arguments is written as nested <code>fn</code> (currying). You call a
-function by writing the argument after it, and calls group to the left.
-Functions are values, and they keep the variables around them
-(closures).</p>
-<div class="ex"><textarea rows="3" spellcheck="false">let add = fn x -> fn y -> x + y in
-let add3 = add 3 in   // partial application
-add3 4</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 7 : int"></div></div></div>
-
+<p>A function takes exactly one parameter, so a function of several arguments is written as nested <code>fn</code>, which is called currying. You call a function by writing the argument after it, and calls group to the left. Functions are values, and they keep the variables around them, which makes them closures.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> add <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> y <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> y <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> add3 <span class="tok-operator">=</span> add <span class="tok-number">3</span> <span class="tok-keyword">in</span>   <span class="tok-comment">// partial application</span>
+add3 <span class="tok-number">4</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 7</span><span class="text-muted"> : int</span></p></div></figcaption></figure>
 <h3 id="recursion">Recursion</h3>
-<p><code>letrec</code> makes a name visible inside its own definition. At
-run time, the VM creates a closure that refers to itself, and it fills in
-that reference right after allocating the closure.</p>
-<div class="ex"><textarea rows="4" spellcheck="false">letrec fact = fn n ->
-  if n == 0 then 1
-  else n * fact (n - 1)
-in fact 10</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 3628800 : int"></div></div></div>
-
+<p><code>letrec</code> makes a name visible inside its own definition. At run time, the virtual machine (VM) creates a closure that refers to itself, and it fills in that reference right after it allocates the closure.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">letrec</span> fact <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> n <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> n <span class="tok-operator">==</span> <span class="tok-number">0</span> <span class="tok-keyword">then</span> <span class="tok-number">1</span>
+  <span class="tok-keyword">else</span> n <span class="tok-operator">*</span> fact (n <span class="tok-operator">-</span> <span class="tok-number">1</span>)
+<span class="tok-keyword">in</span> fact <span class="tok-number">10</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 3628800</span><span class="text-muted"> : int</span></p></div></figcaption></figure>
 <h3 id="conditionals">Conditionals</h3>
-<p><code>if</code> is an expression. Both branches must have the same type,
-and the condition must be a <code>bool</code>. The comparison operators are
-<code>== != &lt; &gt; &lt;= &gt;=</code>, and the logical operators are
-<code>&amp;&amp; || !</code>. Equality works on scalars only, as
-<a href="#limits">Limits</a> explains.</p>
-<div class="ex"><textarea rows="1" spellcheck="false">if 3 > 2 && !(1 == 2) then "yes" else "no"</textarea><div class="bar"><button>run</button><div class="out" data-expect='= "yes" : string'></div></div></div>
-
-<h2 id="types">The type system</h2>
-
+<p><code>if</code> is an expression. Both branches must have the same type, and the condition must be a <code>bool</code>. The comparison operators are <code>== != &lt; &gt; &lt;= &gt;=</code>, and the logical operators are <code>&amp;&amp; || !</code>. Equality works on scalars only, as <a href="#limits">the limits</a> explain.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">if</span> <span class="tok-number">3</span> <span class="tok-operator">&gt;</span> <span class="tok-number">2</span> <span class="tok-operator">&amp;&amp;</span> <span class="tok-operator">!</span>(<span class="tok-number">1</span> <span class="tok-operator">==</span> <span class="tok-number">2</span>) <span class="tok-keyword">then</span> <span class="tok-string">&quot;yes&quot;</span> <span class="tok-keyword">else</span> <span class="tok-string">&quot;no&quot;</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= &quot;yes&quot;</span><span class="text-muted"> : string</span></p></div></figcaption></figure>
+<h2 id="the-type-system">The type system</h2>
 <h3 id="inference">Inference</h3>
-<p>Bagl uses Hindley-Milner type inference, so you rarely write a type, and
-the checker finds the most general one. A value bound with <code>let</code>
-is generalized, so one definition can be used at several types. The checker
-uses union-find unification and level-based generalization, which is the
-same technique that OCaml's own checker uses.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">let id = fn x -> x in
-if id true then id 1 else id 2   // one id, used at bool and int</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 1 : int"></div></div></div>
-<p>The occurs check rejects infinite types, so <code>fn x -&gt; x x</code> is
-a compile error instead of a hang.</p>
-<div class="ex"><textarea rows="1" spellcheck="false">fn x -> x x</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: Recursive type detected"></div></div></div>
-
-<h3 id="numerics">Numeric operators</h3>
-<p>Bagl has no type classes, so <code>+ - * /</code> and the comparisons
-choose between int and float by looking at their operands. If either side
-is a <code>float</code>, the operation works on floats. When neither side is
-known yet, the checker waits, and it only defaults to <code>int</code> when
-the enclosing binding is generalized. Because of the wait, the order of the
-operands never matters.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">let f = fn x -> (x + x) + 1.0 in   // the later 1.0 wins; f is float -> float
-f 2.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 5. : float"></div></div></div>
-<p>With no constraint at all, a numeric parameter defaults to
-<code>int</code>, so <code>fn x -&gt; x + x</code> has the type
-<code>int -&gt; int</code>. The design gives up principal types to keep a
-simple checker that runs in one pass, and you can annotate the parameter to
-get the float version. Division by zero is a runtime error for integers and
-floats alike, and it never produces <code>inf</code>.</p>
-
+<p>Bagl uses Hindley-Milner type inference, so you rarely write a type, and the checker finds the most general one. A value bound with <code>let</code> is generalized, so one definition can be used at several types. The checker uses union-find unification and level-based generalization, which is the technique that OCaml&#x27;s own checker uses.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> id <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-keyword">in</span>
+<span class="tok-keyword">if</span> id <span class="tok-keyword">true</span> <span class="tok-keyword">then</span> id <span class="tok-number">1</span> <span class="tok-keyword">else</span> id <span class="tok-number">2</span>   <span class="tok-comment">// one id, used at bool and int</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 1</span><span class="text-muted"> : int</span></p></div></figcaption></figure>
+<p>The occurs check rejects infinite types, so <code>fn x -&gt; x x</code> is a compile error instead of a hang.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x x</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap text-error"><span class="sr-only">Result: </span>error: Recursive type detected</p></div></figcaption></figure>
+<h3 id="numeric-operators">Numeric operators</h3>
+<p>Bagl has no type classes, so <code>+ - * /</code> and the comparisons choose between int and float by looking at their operands. If either side is a <code>float</code>, the operation works on floats. When neither side is known yet, the checker waits, and it only defaults to <code>int</code> when the enclosing binding is generalized. Because of the wait, the order of the operands never matters.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> f <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> (x <span class="tok-operator">+</span> x) <span class="tok-operator">+</span> <span class="tok-number">1.0</span> <span class="tok-keyword">in</span>   <span class="tok-comment">// the later 1.0 wins; f is float -&gt; float</span>
+f <span class="tok-number">2.0</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 5.</span><span class="text-muted"> : float</span></p></div></figcaption></figure>
+<p>With no constraint at all, a numeric parameter defaults to <code>int</code>, so <code>fn x -&gt; x + x</code> has the type <code>int -&gt; int</code>. The design gives up principal types to keep a checker that runs in one pass, and you can annotate the parameter to get the float version. Division by zero is a runtime error for integers and floats alike, and it never produces <code>inf</code>.</p>
 <h3 id="annotations">Annotations</h3>
-<p>You can add a type after a binding name or a parameter. A parameter
-annotation can't be a function type unless you wrap it in parentheses.
-Named type variables (<code>'a</code>) and dimension variables
-(<code>'n</code>) are shared within one annotation, so
-<code>tensor&lt;float&gt;['n,'n]</code> means a square matrix.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">let m: tensor<float>['n,'n] = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in
-m   // 2x3 into a square annotation: rejected</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: Dimension mismatch: 2 vs 3"></div></div></div>
-
+<p>You can add a type after a binding name or a parameter. A parameter annotation can&#x27;t be a function type unless you wrap it in parentheses. Named type variables, like <code>&#x27;a</code>, and dimension variables, like <code>&#x27;n</code>, are shared within one annotation, so <code>tensor&lt;float&gt;[&#x27;n,&#x27;n]</code> means a square matrix.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> m<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-typeName">&#x27;n</span>,<span class="tok-typeName">&#x27;n</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+m   <span class="tok-comment">// 2x3 into a square annotation: rejected</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap text-error"><span class="sr-only">Result: </span>error: Dimension mismatch: 2 vs 3</p></div></figcaption></figure>
 <h2 id="tensors">Tensors</h2>
-
-<h3 id="tensor-literals">Literals and rank</h3>
-<p>Tensors hold floats, and they have rank 1 (vectors) or rank 2
-(matrices). The brackets decide the rank, and a matrix with one row is
-different from a vector. For example, <code>[1.0, 2.0]</code> is a vector
-with shape <code>[2]</code>, and <code>[[1.0, 2.0]]</code> is a 1x2 matrix.
-The compiler rejects integer tensors instead of converting them.</p>
-<div class="ex"><textarea rows="1" spellcheck="false">transpose([[1.0, 2.0, 3.0]])   // 1x3 matrix -> 3x1</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [[1], [2], [3]] : tensor<float>[3, 1]"></div></div></div>
-
-<h3 id="tensor-ops">dot, transpose and reshape</h3>
-<p><code>dot</code> works on four combinations of ranks, and it unifies the
-shared dimension in each one.</p>
-<table>
-<tr><th>operand shapes</th><th>result</th><th>meaning</th></tr>
-<tr><td>[m,k] and [k,n]</td><td>[m,n]</td><td>matrix product</td></tr>
-<tr><td>[m,k] and [k]</td><td>[m]</td><td>matrix times vector</td></tr>
-<tr><td>[k] and [k,n]</td><td>[n]</td><td>vector times matrix</td></tr>
-<tr><td>[k] and [k]</td><td>float</td><td>inner product</td></tr>
-</table>
-<div class="ex"><textarea rows="3" spellcheck="false">let a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in   // 2x3
-let b = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]] in  // 3x2
-dot(a, b)</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [[22, 28], [49, 64]] : tensor<float>[2, 2]"></div></div></div>
-<p><code>transpose</code> works on matrices. <code>reshape</code> takes a
-literal shape, and it checks the number of elements when both sizes are
-known.</p>
-
-<h3 id="elementwise">Element-wise arithmetic</h3>
-<p><code>+ - * /</code> on two tensors of the same shape work element by
-element. Here <code>*</code> is the element-wise (Hadamard) product, and
-matrix multiplication is <code>dot</code>. A float on either side is applied
-to every element. The compiler checks the shapes, and the VM checks them
-again at run time.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">let v = [1.0, 2.0, 3.0] in
-2.0 * v + [10.0, 20.0, 30.0]</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [12, 24, 36] : tensor<float>[3]"></div></div></div>
-
-<h3 id="shapes">Shape checking</h3>
-<p>Shapes live in the type system as a second set of unification variables.
-Each dimension is a union-find variable with its own occurs check, and the
-checker unifies dimensions alongside ordinary types. A mismatch is a compile
-error that points at the expression at fault. The check also works across
-function calls, so a bad shape passed <em>through a function</em> still
-reports the mismatch.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">let f = fn a -> dot(a, [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]) in
-f [[1.0, 2.0]]   // 1x2 . 3x2: inner dimensions disagree</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: Dimension mismatch: 3 vs 2"></div></div></div>
-
-<h2 id="math">Math builtins</h2>
-<p><code>exp</code>, <code>log</code>, <code>sqrt</code>, <code>relu</code>
-and <code>step</code> work on a float, or element by element on a tensor.
-<code>step</code> is the Heaviside function, which is 1.0 for x &gt; 0 and
-0.0 otherwise, and it is exactly the derivative of <code>relu</code>. Domain
-errors stop the program at run time instead of producing <code>nan</code>,
-so <code>log</code> of a number that isn't positive and <code>sqrt</code> of
-a negative number are errors.</p>
-<div class="ex"><textarea rows="1" spellcheck="false">relu([-1.5, 0.0, 2.5]) + exp([0.0, 0.0, 0.0])</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [1, 1, 3.5] : tensor<float>[3]"></div></div></div>
-<div class="ex"><textarea rows="1" spellcheck="false">log(0.0)</textarea><div class="bar"><button>run</button><div class="out" data-expect="runtime error: log of a non-positive number: 0"></div></div></div>
-
-<h2 id="autodiff">Differentiation</h2>
-<p><code>grad</code> is a source to source transform that runs before type
-inference. The compiler rewrites <code>grad (fn x -&gt; body)</code> into an
-ordinary Bagl function that computes the derivative, and that function goes
-through inference, the optimizer and the VM like any other code. The
-derivative is therefore checked for types and shapes too. The parameter
-annotation selects one of two modes.</p>
-
-<h3 id="grad-scalar">Scalar mode (forward)</h3>
-<p>For a parameter with no annotation or a <code>float</code> annotation,
-over scalar code, <code>grad</code> applies the sum, product, quotient and
-chain rules symbolically. For an <code>if</code>, it differentiates each
-branch and keeps the condition as it is. It passes through
-<code>let</code>, and each builtin has its usual derivative rule.</p>
-<div class="ex"><textarea rows="2" spellcheck="false">let d = grad (fn x -> exp(x * x)) in
-d 1.0   // d/dx e^(x^2) = 2x e^(x^2) = 2e at x=1</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 5.43656365692 : float"></div></div></div>
-<p>Derivatives are ordinary functions, so you can combine them with
-anything else. The example below is Newton's method, where the compiler
-supplies the derivative of f.</p>
-<div class="ex"><textarea rows="7" spellcheck="false">let f  = fn x -> x * x - 2.0 in
-let df = grad (fn x -> x * x - 2.0) in
-letrec newton = fn n ->
-  if n < 0.5 then 1.0 else
-  let x = newton (n - 1.0) in
-  x - f x / df x
-in newton 6.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 1.41421356237 : float"></div></div></div>
-
-<h3 id="grad-tensor">Tensor mode (reverse)</h3>
-<p>With a tensor parameter annotation, <code>grad</code> uses reverse mode
-differentiation, and it returns the gradient of a scalar loss in the shape of
-the parameter. The rules cover <code>dot</code> in all four rank cases,
-<code>transpose</code>, element-wise arithmetic, the math builtins, scalar
-broadcast and <code>let</code>. The annotation is required, because the
-transform runs before inference and the rules for <code>dot</code> depend on
-the ranks of its operands.</p>
-<div class="ex"><textarea rows="4" spellcheck="false">let x = [[1.0, 2.0], [3.0, 4.0]] in
-let y = [1.0, 2.0] in
-grad (fn w: tensor<float>[2] ->
-  let e = dot(x, w) - y in dot(e, e)) [0.0, 0.0]   // 2 X^T (Xw - y)</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [-14, -20] : tensor<float>[2]"></div></div></div>
-<p>Tensor mode is enough to train a model in the language. The example below
-trains XOR on mapped features by gradient descent, and it converges to the
-exact solution <code>[1, 1, -2]</code>.</p>
-<div class="ex"><textarea rows="12" spellcheck="false">let x = [[0.0, 0.0, 0.0],
-         [0.0, 1.0, 0.0],
-         [1.0, 0.0, 0.0],
-         [1.0, 1.0, 1.0]] in
-let y = [0.0, 1.0, 1.0, 0.0] in
-let dloss = grad (fn w: tensor<float>[3] ->
-  let e = dot(x, w) - y in
-  dot(e, e)) in
-letrec train = fn n ->
-  if n < 0.5 then [0.0, 0.0, 0.0] else
-  let w = train (n - 1.0) in
-  w - 0.1 * dloss w
-in train 200.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= [0.999987, 0.999987, -1.99996] : tensor<float>[3]"></div></div></div>
-
-<h3 id="grad-pathwise">Pathwise derivatives</h3>
-<p>You can also differentiate a parameter annotated as <code>float</code>
-through tensor code, and the compiler expresses the sums this needs as dot
-products. Computational finance calls the technique the pathwise derivative
-estimator. It computes how sensitive a Monte Carlo average is by
-differentiating through the simulation itself.</p>
-<div class="ex"><textarea rows="3" spellcheck="false">let g = [0.8, 1.0, 1.2, 1.4] in
-let ones = [1.0, 1.0, 1.0, 1.0] in
-grad (fn s: float -> dot(relu(s * g - 1.0), ones) / 4.0) 1.0</textarea><div class="bar"><button>run</button><div class="out" data-expect="= 0.65 : float"></div></div></div>
-<p>The answer, 0.65, is exactly the estimator E[g × 1<sub>ITM</sub>],
-because the two paths that end in the money contribute (1.2 + 1.4) / 4.</p>
-
-<h3 id="grad-rejected">What is rejected, and why</h3>
-<p>Every gradient that Bagl returns is exact for the program you wrote. If
-Bagl can't differentiate something correctly, it reports a compile error, and
-it rejects these cases.</p>
+<h3 id="literals-and-rank">Literals and rank</h3>
+<p>Tensors hold floats, and they have rank 1 (vectors) or rank 2 (matrices). The brackets decide the rank, and a matrix with one row is different from a vector. For example, <code>[1.0, 2.0]</code> is a vector with shape <code>[2]</code>, and <code>[[1.0, 2.0]]</code> is a 1x2 matrix. The compiler rejects integer tensors instead of converting them.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-macroName">transpose</span>([[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>]])   <span class="tok-comment">// 1x3 matrix -&gt; 3x1</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= [[1], [2], [3]]</span><span class="text-muted"> : tensor&lt;float&gt;[3, 1]</span></p></div></figcaption></figure>
+<h3 id="dot-transpose-and-reshape">dot, transpose and reshape</h3>
+<p><code>dot</code> works on four combinations of ranks, and it unifies the shared dimension in each one.</p>
+<table><thead><tr><th>Operand shapes</th><th>Result</th><th>Meaning</th></tr></thead><tbody><tr><td><code>[m,k]</code> and <code>[k,n]</code></td><td><code>[m,n]</code></td><td>matrix product</td></tr><tr><td><code>[m,k]</code> and <code>[k]</code></td><td><code>[m]</code></td><td>matrix times vector</td></tr><tr><td><code>[k]</code> and <code>[k,n]</code></td><td><code>[n]</code></td><td>vector times matrix</td></tr><tr><td><code>[k]</code> and <code>[k]</code></td><td><code>float</code></td><td>inner product</td></tr></tbody></table>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>   <span class="tok-comment">// 2x3</span>
+<span class="tok-keyword">let</span> b <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>], [<span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>  <span class="tok-comment">// 3x2</span>
+<span class="tok-macroName">dot</span>(a, b)</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= [[22, 28], [49, 64]]</span><span class="text-muted"> : tensor&lt;float&gt;[2, 2]</span></p></div></figcaption></figure>
+<p><code>transpose</code> works on matrices. <code>reshape</code> takes a literal shape, and it checks the number of elements when both sizes are known.</p>
+<h3 id="element-wise-arithmetic">Element-wise arithmetic</h3>
+<p><code>+ - * /</code> on two tensors of the same shape work element by element. Here <code>*</code> is the element-wise product, and matrix multiplication is <code>dot</code>. A float on either side is applied to every element. The compiler checks the shapes, and the VM checks them again at run time.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> v <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-number">2.0</span> <span class="tok-operator">*</span> v <span class="tok-operator">+</span> [<span class="tok-number">10.0</span>, <span class="tok-number">20.0</span>, <span class="tok-number">30.0</span>]</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= [12, 24, 36]</span><span class="text-muted"> : tensor&lt;float&gt;[3]</span></p></div></figcaption></figure>
+<h3 id="shape-checking">Shape checking</h3>
+<p>Shapes live in the type system as a second set of unification variables. Each dimension is a union-find variable with its own occurs check, and the checker unifies dimensions alongside ordinary types. A mismatch is a compile error that points at the expression at fault. The check also works across function calls, so a bad shape passed through a function still reports the mismatch.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> f <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> a <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(a, [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>], [<span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]]) <span class="tok-keyword">in</span>
+f [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>]]   <span class="tok-comment">// 1x2 . 3x2: inner dimensions disagree</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap text-error"><span class="sr-only">Result: </span>error: Dimension mismatch: 3 vs 2</p></div></figcaption></figure>
+<h2 id="math-builtins">Math builtins</h2>
+<p><code>exp</code>, <code>log</code>, <code>sqrt</code>, <code>relu</code> and <code>step</code> work on a float, or element by element on a tensor. <code>step</code> is the Heaviside function, which is 1.0 for x &gt; 0 and 0.0 otherwise, and it is exactly the derivative of <code>relu</code>.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-macroName">relu</span>([<span class="tok-operator">-</span><span class="tok-number">1.5</span>, <span class="tok-number">0.0</span>, <span class="tok-number">2.5</span>]) <span class="tok-operator">+</span> <span class="tok-macroName">exp</span>([<span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>])</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= [1, 1, 3.5]</span><span class="text-muted"> : tensor&lt;float&gt;[3]</span></p></div></figcaption></figure>
+<p>Domain errors stop the program at run time instead of producing <code>nan</code>, so <code>log</code> of a number that isn&#x27;t positive and <code>sqrt</code> of a negative number are errors.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-macroName">log</span>(<span class="tok-number">0.0</span>)</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap text-error"><span class="sr-only">Result: </span>runtime error: log of a non-positive number: 0</p></div></figcaption></figure>
+<h2 id="differentiation">Differentiation</h2>
+<p><code>grad</code> is a source to source transform that runs before type inference. The compiler rewrites <code>grad (fn x -&gt; body)</code> into an ordinary Bagl function that computes the derivative, and that function goes through inference, the optimizer and the VM like any other code. The derivative is therefore checked for types and shapes too. The parameter annotation selects the mode.</p>
+<h3 id="scalar-mode">Scalar mode</h3>
+<p>For a parameter with no annotation or a <code>float</code> annotation, over scalar code, <code>grad</code> applies the sum, product, quotient and chain rules symbolically. For an <code>if</code>, it differentiates each branch and keeps the condition as it is. It passes through <code>let</code>, and each builtin has its usual derivative rule.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> d <span class="tok-operator">=</span> <span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-macroName">exp</span>(x <span class="tok-operator">*</span> x)) <span class="tok-keyword">in</span>
+d <span class="tok-number">1.0</span>   <span class="tok-comment">// d/dx e^(x^2) = 2x e^(x^2) = 2e at x=1</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 5.43656365692</span><span class="text-muted"> : float</span></p></div></figcaption></figure>
+<p>Derivatives are ordinary functions, so you can combine them with anything else. The example below is Newton&#x27;s method, where the compiler supplies the derivative of f.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> f  <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> x <span class="tok-operator">-</span> <span class="tok-number">2.0</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> df <span class="tok-operator">=</span> <span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> x <span class="tok-operator">-</span> <span class="tok-number">2.0</span>) <span class="tok-keyword">in</span>
+<span class="tok-keyword">letrec</span> newton <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> n <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> n <span class="tok-operator">&lt;</span> <span class="tok-number">0.5</span> <span class="tok-keyword">then</span> <span class="tok-number">1.0</span> <span class="tok-keyword">else</span>
+  <span class="tok-keyword">let</span> x <span class="tok-operator">=</span> newton (n <span class="tok-operator">-</span> <span class="tok-number">1.0</span>) <span class="tok-keyword">in</span>
+  x <span class="tok-operator">-</span> f x <span class="tok-operator">/</span> df x
+<span class="tok-keyword">in</span> newton <span class="tok-number">6.0</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 1.41421356237</span><span class="text-muted"> : float</span></p></div></figcaption></figure>
+<h3 id="tensor-mode">Tensor mode</h3>
+<p>With a tensor parameter annotation, <code>grad</code> uses reverse mode differentiation, and it returns the gradient of a scalar loss in the shape of the parameter. The rules cover <code>dot</code> in all four rank cases, <code>transpose</code>, element-wise arithmetic, the math builtins, scalar broadcast and <code>let</code>. The annotation is required, because the transform runs before inference and the rules for <code>dot</code> depend on the ranks of its operands.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> y <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> w<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>] <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">let</span> e <span class="tok-operator">=</span> <span class="tok-macroName">dot</span>(x, w) <span class="tok-operator">-</span> y <span class="tok-keyword">in</span> <span class="tok-macroName">dot</span>(e, e)) [<span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>]   <span class="tok-comment">// 2 X^T (Xw - y)</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= [-14, -20]</span><span class="text-muted"> : tensor&lt;float&gt;[2]</span></p></div></figcaption></figure>
+<p>Tensor mode is enough to train a model in the language. The example below trains XOR on mapped features by gradient descent, and it converges to the exact solution <code>[1, 1, -2]</code>.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> [[<span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>],
+         [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>],
+         [<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>],
+         [<span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> y <span class="tok-operator">=</span> [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> dloss <span class="tok-operator">=</span> <span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> w<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>] <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">let</span> e <span class="tok-operator">=</span> <span class="tok-macroName">dot</span>(x, w) <span class="tok-operator">-</span> y <span class="tok-keyword">in</span>
+  <span class="tok-macroName">dot</span>(e, e)) <span class="tok-keyword">in</span>
+<span class="tok-keyword">letrec</span> train <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> n <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> n <span class="tok-operator">&lt;</span> <span class="tok-number">0.5</span> <span class="tok-keyword">then</span> [<span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>] <span class="tok-keyword">else</span>
+  <span class="tok-keyword">let</span> w <span class="tok-operator">=</span> train (n <span class="tok-operator">-</span> <span class="tok-number">1.0</span>) <span class="tok-keyword">in</span>
+  w <span class="tok-operator">-</span> <span class="tok-number">0.1</span> <span class="tok-operator">*</span> dloss w
+<span class="tok-keyword">in</span> train <span class="tok-number">200.0</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= [0.999987, 0.999987, -1.99996]</span><span class="text-muted"> : tensor&lt;float&gt;[3]</span></p></div></figcaption></figure>
+<h3 id="pathwise-derivatives">Pathwise derivatives</h3>
+<p>You can also differentiate a parameter annotated as <code>float</code> through tensor code, and the compiler expresses the sums this needs as dot products. Computational finance calls the technique the pathwise derivative estimator. It computes how sensitive a Monte Carlo average is by differentiating through the simulation itself.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-keyword">let</span> g <span class="tok-operator">=</span> [<span class="tok-number">0.8</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.2</span>, <span class="tok-number">1.4</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> ones <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> s<span class="tok-operator">:</span> <span class="tok-typeName">float</span> <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(<span class="tok-macroName">relu</span>(s <span class="tok-operator">*</span> g <span class="tok-operator">-</span> <span class="tok-number">1.0</span>), ones) <span class="tok-operator">/</span> <span class="tok-number">4.0</span>) <span class="tok-number">1.0</span></code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap"><span class="sr-only">Result: </span><span class="font-semibold">= 0.65</span><span class="text-muted"> : float</span></p></div></figcaption></figure>
+<p>The answer, 0.65, is exactly the estimator E[g × 1<sub>ITM</sub>], because the two paths that end in the money contribute (1.2 + 1.4) / 4.</p>
+<h3 id="what-is-rejected">What is rejected</h3>
+<p>Every gradient that Bagl returns is exact for the program you wrote. If Bagl can&#x27;t differentiate something correctly, it reports a compile error, and it rejects these cases.</p>
 <ul>
-<li>A function call in the body, because the transform works on the syntax
-and can't see inside a call yet.</li>
-<li>A tensor parameter without an annotation, because the rules for
-<code>dot</code> need the ranks of the operands, and the transform runs
-before inference.</li>
-<li>The matrix side of a matrix times vector <code>dot</code>, which needs an
-outer product, and a scalar broadcast against a matrix, which needs a sum
-over the matrix. Bagl has neither operation to express them with.</li>
-<li><code>letrec</code>, nested <code>fn</code>, tensor literals that
-mention the parameter, and conditions on the parameter.</li>
+<li>A function call in the body, because the transform works on the syntax and can&#x27;t see inside a call yet.</li>
+<li>A tensor parameter without an annotation, because the rules for <code>dot</code> need the ranks of the operands, and the transform runs before inference.</li>
+<li>The matrix side of a matrix times vector <code>dot</code>, which needs an outer product, and a scalar broadcast against a matrix, which needs a sum over the matrix. Bagl has neither operation.</li>
+<li><code>letrec</code>, nested <code>fn</code>, tensor literals that mention the parameter, and, in tensor mode, conditions on the parameter.</li>
 </ul>
-<div class="ex"><textarea rows="1" spellcheck="false">grad (fn w -> dot(w, w)) [1.0, 2.0]</textarea><div class="bar"><button>run</button><div class="out" data-expect="error: grad over tensors requires an annotated parameter: tensor<float>[...] for a tensor, float for a scalar differentiated through tensor code"></div></div></div>
-
-<h2 id="runtime">Runtime and tooling</h2>
-<p>Bagl compiles to a compact stack bytecode, and a virtual machine with
-frames of varying size runs it. You can save a program as a
-<code>.baglc</code> file with <code>baglc -c file.bagl</code>, and it reloads
-byte for byte, negative numbers included. The optimizer runs constant
-folding, dead code elimination, copy propagation and common subexpression
-elimination within each block, on an IR made of basic blocks.
-<code>-O0</code> turns the optimizer off, and <code>--dump-ast</code>,
-<code>--dump-types</code>, <code>--dump-ir</code> and
-<code>--dump-bytecode</code> show each stage.</p>
+<figure class="not-prose m-0 overflow-clip rounded-sm border border-line"><div class="code-surface"><div class="bagl-editor"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[max(16px,0.9375rem)] leading-[1.6]"><code><span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> w <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(w, w)) [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>]</code></pre></div></div><figcaption class="flex flex-wrap items-center gap-x-3 gap-y-2 bg-sunk px-3 py-2.5"><button type="button" class="inline-flex h-8 flex-none items-center gap-1.5 rounded-sm bg-accent px-3 text-sm font-semibold text-on-accent active:scale-[0.97] disabled:opacity-60 motion-safe:transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play size-3.5" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Run</button><div class="min-w-0 flex-1" aria-live="polite"><p class="m-0 font-mono text-[0.9375rem] whitespace-pre-wrap text-error"><span class="sr-only">Result: </span>error: grad over tensors requires an annotated parameter: tensor&lt;float&gt;[...] for a tensor, float for a scalar differentiated through tensor code</p></div></figcaption></figure>
+<h2 id="runtime-and-tooling">Runtime and tooling</h2>
+<p>Bagl compiles to a compact stack bytecode, and a VM with frames of varying size runs it. You can save a program as a <code>.baglc</code> file with <code>baglc -c file.bagl</code>, and it reloads byte for byte, negative numbers included. The optimizer runs on an intermediate representation (IR) made of basic blocks, and within each block it runs constant folding, dead code elimination, copy propagation and common subexpression elimination. <code>-O0</code> turns the optimizer off, and <a href="/bagl/start/#command-line-options">the command line options</a> show each stage.</p>
 <ul>
-<li>The REPL starts when you run <code>baglc</code> with no file. Bindings
-stay across lines, and <code>letrec</code>, closures and <code>grad</code>
-all work. <code>:type e</code> shows the inferred type of an
-expression.</li>
-<li>For editors, <code>bagl-lsp</code> speaks the Language Server Protocol
-over stdio, and it shows real compiler diagnostics as you type. A VS Code
-extension and a Neovim setup are in <code>editors/</code>.</li>
-<li>In the browser, js_of_ocaml builds the compiler into about 160 KB of
-JavaScript. The same bundle runs this page and the
-<a href="../playground/">playground</a>.</li>
+<li>The REPL starts when you run <code>baglc</code> with no file. Bindings stay across lines, and <code>letrec</code>, closures and <code>grad</code> all work. <code>:type e</code> shows the inferred type of an expression.</li>
+<li>For editors, <code>bagl-lsp</code> speaks the Language Server Protocol, and it shows the compiler&#x27;s errors as you type. A VS Code extension is in <code>editors/</code>, and <a href="/bagl/start/#set-up-your-editor">the getting started page</a> shows the Neovim setup.</li>
+<li>In the browser, js_of_ocaml builds the compiler into about 160 KB of JavaScript (50 KB compressed). The same bundle runs this page and <a href="/bagl/playground/">the playground</a>.</li>
 </ul>
-
 <h2 id="limits">Limits</h2>
 <p>Bagl has these limits.</p>
 <ul>
-<li>There's no I/O, and there are no lists, tuples, records or string
-operations. Strings support literals and equality only, and a program is one
-expression.</li>
-<li>Tensors are rank 1 or 2, and they hold floats only. There's no indexing
-or slicing, so you extract a component with a dot product against a basis
-vector. Broadcasting works only with scalars, and there's no outer
-product.</li>
-<li>Numeric operators default operands with no constraint to
-<code>int</code> when a binding is generalized, so <code>fn x -&gt; x +
-x</code> is <code>int -&gt; int</code> unless you annotate it. Type classes
-would fix this properly, and Bagl gives them up to keep a checker that runs
-in one pass.</li>
-<li>Equality on tensors or functions is a compile error, and Bagl doesn't
-compare them structurally.</li>
-<li><code>grad</code> has the limits in <a href="#grad-rejected">the section
-above</a>, and each of them is a compile error, never a wrong number.</li>
-<li>In one corner of inference, a tensor argument without an annotation
-defaults to rank 2, so annotate 1-D parameters as
-<code>tensor&lt;float&gt;['n]</code>.</li>
+<li>There&#x27;s no I/O, and there are no lists, tuples, records or string operations. Strings support literals and equality only, and a program is one expression.</li>
+<li>Tensors are rank 1 or 2, and they hold floats only. There&#x27;s no indexing or slicing, so you extract a component with a dot product against a basis vector. Broadcasting works only with scalars, and there&#x27;s no outer product.</li>
+<li>Numeric operators default operands with no constraint to <code>int</code> when a binding is generalized, so <code>fn x -&gt; x + x</code> is <code>int -&gt; int</code> unless you annotate it. Type classes would fix the problem, and Bagl gives them up to keep a checker that runs in one pass.</li>
+<li>Equality on tensors or functions is a compile error, and Bagl doesn&#x27;t compare them structurally.</li>
+<li><code>grad</code> has the limits in <a href="#what-is-rejected">the section above</a>, and each of them is a compile error, never a wrong number.</li>
+<li>In one corner of inference, a tensor argument without an annotation defaults to rank 2, so annotate a vector parameter as <code>tensor&lt;float&gt;[&#x27;n]</code>.</li>
 </ul>
-
 <h2 id="grammar">Grammar</h2>
-<pre class="plain">program   ::= expr
-expr      ::= "let" NAME [":" type] "=" expr "in" expr
-            | "letrec" NAME [":" type] "=" expr "in" expr
-            | "fn" NAME [":" simple-type] "->" expr
-            | "if" expr "then" expr "else" expr
-            | binop-expr
-binop-expr::= unary { binop unary }        // precedence: || < && < ==,!= < <,>,<=,>= < +,- < *,/
-unary     ::= ["-" | "!"] postfix
-postfix   ::= primary { primary }          // application, left-associative
-primary   ::= INT | FLOAT | STRING | "true" | "false" | NAME
-            | "(" expr ")" | tensor
-            | "dot" "(" expr "," expr ")" | "transpose" "(" expr ")"
-            | "reshape" "(" expr "," shape ")"
-            | ("exp"|"log"|"sqrt"|"relu"|"step") "(" expr ")"
-            | "grad" ...                    // ordinary application; special-cased on fn literals
-tensor    ::= "[" expr {"," expr} "]"       // vector
-            | "[" row {"," row} "]"         // matrix, even with one row
-type      ::= simple-type ["->" type]
-simple-type ::= "int" | "float" | "bool" | "string" | "'" NAME
-            | "tensor" "&lt;" type "&gt;" shape | "(" type ")"
-shape     ::= "[" dim {"," dim} "]"         // dim ::= INT | "'" NAME</pre>
-
-<p class="note">The Bagl compiler running in this tab compiles and runs every
-example on this page, and CI checks each expected output.</p>
-
-</main>
-</div>
-
-<script src="../playground/bagl.js"></script>
-<script>
-const compiler = (typeof bagl !== "undefined") ? bagl : null;
-
-function esc(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function render(out, res) {
-  if (res.ok) {
-    out.innerHTML = '<span class="ok-value">= ' + esc(res.value) + '</span>' +
-                    '<span class="ok-type"> : ' + esc(res.type) + '</span>';
-  } else if (res.runtime) {
-    out.innerHTML = '<span class="err">runtime error: ' + esc(res.error) + '</span>';
-  } else {
-    out.innerHTML = '<span class="err">error: ' + esc(res.error) +
-      ' <span class="ok-type">(line ' + res.line + ', column ' + res.col + ')</span></span>';
-  }
-}
-
-document.querySelectorAll(".ex").forEach(ex => {
-  const ta = ex.querySelector("textarea");
-  const btn = ex.querySelector("button");
-  const out = ex.querySelector(".out");
-  btn.type = "button";
-  ta.setAttribute("aria-label", "Bagl example");
-  out.setAttribute("aria-live", "polite");
-  const run = () => {
-    if (!compiler) { out.textContent = "The compiler failed to load."; return; }
-    render(out, compiler.run(ta.value));
-  };
-  btn.addEventListener("click", run);
-  ta.addEventListener("keydown", e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); run(); }
-  });
-});
-
-// The contents column marks the section being read, like the site's index.
-(() => {
-  const links = [...document.querySelectorAll(".toc a")];
-  const byId = new Map(links.map(a => [a.getAttribute("href").slice(1), a]));
-  const heads = [...document.querySelectorAll("main h2[id], main h3[id]")];
-  let frame = 0;
-  const update = () => {
-    const line = innerHeight * 0.3;
-    let current = heads[0];
-    for (const h of heads) if (h.getBoundingClientRect().top <= line) current = h;
-    links.forEach(a => a.classList.toggle("is-current", a === byId.get(current.id)));
-  };
-  addEventListener("scroll", () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); }, { passive: true });
-  update();
-})();
-</script>
+<pre><code class="language-text">program     ::= expr
+expr        ::= &quot;let&quot; NAME [&quot;:&quot; type] &quot;=&quot; expr &quot;in&quot; expr
+              | &quot;letrec&quot; NAME [&quot;:&quot; type] &quot;=&quot; expr &quot;in&quot; expr
+              | &quot;fn&quot; NAME [&quot;:&quot; simple-type] &quot;-&gt;&quot; expr
+              | &quot;if&quot; expr &quot;then&quot; expr &quot;else&quot; expr
+              | binop-expr
+binop-expr  ::= unary { binop unary }       // precedence: || &lt; &amp;&amp; &lt; ==,!= &lt; &lt;,&gt;,&lt;=,&gt;= &lt; +,- &lt; *,/
+unary       ::= [&quot;-&quot; | &quot;!&quot;] postfix
+postfix     ::= primary { primary }         // application, left-associative
+primary     ::= INT | FLOAT | STRING | &quot;true&quot; | &quot;false&quot; | NAME
+              | &quot;(&quot; expr &quot;)&quot; | tensor
+              | &quot;dot&quot; &quot;(&quot; expr &quot;,&quot; expr &quot;)&quot; | &quot;transpose&quot; &quot;(&quot; expr &quot;)&quot;
+              | &quot;reshape&quot; &quot;(&quot; expr &quot;,&quot; shape &quot;)&quot;
+              | (&quot;exp&quot; | &quot;log&quot; | &quot;sqrt&quot; | &quot;relu&quot; | &quot;step&quot;) &quot;(&quot; expr &quot;)&quot;
+              | &quot;grad&quot; ...                   // ordinary application, special-cased on fn literals
+tensor      ::= &quot;[&quot; expr {&quot;,&quot; expr} &quot;]&quot;      // vector
+              | &quot;[&quot; row {&quot;,&quot; row} &quot;]&quot;        // matrix, even with one row
+type        ::= simple-type [&quot;-&gt;&quot; type]
+simple-type ::= &quot;int&quot; | &quot;float&quot; | &quot;bool&quot; | &quot;string&quot; | &quot;&#x27;&quot; NAME
+              | &quot;tensor&quot; &quot;&lt;&quot; type &quot;&gt;&quot; shape | &quot;(&quot; type &quot;)&quot;
+shape       ::= &quot;[&quot; dim {&quot;,&quot; dim} &quot;]&quot;        // dim ::= INT | &quot;&#x27;&quot; NAME
+</code></pre></main></div><footer class="border-t border-line"><div class="mx-auto flex max-w-[90rem] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] text-sm text-muted sm:px-6"><svg viewBox="26 26 204 204" aria-hidden="true" class="size-5 flex-none"><path fill-rule="evenodd" d="M181 41C165 31 147 26 128 26C71.7 26 26 71.7 26 128C26 184.3 71.7 230 128 230C184.3 230 230 184.3 230 128C230 123 229.6 118 229 113C215 121 201 111 203 96C187 100 173 87 178 71C161 65 165 47 181 41ZM156 134C156 153 143 166 124 166C104 166 91 152 92 133C93 113 106 101 126 102C145 103 157 115 156 134Z" style="fill:light-dark(var(--toast), var(--cream))"></path></svg><p>Bagl is open source under the MIT License.</p><ul class="flex flex-wrap gap-x-5 gap-y-2 sm:ms-auto"><li><a class="underline-offset-4 hover:underline" href="https://github.com/aibrahm/bagl">Source code</a></li><li><a class="underline-offset-4 hover:underline" href="https://github.com/aibrahm/bagl/issues">Report a problem</a></li><li><a class="underline-offset-4 hover:underline" href="https://abdelrahmanibrm.com/projects/bagl-compiler">About the project</a></li><li><a class="underline-offset-4 hover:underline" href="/bagl/reference/">Language reference</a></li></ul></div></footer></div>
 </body>
 </html>

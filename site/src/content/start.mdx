@@ -1,0 +1,110 @@
+# Get started
+
+Bagl builds from source. The build gives you `baglc`, the compiler and REPL, and `bagl-lsp`, the language server for code editors. To try the language without installing it, use [the playground](/bagl/playground/).
+
+## Installation
+
+You need OCaml 5.2 and dune, the OCaml build tool. OCaml 4.14 and newer also work. [The OCaml install guide](https://ocaml.org/install) covers opam, the OCaml package manager, which installs both.
+
+```sh
+git clone https://github.com/aibrahm/bagl.git
+cd bagl
+dune build
+dune test
+dune install
+```
+
+`dune install` puts `baglc` and `bagl-lsp` on your PATH. Without it, write `dune exec baglc --` in place of `baglc`.
+
+## Hello, world
+
+A Bagl program is one expression. Save the program below as `hello.bagl`.
+
+```bagl
+let greeting = "Hello, world" in
+greeting
+```
+
+`baglc` compiles the file, runs it and prints the value. The REPL below also prints the type.
+
+```text
+$ baglc hello.bagl
+"Hello, world"
+```
+
+The `examples` folder in the repository has nine programs. `examples/train_xor.bagl` trains a small model by gradient descent.
+
+## The REPL
+
+`baglc` with no file starts a REPL, an interactive prompt. Bindings made with `let` and `letrec` stay for the lines that follow.
+
+```text
+$ baglc
+> let square = fn x -> x * x
+square = <closure@1> : int -> int
+> square 5
+= 25 : int
+> let df = grad (fn x -> x * x * x)
+df = <closure@2> : float -> float
+> df 2.0
+= 12. : float
+> :type fn x -> x
+: 'a -> 'a
+```
+
+`:type` followed by an expression prints its type without running it, and `:quit` leaves the REPL.
+
+## Compiling to bytecode
+
+`-c` saves a program as bytecode for the Bagl virtual machine, and `baglc` runs a `.baglc` file without compiling it again.
+
+```sh
+baglc -c program.bagl -o program.baglc
+baglc program.baglc
+```
+
+## Command line options
+
+| Option | Effect |
+| --- | --- |
+| `-c` | Compile to a `.baglc` file instead of running. |
+| `-o path` | The output file for `-c`. |
+| `-r` | Compile and run. This is the default. |
+| `-O0` | Turn off the optimizer. |
+| `--dump-ast` | Print the syntax tree. |
+| `--dump-types` | Print the syntax tree with inferred types. |
+| `--dump-ir` | Print the intermediate representation. |
+| `--dump-bytecode` | Print the bytecode. |
+
+## Editor support
+
+`bagl-lsp` is a Language Server Protocol server. It reports compiler errors as you type and shows the type of a top-level binding on hover.
+
+### VS Code
+
+The extension is in `editors/vscode`. It adds syntax colors and starts `bagl-lsp` for `.bagl` files.
+
+```sh
+cd editors/vscode
+npm install
+npx vsce package
+code --install-extension bagl-language-0.1.0.vsix
+```
+
+### Neovim
+
+Neovim needs no plugin. Add these lines to `init.lua`.
+
+```lua
+vim.filetype.add({ extension = { bagl = "bagl" } })
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "bagl",
+  callback = function()
+    vim.lsp.start({ name = "bagl-lsp", cmd = { "bagl-lsp" } })
+  end,
+})
+```
+
+## Next steps
+
+[The language reference](/bagl/reference/) covers each part of the language with examples. [The specification](/bagl/spec/) gives the full rules, and [the internals page](/bagl/internals/) explains how the compiler works.

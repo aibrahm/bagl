@@ -291,24 +291,24 @@ let parse_args () =
   let options = default_options () in
   let specs = [
     ("-c", Arg.Unit (fun () -> options.mode <- `Compile),
-     "Compile to .baglc file");
+     " Compile the file to .baglc bytecode instead of running it");
     ("-r", Arg.Unit (fun () -> options.mode <- `Run),
-     "Compile and run");
+     " Compile and run the file (the default)");
     ("-o", Arg.String (fun s -> options.output_file <- Some s),
-     "Output file (for -c)");
+     "<path> Write the bytecode to this file (with -c)");
     ("--dump-ast", Arg.Unit (fun () -> options.dump_ast <- true),
-     "Dump the AST");
+     " Print the syntax tree");
     ("--dump-types", Arg.Unit (fun () -> options.dump_types <- true),
-     "Dump typed AST");
+     " Print the syntax tree with inferred types");
     ("--dump-ir", Arg.Unit (fun () -> options.dump_ir <- true),
-     "Dump the IR");
+     " Print the intermediate representation");
     ("--dump-bytecode", Arg.Unit (fun () -> options.dump_bytecode <- true),
-     "Dump the bytecode");
+     " Print the bytecode");
     ("-O0", Arg.Unit (fun () -> options.no_optimize <- true),
-     "Disable optimizations");
+     " Turn off the optimizer");
   ] in
   let anon_fun s = options.input_file <- Some s in
-  let usage = "baglc [options] [file.bagl]" in
+  let usage = "Usage: baglc [options] [file.bagl | file.baglc]\nWith no file, baglc starts the REPL.\nOptions:" in
   Arg.parse specs anon_fun usage;
   options
 

@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Bagl language specification</title>
+<meta name="description" content="The full rules of the Bagl language, from its lexical structure to its bytecode.">
+<link rel="canonical" href="https://aibrahm.github.io/bagl/spec/">
+<link rel="icon" href="/bagl/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/bagl/brand/apple-touch-icon.png">
+<meta property="og:title" content="Bagl language specification">
+<meta property="og:description" content="The full rules of the Bagl language, from its lexical structure to its bytecode.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aibrahm.github.io/bagl/spec/">
+<meta property="og:image" content="https://aibrahm.github.io/bagl/brand/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="The Bagl logo, a bitten bagel next to the word bagl.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#FFF8ED" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#282420" media="(prefers-color-scheme: dark)">
+<script>/* the light or dark choice saved by this site or abdelrahmanibrm.com */try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
+  <script type="module" crossorigin src="/bagl/assets/preload-helper-CkyS6jwL.js"></script>
+  <script type="module" crossorigin src="/bagl/assets/entry-client-Ciy7CGvT.js"></script>
+  <link rel="stylesheet" crossorigin href="/bagl/assets/entry-client-DP1UEmvC.css">
+</head>
+<body>
+<div id="root" data-page="spec"><a href="#main" class="sr-only z-50 rounded-sm bg-text px-4 py-2 font-semibold text-bg focus:not-sr-only focus:fixed focus:start-4 focus:top-3">Skip to the content</a><header class="sticky top-0 z-40 border-b border-line bg-[color-mix(in_oklch,var(--bg)_92%,transparent)] backdrop-blur-md supports-[not(backdrop-filter:blur(1px))]:bg-bg"><div class="mx-auto flex h-[var(--header-h)] max-w-[90rem] items-center gap-2 px-4 sm:px-6"><button type="button" aria-label="Open menu" class="grid size-10 flex-none place-items-center rounded-sm text-text hover:bg-line-soft active:opacity-70 lg:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left lucide-sidebar size-5" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg></button><a href="/bagl/" class="me-2 flex-none rounded-sm py-2 pe-1 active:opacity-70" aria-label="Bagl home"><svg viewBox="32 32 547 204" role="img" aria-label="Bagl" class="h-auto w-[140px]"><path transform="translate(6 6)" fill-rule="evenodd" d="M181 41C165 31 147 26 128 26C71.7 26 26 71.7 26 128C26 184.3 71.7 230 128 230C184.3 230 230 184.3 230 128C230 123 229.6 118 229 113C215 121 201 111 203 96C187 100 173 87 178 71C161 65 165 47 181 41ZM156 134C156 153 143 166 124 166C104 166 91 152 92 133C93 113 106 101 126 102C145 103 157 115 156 134ZM99.605 59.847C100.212 56.293 107.114 52.126 111.988 53.239C115.035 55.166 108.540 60.247 103.159 60.454C100.925 60.354 100.012 60.761 99.605 59.847ZM62.186 99.447C60.941 96.256 64.522 89.486 69.036 88.008C72.460 88.086 69.658 95.401 65.377 98.203C63.509 99.214 62.964 99.992 62.186 99.447ZM51.510 148.378C54.488 146.345 62.280 148.415 64.865 152.695C65.595 156.226 57.429 155.083 53.542 151.356C52.062 149.680 51.135 149.305 51.510 148.378ZM104.185 202.753C104.952 199.046 112.347 194.926 117.421 196.273C120.549 198.407 113.547 203.501 107.893 203.520C105.552 203.334 104.579 203.727 104.185 202.753ZM182.429 173.733C181.707 170.422 186.254 164.360 190.895 163.614C194.229 164.220 190.358 170.936 185.740 173.011C183.758 173.710 183.105 174.386 182.429 173.733Z" style="fill:light-dark(var(--toast), var(--cream))"></path><g transform="translate(272.72 50.36) scale(0.82) translate(-9.5 -3.5)" fill="currentColor"><path d="M9.500,10.000L22.500,3.500L22.500,144.000L9.500,144.000Z"></path><path d="M22.500,91.000C22.500,70.294 32.879,59.500 53.000,59.500C73.121,59.500 83.500,70.294 83.500,91.000L83.500,106.000C83.500,126.706 73.121,137.500 53.000,137.500C32.879,137.500 22.500,126.706 22.500,106.000L22.500,91.000ZM9.500,91.000L9.500,106.000C9.500,133.774 25.583,150.500 53.000,150.500C80.417,150.500 96.500,133.774 96.500,106.000L96.500,91.000C96.500,63.226 80.417,46.500 53.000,46.500C25.583,46.500 9.500,63.226 9.500,91.000Z"></path><path d="M130.500,91.000C130.500,70.189 140.984,59.500 162.000,59.500C183.016,59.500 193.500,70.189 193.500,91.000L193.500,106.000C193.500,126.811 183.016,137.500 162.000,137.500C140.984,137.500 130.500,126.811 130.500,106.000L130.500,91.000ZM117.500,91.000L117.500,106.000C117.500,133.934 133.747,150.500 162.000,150.500C190.253,150.500 206.500,133.934 206.500,106.000L206.500,91.000C206.500,63.066 190.253,46.500 162.000,46.500C133.747,46.500 117.500,63.066 117.500,91.000Z"></path><path d="M193.500,53.000L193.500,144.000L206.500,144.000L206.500,53.000L193.500,53.000Z"></path><path d="M242.500,91.000C242.500,70.189 252.984,59.500 274.000,59.500C295.016,59.500 305.500,70.189 305.500,91.000L305.500,106.000C305.500,126.811 295.016,137.500 274.000,137.500C252.984,137.500 242.500,126.811 242.500,106.000L242.500,91.000ZM229.500,91.000L229.500,106.000C229.500,133.934 245.747,150.500 274.000,150.500C302.253,150.500 318.500,133.934 318.500,106.000L318.500,91.000C318.500,63.066 302.253,46.500 274.000,46.500C245.747,46.500 229.500,63.066 229.500,91.000Z"></path><path d="M305.500,53.000L305.500,165.000C305.500,185.502 296.315,194.500 275.000,194.500L249.000,194.500L249.000,207.500L275.000,207.500C303.435,207.500 318.500,192.743 318.500,165.000L318.500,53.000L305.500,53.000Z"></path><path d="M341.500,10.000L354.500,3.500L354.500,117.000L341.500,117.000Z"></path><path d="M341.500,112.000L341.500,124.000C341.500,141.757 350.579,150.500 369.000,150.500L383.000,150.500L383.000,137.500L369.000,137.500C357.651,137.500 354.500,134.465 354.500,124.000L354.500,112.000L341.500,112.000Z"></path></g></svg></a><nav aria-label="Pages" class="hidden lg:block"><ul class="flex items-center gap-1"><li><a href="/bagl/start/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Get started</a></li><li><a href="/bagl/playground/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Playground</a></li><li><a href="/bagl/reference/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Reference</a></li><li><a href="/bagl/spec/" aria-current="page" class="rounded-sm px-3 py-2 text-[0.9375rem] active:opacity-70 font-semibold text-text underline decoration-accent decoration-2 underline-offset-[6px]">Specification</a></li><li><a href="/bagl/internals/" class="rounded-sm px-3 py-2 text-[0.9375rem] no-underline active:opacity-70 text-muted hover:text-text">Internals</a></li></ul></nav><div class="ms-auto flex items-center gap-1"><button type="button" class="flex h-10 items-center gap-2 rounded-sm border border-line px-3 text-sm text-muted hover:border-text hover:text-text active:opacity-70" aria-keyshortcuts="Meta+K"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search size-4" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><span class="hidden sm:inline">Search</span><kbd class="hidden rounded-sm border border-line px-1 font-mono text-[11px] sm:inline">⌘K</kbd></button><button type="button" aria-label="Use the dark theme" title="Use the dark theme" class="grid size-10 flex-none place-items-center rounded-sm text-text hover:bg-line-soft active:opacity-70"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon size-[18px]" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg></button><a href="https://github.com/aibrahm/bagl" class="grid size-10 place-items-center rounded-sm text-text hover:bg-line-soft active:opacity-70" aria-label="Bagl on GitHub" title="Bagl on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" class="size-[18px]" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"></path></svg></a></div></div></header><div class="mx-auto grid max-w-[78rem] gap-x-12 px-4 sm:px-6 lg:grid-cols-[15rem_minmax(0,46rem)]"><aside class="hidden lg:block sticky top-[calc(var(--header-h)+1px)] max-h-[calc(100dvh-var(--header-h)-1px)] self-start overflow-y-auto overscroll-contain py-6 [scrollbar-width:thin]"><nav aria-label="Sections" class="relative px-2 py-2"><div class="space-y-0.5"><div><a href="#1-introduction" aria-current="location" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 font-semibold text-text"><span class="absolute inset-0 rounded-sm bg-[color-mix(in_oklch,var(--accent)_16%,transparent)]"></span><span class="relative">1. Introduction</span></a><div class="ms-[1.1rem] space-y-0.5 border-s border-line py-0.5 ps-2.5"><a href="#11-overview" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.1 Overview</span></a><a href="#12-key-features" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.2 Key features</span></a><a href="#13-design-goals" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.3 Design goals</span></a><a href="#14-implementation" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.4 Implementation</span></a><a href="#15-example-program" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.5 Example program</span></a><a href="#16-document-structure" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.6 Document structure</span></a><a href="#17-notation-conventions" class="relative flex min-h-8 items-center rounded-sm px-2 py-1 text-sm no-underline active:opacity-70 text-muted"><span class="relative">1.7 Notation conventions</span></a></div></div><div><a href="#2-lexical-structure" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">2. Lexical structure</span></a></div><div><a href="#3-formal-grammar" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">3. Formal grammar</span></a></div><div><a href="#4-type-system" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">4. Type system</span></a></div><div><a href="#5-expressions" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">5. Expressions</span></a></div><div><a href="#6-type-inference" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">6. Type inference</span></a></div><div><a href="#7-tensor-semantics" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">7. Tensor semantics</span></a></div><div><a href="#8-runtime-system" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">8. Runtime system</span></a></div><div><a href="#9-bytecode-specification" class="relative flex min-h-9 items-center rounded-sm px-2.5 py-1.5 text-[0.9375rem] no-underline active:opacity-70 text-muted"><span class="relative">9. Bytecode specification</span></a></div></div></nav></aside><main id="main" class="prose min-w-0 pb-24 pt-10"><h1 id="language-specification">Language specification</h1>
+<p>The specification gives the full rules of Bagl, chapter by chapter. <a href="/bagl/reference/">The language reference</a> covers the same ground with runnable examples, and it is the better place to start.</p>
+<h2 id="1-introduction">1. Introduction</h2>
+<h3 id="11-overview">1.1 Overview</h3>
+<p>Bagl (Basic Array/Graph Language) is a small functional programming language with static types and built-in tensors. A tensor is an array with one or more dimensions, e.g., a vector or a matrix. The type of a tensor includes its shape, so the compiler checks that tensor shapes fit together before the program runs. Bagl is meant for numerical code that works on arrays.</p>
+<h3 id="12-key-features">1.2 Key features</h3>
+<ul>
+<li>Bagl uses Hindley-Milner type inference with let-polymorphism. Hindley-Milner is the standard method for working out types without annotations, and let-polymorphism means a function bound with <code>let</code> can be used at more than one type.</li>
+<li>Tensors are built into the language, and the compiler checks their shapes at compile time.</li>
+<li>Functions are values, so you can pass them as arguments and return them from other functions. A function can also capture variables from the place where it was defined, and the function together with the captured variables is called a closure.</li>
+<li>Shapes can contain dimension variables, e.g., <code>&#x27;n</code>, so one function can work on tensors of many sizes.</li>
+<li><code>grad</code> turns a function into a new function that computes its derivative, which is called automatic differentiation.</li>
+<li>The compiler reports a shape mismatch at compile time, before the program runs.</li>
+</ul>
+<h3 id="13-design-goals">1.3 Design goals</h3>
+<ol>
+<li>Safety means that the compiler catches dimension mismatches and type errors at compile time.</li>
+<li>Expressiveness means that the language supports the common patterns of functional programming.</li>
+<li>Simplicity means that the core of the language is small, but complete.</li>
+<li>Predictability means that every construct has clear and deterministic behavior.</li>
+</ol>
+<h3 id="14-implementation">1.4 Implementation</h3>
+<p>The Bagl compiler is written in OCaml, and its source in <code>src/</code> is about 5,200 lines. It runs a program through the following stages:</p>
+<pre><code>Source Code → Lexer → Parser → AST → grad Expansion → Type Inference → IR → Optimization → Bytecode → VM
+</code></pre>
+<p>The implementation has the following parts:</p>
+<ul>
+<li>A lexer written by hand, which records the source location of every token.</li>
+<li>A recursive descent parser, which has one function for each grammar rule.</li>
+<li>A <code>grad</code> expansion pass, which rewrites each <code>grad (fn x -&gt; ...)</code> into an ordinary function that computes the derivative. The pass runs before type inference, so the derivative is type checked like any other code.</li>
+<li>Hindley-Milner type inference, extended with dimension variables.</li>
+<li>An intermediate representation (IR) built from basic blocks. A basic block is a run of instructions with no jumps into or out of its middle.</li>
+<li>Four optimization passes, which are constant folding, dead code elimination (DCE), copy propagation, and common subexpression elimination (CSE).</li>
+<li>A virtual machine (VM) that keeps its working values on a stack and supports closures.</li>
+</ul>
+<h3 id="15-example-program">1.5 Example program</h3>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-comment">// Matrix multiplication with compile-time shape checking</span>
+<span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>,<span class="tok-number">2</span>] <span class="tok-operator">=</span> [[<span class="tok-number">7.0</span>, <span class="tok-number">8.0</span>], [<span class="tok-number">9.0</span>, <span class="tok-number">10.0</span>], [<span class="tok-number">11.0</span>, <span class="tok-number">12.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> c <span class="tok-operator">=</span> <span class="tok-macroName">dot</span>(a, b) <span class="tok-keyword">in</span>  <span class="tok-comment">// Result has shape [2,2]</span>
+<span class="tok-macroName">transpose</span>(c)          <span class="tok-comment">// Result has shape [2,2]</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-comment">// Higher-order functions</span>
+<span class="tok-keyword">let</span> compose <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> f <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> g <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> f (g x) <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> double <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> inc <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span> <span class="tok-keyword">in</span>
+compose double inc <span class="tok-number">5</span>  <span class="tok-comment">// Result: 12</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-comment">// Recursive functions</span>
+<span class="tok-keyword">letrec</span> fact <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> n <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> n <span class="tok-operator">==</span> <span class="tok-number">0</span> <span class="tok-keyword">then</span> <span class="tok-number">1</span>
+  <span class="tok-keyword">else</span> n <span class="tok-operator">*</span> fact (n <span class="tok-operator">-</span> <span class="tok-number">1</span>)
+<span class="tok-keyword">in</span> fact <span class="tok-number">5</span>  <span class="tok-comment">// Result: 120</span></code></pre></div>
+<h3 id="16-document-structure">1.6 Document structure</h3>
+<p>The specification has nine chapters, listed in the table below.</p>
+<table><thead><tr><th>Chapter</th><th>Content</th></tr></thead><tbody><tr><td>02, Lexical structure</td><td>Tokens, keywords, literals, and comments</td></tr><tr><td>03, Grammar</td><td>The formal grammar in EBNF</td></tr><tr><td>04, Types</td><td>The type system and tensor types</td></tr><tr><td>05, Expressions</td><td>Every kind of expression</td></tr><tr><td>06, Type inference</td><td>The Hindley-Milner algorithm</td></tr><tr><td>07, Tensor semantics</td><td>Shape checking and tensor operations</td></tr><tr><td>08, Runtime</td><td>How the VM is built and how it runs a program</td></tr><tr><td>09, Bytecode</td><td>The instruction set</td></tr></tbody></table>
+<h3 id="17-notation-conventions">1.7 Notation conventions</h3>
+<ul>
+<li>Text in <code>code</code> font is literal syntax or an identifier.</li>
+<li>Text in <em>italics</em> is a metavariable, which is a placeholder for any piece of syntax of the named kind.</li>
+<li><code>[...]</code> marks an optional element.</li>
+<li><code>{...}</code> marks an element that can repeat zero or more times.</li>
+<li><code>|</code> separates alternatives.</li>
+</ul>
+<h2 id="2-lexical-structure">2. Lexical structure</h2>
+<p>Chapter 2 defines the tokens of Bagl. A token is the smallest unit the lexer reads from the source text, e.g., a keyword, a number, or an operator.</p>
+<h3 id="21-source-encoding">2.1 Source encoding</h3>
+<p>Bagl source files are UTF-8 text, and their file extension is <code>.bagl</code>.</p>
+<h3 id="22-whitespace-and-comments">2.2 Whitespace and comments</h3>
+<h4 id="whitespace">Whitespace</h4>
+<p>The whitespace characters are space, tab, newline, and carriage return. Whitespace separates tokens, and the lexer otherwise ignores it.</p>
+<h4 id="comments">Comments</h4>
+<p>Bagl has two kinds of comments.</p>
+<p>A line comment starts with <code>//</code> and runs to the end of the line.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span> x  <span class="tok-comment">// This is a comment</span></code></pre></div>
+<p>A block comment starts with <code>/*</code> and ends with <code>*/</code>.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-comment">/* This is a
+   multi-line comment */</span>
+<span class="tok-keyword">let</span> x <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span> x</code></pre></div>
+<p>Block comments do not nest, so the first <code>*/</code> ends the comment.</p>
+<h3 id="23-keywords">2.3 Keywords</h3>
+<p>The identifiers in the table below are reserved keywords.</p>
+<table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody><tr><td><code>let</code></td><td>Binds a variable</td></tr><tr><td><code>letrec</code></td><td>Binds a recursive variable</td></tr><tr><td><code>in</code></td><td>Starts the body of a let expression</td></tr><tr><td><code>fn</code></td><td>Starts a function definition</td></tr><tr><td><code>if</code></td><td>Starts a conditional</td></tr><tr><td><code>then</code></td><td>Starts the first branch of a conditional</td></tr><tr><td><code>else</code></td><td>Starts the second branch of a conditional</td></tr><tr><td><code>true</code></td><td>Boolean literal</td></tr><tr><td><code>false</code></td><td>Boolean literal</td></tr></tbody></table>
+<h4 id="type-keywords">Type keywords</h4>
+<table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody><tr><td><code>int</code></td><td>Integer type</td></tr><tr><td><code>float</code></td><td>Float type</td></tr><tr><td><code>bool</code></td><td>Boolean type</td></tr><tr><td><code>string</code></td><td>String type</td></tr><tr><td><code>tensor</code></td><td>Builds a tensor type</td></tr></tbody></table>
+<h4 id="tensor-operation-keywords">Tensor operation keywords</h4>
+<table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody><tr><td><code>dot</code></td><td>Dot product of matrices or vectors</td></tr><tr><td><code>transpose</code></td><td>Matrix transpose</td></tr><tr><td><code>reshape</code></td><td>Gives a tensor a new shape</td></tr></tbody></table>
+<p>The lexer also reserves <code>exp</code>, <code>log</code>, <code>sqrt</code>, <code>relu</code>, and <code>step</code> as keywords. Each of them takes a float or a tensor, and on a tensor it works on each element.</p>
+<h3 id="24-literals">2.4 Literals</h3>
+<h4 id="integer-literals">Integer literals</h4>
+<p>An integer literal is a sequence of decimal digits.</p>
+<pre><code>INT_LIT ::= [0-9]+
+</code></pre>
+<p>A literal never includes a minus sign. A leading minus sign is a separate <code>MINUS</code> token, which the parser reads as negation. For example, <code>-17</code> is the negation of <code>17</code>.</p>
+<p>Examples: <code>0</code>, <code>42</code>, <code>-17</code>, <code>1000</code></p>
+<h4 id="float-literals">Float literals</h4>
+<p>A float literal has a decimal point, an exponent, or both.</p>
+<pre><code>FLOAT_LIT ::= [0-9]+ (&#x27;.&#x27; [0-9]+)? ([eE] [+-]? [0-9]+)?
+</code></pre>
+<p>A number with neither a decimal point nor an exponent is an integer literal instead. As with integers, a leading minus sign is a separate token.</p>
+<p>Examples: <code>3.14</code>, <code>-0.5</code>, <code>1.0e10</code>, <code>2.5e-3</code></p>
+<h4 id="boolean-literals">Boolean literals</h4>
+<pre><code>BOOL_LIT ::= &#x27;true&#x27; | &#x27;false&#x27;
+</code></pre>
+<h4 id="string-literals">String literals</h4>
+<p>A string literal is text between double quotes. It can contain escape sequences, which are a backslash followed by one character.</p>
+<pre><code>STRING_LIT ::= &#x27;&quot;&#x27; (char | escape)* &#x27;&quot;&#x27;
+escape     ::= &#x27;\\&#x27; (&#x27;n&#x27; | &#x27;t&#x27; | &#x27;r&#x27; | &#x27;\\&#x27; | &#x27;&quot;&#x27;)
+</code></pre>
+<p>A string literal can&#x27;t contain a newline.</p>
+<p>Examples: <code>&quot;hello&quot;</code>, <code>&quot;line\nbreak&quot;</code>, <code>&quot;say \&quot;hi\&quot;&quot;</code></p>
+<h3 id="25-identifiers">2.5 Identifiers</h3>
+<p>An identifier starts with a letter or an underscore. The rest of it can be letters, digits, and underscores.</p>
+<pre><code>IDENT ::= [a-zA-Z_] [a-zA-Z0-9_]*
+</code></pre>
+<p>A keyword can&#x27;t be used as an identifier. The name <code>grad</code> is not a keyword, but the compiler gives special meaning to <code>grad</code> applied to a function, as section 5.12 describes.</p>
+<p>Examples: <code>x</code>, <code>myVar</code>, <code>matrix_2d</code>, <code>_helper</code></p>
+<h3 id="26-operators">2.6 Operators</h3>
+<h4 id="arithmetic-operators">Arithmetic operators</h4>
+<table><thead><tr><th>Token</th><th>Symbol</th><th>Description</th></tr></thead><tbody><tr><td><code>PLUS</code></td><td><code>+</code></td><td>Addition</td></tr><tr><td><code>MINUS</code></td><td><code>-</code></td><td>Subtraction</td></tr><tr><td><code>STAR</code></td><td><code>*</code></td><td>Multiplication</td></tr><tr><td><code>SLASH</code></td><td><code>/</code></td><td>Division</td></tr></tbody></table>
+<h4 id="comparison-operators">Comparison operators</h4>
+<table><thead><tr><th>Token</th><th>Symbol</th><th>Description</th></tr></thead><tbody><tr><td><code>EQEQ</code></td><td><code>==</code></td><td>Equal</td></tr><tr><td><code>NEQ</code></td><td><code>!=</code></td><td>Not equal</td></tr><tr><td><code>LT</code></td><td><code>&lt;</code></td><td>Less than</td></tr><tr><td><code>GT</code></td><td><code>&gt;</code></td><td>Greater than</td></tr><tr><td><code>LE</code></td><td><code>&lt;=</code></td><td>Less than or equal</td></tr><tr><td><code>GE</code></td><td><code>&gt;=</code></td><td>Greater than or equal</td></tr></tbody></table>
+<h4 id="logical-operators">Logical operators</h4>
+<table><thead><tr><th>Token</th><th>Symbol</th><th>Description</th></tr></thead><tbody><tr><td><code>AMPAMP</code></td><td><code>&amp;&amp;</code></td><td>Logical and</td></tr><tr><td><code>PIPEPIPE</code></td><td><code>||</code></td><td>Logical or</td></tr><tr><td><code>BANG</code></td><td><code>!</code></td><td>Logical not</td></tr></tbody></table>
+<h4 id="other-operators">Other operators</h4>
+<table><thead><tr><th>Token</th><th>Symbol</th><th>Description</th></tr></thead><tbody><tr><td><code>EQ</code></td><td><code>=</code></td><td>Binds a name in <code>let</code> and <code>letrec</code></td></tr><tr><td><code>ARROW</code></td><td><code>-&gt;</code></td><td>Function arrow</td></tr></tbody></table>
+<h3 id="27-delimiters">2.7 Delimiters</h3>
+<table><thead><tr><th>Token</th><th>Symbol</th><th>Description</th></tr></thead><tbody><tr><td><code>LPAREN</code></td><td><code>(</code></td><td>Left parenthesis</td></tr><tr><td><code>RPAREN</code></td><td><code>)</code></td><td>Right parenthesis</td></tr><tr><td><code>LBRACKET</code></td><td><code>[</code></td><td>Left bracket</td></tr><tr><td><code>RBRACKET</code></td><td><code>]</code></td><td>Right bracket</td></tr><tr><td><code>LANGLE</code></td><td><code>&lt;</code></td><td>Left angle bracket. The lexer never produces <code>LANGLE</code>, and tensor types use <code>LT</code> instead</td></tr><tr><td><code>RANGLE</code></td><td><code>&gt;</code></td><td>Right angle bracket. The lexer never produces <code>RANGLE</code>, and tensor types use <code>GT</code> instead</td></tr><tr><td><code>COMMA</code></td><td><code>,</code></td><td>Comma</td></tr><tr><td><code>COLON</code></td><td><code>:</code></td><td>Starts a type annotation</td></tr><tr><td><code>SEMI</code></td><td><code>;</code></td><td>Separates top-level declarations</td></tr><tr><td><code>QUOTE</code></td><td><code>&#x27;</code></td><td>Starts a type variable or a dimension variable</td></tr></tbody></table>
+<h3 id="28-operator-precedence">2.8 Operator precedence</h3>
+<p>The table lists the operators from the lowest precedence to the highest. An operator with higher precedence binds more tightly, so <code>1 + 2 * 3</code> means <code>1 + (2 * 3)</code>.</p>
+<table><thead><tr><th>Level</th><th>Operators</th><th>Associativity</th></tr></thead><tbody><tr><td>1</td><td><code>||</code></td><td>Left</td></tr><tr><td>2</td><td><code>&amp;&amp;</code></td><td>Left</td></tr><tr><td>3</td><td><code>==</code> <code>!=</code></td><td>Left</td></tr><tr><td>4</td><td><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td><td>Left</td></tr><tr><td>5</td><td><code>+</code> <code>-</code></td><td>Left</td></tr><tr><td>6</td><td><code>*</code> <code>/</code></td><td>Left</td></tr><tr><td>7</td><td><code>-</code> <code>!</code> (unary)</td><td>Right</td></tr><tr><td>8</td><td>Function application</td><td>Left</td></tr></tbody></table>
+<h3 id="29-token-examples">2.9 Token examples</h3>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> sum<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">=</span> <span class="tok-number">1</span> <span class="tok-operator">+</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span> sum</code></pre></div>
+<p>The lexer turns the line above into the following tokens.</p>
+<pre><code>LET IDENT(&quot;sum&quot;) COLON INT_TYPE EQ INT_LIT(1) PLUS INT_LIT(2) IN IDENT(&quot;sum&quot;) EOF
+</code></pre>
+<h2 id="3-formal-grammar">3. Formal grammar</h2>
+<p>Chapter 3 gives the complete grammar of Bagl in Extended Backus-Naur Form (EBNF). EBNF is a standard notation for grammars, and each rule in it names a piece of syntax and lists what that piece can contain.</p>
+<h3 id="31-notation">3.1 Notation</h3>
+<pre><code>::=     Definition
+|       Alternative
+[ ]     Optional (0 or 1)
+{ }     Repetition (0 or more)
+( )     Grouping
+&#x27;x&#x27;     Terminal symbol
+</code></pre>
+<h3 id="32-complete-grammar">3.2 Complete grammar</h3>
+<h4 id="program-structure">Program structure</h4>
+<pre><code class="language-ebnf">program     ::= { decl [&#x27;;&#x27;] }
+
+decl        ::= expr
+</code></pre>
+<h4 id="expressions">Expressions</h4>
+<pre><code class="language-ebnf">expr        ::= let_expr
+              | letrec_expr
+              | fn_expr
+              | if_expr
+              | binary_expr
+
+let_expr    ::= &#x27;let&#x27; IDENT [&#x27;:&#x27; type_annot] &#x27;=&#x27; expr &#x27;in&#x27; expr
+
+letrec_expr ::= &#x27;letrec&#x27; IDENT [&#x27;:&#x27; type_annot] &#x27;=&#x27; expr &#x27;in&#x27; expr
+
+fn_expr     ::= &#x27;fn&#x27; IDENT [&#x27;:&#x27; simple_type] &#x27;-&gt;&#x27; expr
+
+if_expr     ::= &#x27;if&#x27; expr &#x27;then&#x27; expr &#x27;else&#x27; expr
+
+binary_expr ::= unary_expr { binop unary_expr }
+
+unary_expr  ::= &#x27;-&#x27; unary_expr
+              | &#x27;!&#x27; unary_expr
+              | application
+
+application ::= primary { argument }
+
+argument    ::= INT_LIT
+              | FLOAT_LIT
+              | BOOL_LIT
+              | STRING_LIT
+              | IDENT
+              | &#x27;(&#x27; expr &#x27;)&#x27;
+              | tensor_lit
+
+primary     ::= INT_LIT
+              | FLOAT_LIT
+              | BOOL_LIT
+              | STRING_LIT
+              | IDENT
+              | &#x27;(&#x27; expr &#x27;)&#x27;
+              | tensor_lit
+              | tensor_op
+              | math_op
+
+grad_expr   ::= &#x27;grad&#x27; &#x27;(&#x27; fn_expr &#x27;)&#x27;
+</code></pre>
+<p>The annotation on a <code>fn</code> parameter is a <code>simple_type</code>, so an arrow type there needs parentheses, e.g., <code>fn f: (int -&gt; int) -&gt; f 5</code>. Without the parentheses, the parser would read the arrow of the type as the arrow of the function.</p>
+<p>An <code>argument</code> is a smaller set than <code>primary</code>. To pass the result of <code>dot</code>, <code>transpose</code>, <code>reshape</code>, or a math function to a function, put it in parentheses, e.g., <code>f (dot(a, b))</code>.</p>
+<p>The parser has no separate rule for <code>grad_expr</code>. It reads <code>grad</code> as an ordinary <code>IDENT</code> and <code>grad (fn x -&gt; e)</code> as an application. The <code>grad</code> pass then requires the argument to be a function literal in parentheses, as <code>grad_expr</code> shows, and it reports a compile error otherwise. Section 5.12 describes <code>grad</code>.</p>
+<h4 id="binary-operators">Binary operators</h4>
+<pre><code class="language-ebnf">binop       ::= &#x27;||&#x27; | &#x27;&amp;&amp;&#x27;
+              | &#x27;==&#x27; | &#x27;!=&#x27;
+              | &#x27;&lt;&#x27; | &#x27;&gt;&#x27; | &#x27;&lt;=&#x27; | &#x27;&gt;=&#x27;
+              | &#x27;+&#x27; | &#x27;-&#x27;
+              | &#x27;*&#x27; | &#x27;/&#x27;
+</code></pre>
+<h4 id="tensor-literals-and-operations">Tensor literals and operations</h4>
+<pre><code class="language-ebnf">tensor_lit  ::= &#x27;[&#x27; [tensor_contents] &#x27;]&#x27; [&#x27;:&#x27; shape]
+
+tensor_contents ::= tensor_row { &#x27;,&#x27; tensor_row }
+                  | expr { &#x27;,&#x27; expr }
+
+tensor_row  ::= &#x27;[&#x27; expr { &#x27;,&#x27; expr } &#x27;]&#x27;
+
+tensor_op   ::= &#x27;dot&#x27; &#x27;(&#x27; expr &#x27;,&#x27; expr &#x27;)&#x27;
+              | &#x27;transpose&#x27; &#x27;(&#x27; expr &#x27;)&#x27;
+              | &#x27;reshape&#x27; &#x27;(&#x27; expr &#x27;,&#x27; shape &#x27;)&#x27;
+
+math_op     ::= (&#x27;exp&#x27; | &#x27;log&#x27; | &#x27;sqrt&#x27; | &#x27;relu&#x27; | &#x27;step&#x27;) &#x27;(&#x27; expr &#x27;)&#x27;
+</code></pre>
+<h4 id="type-annotations">Type annotations</h4>
+<pre><code class="language-ebnf">type_annot  ::= arrow_type
+
+arrow_type  ::= simple_type [ &#x27;-&gt;&#x27; arrow_type ]
+
+simple_type ::= &#x27;int&#x27;
+              | &#x27;float&#x27;
+              | &#x27;bool&#x27;
+              | &#x27;string&#x27;
+              | tensor_type
+              | type_var
+              | &#x27;(&#x27; type_annot &#x27;)&#x27;
+
+tensor_type ::= &#x27;tensor&#x27; &#x27;&lt;&#x27; type_annot &#x27;&gt;&#x27; shape
+
+type_var    ::= &quot;&#x27;&quot; IDENT
+
+shape       ::= &#x27;[&#x27; [ dim { &#x27;,&#x27; dim } ] &#x27;]&#x27;
+
+dim         ::= INT_LIT
+              | &quot;&#x27;&quot; IDENT
+</code></pre>
+<h4 id="lexical-elements">Lexical elements</h4>
+<pre><code class="language-ebnf">INT_LIT     ::= digit { digit }
+
+FLOAT_LIT   ::= digit { digit } &#x27;.&#x27; digit { digit } [ exponent ]
+              | digit { digit } exponent
+
+exponent    ::= (&#x27;e&#x27; | &#x27;E&#x27;) [&#x27;+&#x27; | &#x27;-&#x27;] digit { digit }
+
+BOOL_LIT    ::= &#x27;true&#x27; | &#x27;false&#x27;
+
+STRING_LIT  ::= &#x27;&quot;&#x27; { string_char } &#x27;&quot;&#x27;
+
+string_char ::= &lt;any character except &#x27;&quot;&#x27;, &#x27;\&#x27;, or a newline&gt;
+              | &#x27;\&#x27; escape_char
+
+escape_char ::= &#x27;n&#x27; | &#x27;t&#x27; | &#x27;r&#x27; | &#x27;\\&#x27; | &#x27;&quot;&#x27;
+
+IDENT       ::= letter { letter | digit | &#x27;_&#x27; }
+
+letter      ::= &#x27;a&#x27;..&#x27;z&#x27; | &#x27;A&#x27;..&#x27;Z&#x27; | &#x27;_&#x27;
+
+digit       ::= &#x27;0&#x27;..&#x27;9&#x27;
+</code></pre>
+<h3 id="33-grammar-properties">3.3 Grammar properties</h3>
+<h4 id="precedence-climbing">Precedence climbing</h4>
+<p>The parser reads binary operators with precedence climbing, which gives each operator the right precedence and associativity. Precedence climbing is a parsing method that uses the precedence of each operator to decide how to group the operands. The levels are listed below.</p>
+<pre><code>Precedence 1: ||          (left-associative)
+Precedence 2: &amp;&amp;          (left-associative)
+Precedence 3: == !=       (left-associative)
+Precedence 4: &lt; &gt; &lt;= &gt;=   (left-associative)
+Precedence 5: + -         (left-associative)
+Precedence 6: * /         (left-associative)
+</code></pre>
+<h4 id="function-application">Function application</h4>
+<p>Function application has the highest precedence, and it groups to the left. The example below shows the grouping.</p>
+<pre><code class="language-text">f x y z   // Parsed as ((f x) y) z
+</code></pre>
+<h4 id="arrow-types">Arrow types</h4>
+<p>The arrow in a function type groups to the right. The example below shows the grouping.</p>
+<pre><code class="language-text">int -&gt; int -&gt; int   // Parsed as int -&gt; (int -&gt; int)
+</code></pre>
+<h3 id="34-example-parses">3.4 Example parses</h3>
+<h4 id="let-expression">Let expression</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span></code></pre></div>
+<p>The parser builds the following tree.</p>
+<pre><code>ELet
+├── name: &quot;x&quot;
+├── annot: TAInt
+├── value: EInt(5)
+└── body: EBinop(Add)
+    ├── EVar(&quot;x&quot;)
+    └── EInt(1)
+</code></pre>
+<h4 id="function-definition">Function definition</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> y <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> y</code></pre></div>
+<p>The parser builds the following tree.</p>
+<pre><code>EFn
+├── param: &quot;x&quot;
+└── body: EFn
+    ├── param: &quot;y&quot;
+    └── body: EBinop(Add)
+        ├── EVar(&quot;x&quot;)
+        └── EVar(&quot;y&quot;)
+</code></pre>
+<h4 id="tensor-operation">Tensor operation</h4>
+<pre><code class="language-text">dot(a, b)
+</code></pre>
+<p>The parser builds the following tree.</p>
+<pre><code>ETensorOp(TensorDot)
+├── EVar(&quot;a&quot;)
+└── EVar(&quot;b&quot;)
+</code></pre>
+<h3 id="35-syntactic-sugar">3.5 Syntactic sugar</h3>
+<p>Bagl has very little syntactic sugar, which is syntax that the compiler rewrites into other syntax. Each construct maps directly to one node of the abstract syntax tree (AST), as the table shows.</p>
+<table><thead><tr><th>Syntax</th><th>AST Node</th></tr></thead><tbody><tr><td><code>let x = e1 in e2</code></td><td><code>ELet { name=&quot;x&quot;; value=e1; body=e2 }</code></td></tr><tr><td><code>fn x -&gt; e</code></td><td><code>EFn { param=&quot;x&quot;; body=e }</code></td></tr><tr><td><code>if c then t else e</code></td><td><code>EIf { cond=c; then_branch=t; else_branch=e }</code></td></tr><tr><td><code>e1 + e2</code></td><td><code>EBinop(Add, e1, e2)</code></td></tr><tr><td><code>-e</code></td><td><code>EUnop(Neg, e)</code></td></tr><tr><td><code>f x</code></td><td><code>EApp(f, x)</code></td></tr></tbody></table>
+<h2 id="4-type-system">4. Type system</h2>
+<p>Bagl has a static type system based on Hindley-Milner, with two extensions. The first extension adds tensor types. The second adds dimension polymorphism, which lets one function accept tensors of many sizes.</p>
+<h3 id="41-base-types">4.1 Base types</h3>
+<h4 id="primitive-types">Primitive types</h4>
+<table><thead><tr><th>Type</th><th>Description</th><th>Examples</th></tr></thead><tbody><tr><td><code>int</code></td><td>Integers, stored as OCaml <code>int</code> values</td><td><code>0</code>, <code>42</code>, <code>-17</code></td></tr><tr><td><code>float</code></td><td>IEEE 754 double-precision numbers</td><td><code>3.14</code>, <code>-0.5</code>, <code>1e10</code></td></tr><tr><td><code>bool</code></td><td>Boolean values</td><td><code>true</code>, <code>false</code></td></tr><tr><td><code>string</code></td><td>UTF-8 text</td><td><code>&quot;hello&quot;</code>, <code>&quot;&quot;</code></td></tr><tr><td><code>()</code></td><td>Unit type, used only inside the compiler</td><td>The unit value</td></tr></tbody></table>
+<h4 id="type-syntax">Type syntax</h4>
+<pre><code class="language-text">int                    // Integer type
+float                  // Float type
+bool                   // Boolean type
+string                 // String type
+</code></pre>
+<h3 id="42-function-types">4.2 Function types</h3>
+<p>A function type is written with an arrow, <code>-&gt;</code>.</p>
+<pre><code>T1 -&gt; T2
+</code></pre>
+<p>In the type above, <code>T1</code> is the parameter type, and <code>T2</code> is the return type.</p>
+<h4 id="properties">Properties</h4>
+<ul>
+<li>The arrow groups to the right, so <code>A -&gt; B -&gt; C</code> means <code>A -&gt; (B -&gt; C)</code>.</li>
+<li>Functions are curried. A function of several arguments is a function of one argument that returns another function, which takes the next argument.</li>
+</ul>
+<h4 id="examples">Examples</h4>
+<pre><code class="language-text">int -&gt; int                      // int to int function
+int -&gt; int -&gt; int               // Curried two-argument function
+(int -&gt; int) -&gt; int             // Function taking a function
+tensor&lt;float&gt;[2,3] -&gt; float     // Tensor to scalar
+</code></pre>
+<h3 id="43-tensor-types">4.3 Tensor types</h3>
+<p>A tensor is an array of numbers, and the compiler knows its shape at compile time. A tensor type has the following form.</p>
+<pre><code>tensor&lt;E&gt;[D1, D2, ..., Dn]
+</code></pre>
+<p>In the form above, <code>E</code> is the element type, and each <code>Di</code> gives the size of one dimension. The element type must be <code>float</code>, because the type checker requires float elements in every tensor value. The VM also stores every tensor element as a float.</p>
+<h4 id="dimension-specifications">Dimension specifications</h4>
+<p>A dimension can take one of two forms:</p>
+<ol>
+<li>A concrete size, which is an integer constant, e.g., <code>2</code>, <code>3</code>, or <code>100</code>.</li>
+<li>A dimension variable, e.g., <code>&#x27;n</code> or <code>&#x27;m</code>, which stands for a size that the compiler works out from how the tensor is used.</li>
+</ol>
+<h4 id="examples-1">Examples</h4>
+<pre><code class="language-text">tensor&lt;float&gt;[3]           // 1D tensor with 3 elements
+tensor&lt;float&gt;[2, 3]        // 2x3 matrix
+tensor&lt;float&gt;[4, 4, 4]     // 3D tensor
+tensor&lt;float&gt;[&#x27;n, &#x27;m]      // Matrix with variable dimensions
+tensor&lt;float&gt;[&#x27;n, &#x27;n]      // Square matrix
+</code></pre>
+<h4 id="shape-rank">Shape rank</h4>
+<p>The rank of a tensor is the number of its dimensions.</p>
+<ul>
+<li>A tensor of rank 0 is a scalar, and its shape is empty, <code>[]</code>.</li>
+<li>A tensor of rank 1 is a vector, with shape <code>[n]</code>.</li>
+<li>A tensor of rank 2 is a matrix, with shape <code>[m, n]</code>.</li>
+<li>A tensor of rank 3 or more has no special name.</li>
+</ul>
+<h3 id="44-type-variables">4.4 Type variables</h3>
+<p>A type variable stands for any type. Type variables make polymorphism possible, which means one function can work on values of different types.</p>
+<pre><code class="language-text">&#x27;a                    // Type variable
+&#x27;a -&gt; &#x27;a              // Identity function type
+&#x27;a -&gt; &#x27;b -&gt; &#x27;a        // Constant function type
+</code></pre>
+<h4 id="type-variable-naming">Type variable naming</h4>
+<ul>
+<li>A type variable starts with a quote, e.g., <code>&#x27;a</code>, <code>&#x27;b</code>, or <code>&#x27;foo</code>.</li>
+<li>By convention, the name after the quote is a single letter, e.g., <code>&#x27;a</code>, <code>&#x27;b</code>, or <code>&#x27;c</code>.</li>
+</ul>
+<h3 id="45-type-schemes-polymorphism">4.5 Type schemes (polymorphism)</h3>
+<p>A type scheme is a type with a list of type variables that can each be replaced by any type. The <code>forall</code> in front lists the variables.</p>
+<pre><code>forall &#x27;a &#x27;b &#x27;n. T
+</code></pre>
+<p>The compiler creates a type scheme when it checks a <code>let</code> binding. The process is called let-polymorphism, and the example below shows it.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> id <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-keyword">in</span>      <span class="tok-comment">// id : forall &#x27;a. &#x27;a -&gt; &#x27;a</span>
+<span class="tok-keyword">let</span> _ <span class="tok-operator">=</span> id <span class="tok-number">5</span> <span class="tok-keyword">in</span>            <span class="tok-comment">// Instantiated to int -&gt; int</span>
+<span class="tok-keyword">let</span> _ <span class="tok-operator">=</span> id <span class="tok-keyword">true</span> <span class="tok-keyword">in</span>         <span class="tok-comment">// Instantiated to bool -&gt; bool</span>
+id</code></pre></div>
+<h4 id="generalization-rules">Generalization rules</h4>
+<p>Generalization is the step that turns a type into a type scheme. A type variable is generalized when both of the following hold:</p>
+<ol>
+<li>The variable is not free in the surrounding environment, which means no variable already in scope has it in its type.</li>
+<li>The variable was created at a deeper level than the current binding.</li>
+</ol>
+<h3 id="46-type-annotations">4.6 Type annotations</h3>
+<p>A type annotation limits the type that the compiler infers. If the inferred type doesn&#x27;t match the annotation, the compiler reports an error.</p>
+<h4 id="binding-annotations">Binding annotations</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> f<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">-&gt;</span> <span class="tok-typeName">int</span> <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span> <span class="tok-keyword">in</span>
+f x  <span class="tok-comment">// Result: 6</span></code></pre></div>
+<h4 id="parameter-annotations">Parameter annotations</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> inc <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> apply5 <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> f<span class="tok-operator">:</span> (<span class="tok-typeName">int</span> <span class="tok-operator">-&gt;</span> <span class="tok-typeName">int</span>) <span class="tok-operator">-&gt;</span> f <span class="tok-number">5</span> <span class="tok-keyword">in</span>
+apply5 inc  <span class="tok-comment">// Result: 6</span></code></pre></div>
+<h4 id="tensor-annotations">Tensor annotations</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> v<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>] <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> m<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>, <span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-macroName">dot</span>(m, v)  <span class="tok-comment">// Result: [14, 32], with type tensor&lt;float&gt;[2]</span></code></pre></div>
+<h3 id="47-type-compatibility">4.7 Type compatibility</h3>
+<h4 id="subtyping">Subtyping</h4>
+<p>Bagl does not have subtyping, so two types must match exactly after unification. Unification is the step that makes two types equal by filling in their type variables.</p>
+<h4 id="numeric-coercion">Numeric coercion</h4>
+<p>Bagl never converts between <code>int</code> and <code>float</code> on its own. For scalars, both operands of an arithmetic operator must have the same type. The first example adds two ints and then two floats, and the second example mixes an int with a float.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> <span class="tok-number">1</span> <span class="tok-operator">+</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span>      <span class="tok-comment">// int + int = int</span>
+<span class="tok-keyword">let</span> b <span class="tok-operator">=</span> <span class="tok-number">1.0</span> <span class="tok-operator">+</span> <span class="tok-number">2.0</span> <span class="tok-keyword">in</span>  <span class="tok-comment">// float + float = float</span>
+b                     <span class="tok-comment">// Result: 3.0</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-number">1</span> <span class="tok-operator">+</span> <span class="tok-number">2.0</span>  <span class="tok-comment">// Error: Cannot unify int with float</span></code></pre></div>
+<h4 id="tensor-element-types">Tensor element types</h4>
+<p>Tensor operations keep the element type of their operands.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>,<span class="tok-number">2</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>], [<span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-macroName">dot</span>(a, b)      <span class="tok-comment">// Result: tensor&lt;float&gt;[2,2]</span></code></pre></div>
+<h3 id="48-type-equality">4.8 Type equality</h3>
+<p>Two types are equal when they have the same structure, as the table shows.</p>
+<table><thead><tr><th>Type 1</th><th>Type 2</th><th>Equal?</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int</code></td><td>Yes</td></tr><tr><td><code>int</code></td><td><code>float</code></td><td>No</td></tr><tr><td><code>int -&gt; int</code></td><td><code>int -&gt; int</code></td><td>Yes</td></tr><tr><td><code>int -&gt; int</code></td><td><code>int -&gt; float</code></td><td>No</td></tr><tr><td><code>tensor&lt;float&gt;[2,3]</code></td><td><code>tensor&lt;float&gt;[2,3]</code></td><td>Yes</td></tr><tr><td><code>tensor&lt;float&gt;[2,3]</code></td><td><code>tensor&lt;float&gt;[3,2]</code></td><td>No</td></tr><tr><td><code>&#x27;a -&gt; &#x27;a</code></td><td><code>&#x27;b -&gt; &#x27;b</code></td><td>Yes, after renaming the variables</td></tr></tbody></table>
+<h3 id="49-type-errors">4.9 Type errors</h3>
+<p>The sections below show the most common type errors.</p>
+<h4 id="type-mismatch">Type mismatch</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">=</span> <span class="tok-keyword">true</span> <span class="tok-keyword">in</span> x  <span class="tok-comment">// Error: Cannot unify int with bool</span></code></pre></div>
+<h4 id="dimension-mismatch">Dimension mismatch</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]] <span class="tok-keyword">in</span>
+a  <span class="tok-comment">// Error: Dimension mismatch: 3 vs 2</span></code></pre></div>
+<h4 id="unbound-variable">Unbound variable</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>x <span class="tok-operator">+</span> <span class="tok-number">1</span>    <span class="tok-comment">// Error: Unbound variable: x</span></code></pre></div>
+<h4 id="shape-rank-mismatch">Shape rank mismatch</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> v<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>] <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-macroName">transpose</span>(v)    <span class="tok-comment">// Error: transpose requires 2D tensor</span></code></pre></div>
+<h3 id="410-type-representation-internal">4.10 Type representation (internal)</h3>
+<p>The compiler stores types with the following OCaml definitions.</p>
+<pre><code class="language-ocaml">type ty =
+  | TInt
+  | TFloat
+  | TBool
+  | TString
+  | TUnit
+  | TTensor of ty * shape
+  | TArrow of ty * ty
+  | TVar of tvar ref        (* Unification variable *)
+
+type shape_dim =
+  | SDimConst of int        (* Concrete dimension *)
+  | SDimVar of dim_var ref  (* Dimension variable *)
+</code></pre>
+<p>Each type variable is a mutable reference. When unification solves a variable, the compiler points the reference at the solution. Path compression then shortens chains of such links, so later lookups are fast.</p>
+<h2 id="5-expressions">5. Expressions</h2>
+<p>Every Bagl program is an expression, and running the program evaluates the expression to a value. Chapter 5 describes each kind of expression.</p>
+<h3 id="51-literals">5.1 Literals</h3>
+<p>Each line in the blocks of section 5.1 is a separate literal, and each literal on its own is a complete program.</p>
+<h4 id="integer-literals-1">Integer literals</h4>
+<pre><code class="language-text">42
+-17
+0
+</code></pre>
+<p>The type is <code>int</code>. The <code>-17</code> line is the negation of the literal <code>17</code>, as section 2.4 explains.</p>
+<h4 id="float-literals-1">Float literals</h4>
+<pre><code class="language-text">3.14
+-0.5
+1.0e10
+2.5e-3
+</code></pre>
+<p>The type is <code>float</code>.</p>
+<h4 id="boolean-literals-1">Boolean literals</h4>
+<pre><code class="language-text">true
+false
+</code></pre>
+<p>The type is <code>bool</code>.</p>
+<h4 id="string-literals-1">String literals</h4>
+<pre><code class="language-text">&quot;hello&quot;
+&quot;line\nbreak&quot;
+&quot;&quot;
+</code></pre>
+<p>The type is <code>string</code>.</p>
+<h4 id="tensor-literals">Tensor literals</h4>
+<p>Tensor elements must be floats, and the type checker rejects a tensor literal with int elements.</p>
+<p>A literal with one level of brackets is a 1D tensor, which is a vector.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>]  <span class="tok-comment">// Type: tensor&lt;float&gt;[3]</span></code></pre></div>
+<p>A literal with two levels of brackets is a 2D tensor, which is a matrix.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]]  <span class="tok-comment">// Type: tensor&lt;float&gt;[2, 2]</span></code></pre></div>
+<p>A literal can also carry an explicit shape annotation.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-operator">:</span> [<span class="tok-number">2</span>, <span class="tok-number">3</span>]</code></pre></div>
+<p>A literal with int elements fails to type check.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>]  <span class="tok-comment">// Error: Cannot unify int with float</span></code></pre></div>
+<h3 id="52-variables">5.2 Variables</h3>
+<p>A variable refers to a value that has been bound to a name. The names below are examples of variables.</p>
+<pre><code class="language-text">x
+myVariable
+_helper
+</code></pre>
+<p>A variable must be bound before it is used. A <code>let</code> binding, a <code>letrec</code> binding, or a function parameter can bind it.</p>
+<h3 id="53-let-expressions">5.3 Let expressions</h3>
+<p>A let expression binds a value to a name. It has one of the two forms below.</p>
+<pre><code class="language-text">let name = value in body
+let name: type = value in body
+</code></pre>
+<h4 id="semantics">Semantics</h4>
+<ol>
+<li>The program evaluates <code>value</code>.</li>
+<li>It binds the result to <code>name</code>.</li>
+<li>It evaluates <code>body</code>, with <code>name</code> in scope.</li>
+<li>The result of <code>body</code> is the result of the whole expression.</li>
+</ol>
+<h4 id="examples-2">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>  <span class="tok-comment">// Result: 6</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> <span class="tok-number">5</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> y <span class="tok-operator">=</span> <span class="tok-number">10</span> <span class="tok-keyword">in</span>
+x <span class="tok-operator">+</span> y  <span class="tok-comment">// Result: 15</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> double <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span>
+double <span class="tok-number">21</span>  <span class="tok-comment">// Result: 42</span></code></pre></div>
+<h4 id="let-polymorphism">Let-polymorphism</h4>
+<p>A value bound with <code>let</code> can be used at more than one type, as the example shows.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> id <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> a <span class="tok-operator">=</span> id <span class="tok-number">5</span> <span class="tok-keyword">in</span>     <span class="tok-comment">// id used at int -&gt; int</span>
+<span class="tok-keyword">let</span> b <span class="tok-operator">=</span> id <span class="tok-keyword">true</span> <span class="tok-keyword">in</span>  <span class="tok-comment">// id used at bool -&gt; bool</span>
+a                   <span class="tok-comment">// Result: 5</span></code></pre></div>
+<h3 id="54-recursive-let-letrec">5.4 Recursive let (letrec)</h3>
+<p>A <code>letrec</code> expression binds a recursive function. It has one of the two forms below.</p>
+<pre><code class="language-text">letrec name = value in body
+letrec name: type = value in body
+</code></pre>
+<p>The <code>value</code> must be a function, written with <code>fn</code>, and the function can call itself by <code>name</code>.</p>
+<h4 id="examples-3">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">letrec</span> fact <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> n <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> n <span class="tok-operator">==</span> <span class="tok-number">0</span> <span class="tok-keyword">then</span> <span class="tok-number">1</span>
+  <span class="tok-keyword">else</span> n <span class="tok-operator">*</span> fact (n <span class="tok-operator">-</span> <span class="tok-number">1</span>)
+<span class="tok-keyword">in</span> fact <span class="tok-number">5</span>  <span class="tok-comment">// Result: 120</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">letrec</span> fib <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> n <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> n <span class="tok-operator">&lt;=</span> <span class="tok-number">1</span> <span class="tok-keyword">then</span> n
+  <span class="tok-keyword">else</span> fib (n <span class="tok-operator">-</span> <span class="tok-number">1</span>) <span class="tok-operator">+</span> fib (n <span class="tok-operator">-</span> <span class="tok-number">2</span>)
+<span class="tok-keyword">in</span> fib <span class="tok-number">10</span>  <span class="tok-comment">// Result: 55</span></code></pre></div>
+<h3 id="55-function-expressions">5.5 Function expressions</h3>
+<p>A function expression defines a function that has no name. It has one of the two forms below.</p>
+<pre><code class="language-text">fn param -&gt; body
+fn param: type -&gt; body
+</code></pre>
+<h4 id="semantics-1">Semantics</h4>
+<p>A function expression creates a closure. The closure keeps the values of the variables that the function body uses from the surrounding scope.</p>
+<h4 id="examples-4">Examples</h4>
+<p>Each example binds the function to a name and returns it, so the result is the function and its type.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> inc <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span> <span class="tok-keyword">in</span> inc  <span class="tok-comment">// Type: int -&gt; int</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> add <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> y <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> y <span class="tok-keyword">in</span> add  <span class="tok-comment">// Type: int -&gt; int -&gt; int</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> twice <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> f <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> f (f x) <span class="tok-keyword">in</span> twice  <span class="tok-comment">// Type: (&#x27;a -&gt; &#x27;a) -&gt; &#x27;a -&gt; &#x27;a</span></code></pre></div>
+<p>The compiler may print a different letter for the type variable in the last example.</p>
+<h4 id="currying">Currying</h4>
+<p>A function of several arguments is written as nested functions of one argument each. Applying such a function to fewer arguments than it takes is called partial application, and the result is a function that takes the remaining arguments.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> add <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> y <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> y <span class="tok-keyword">in</span>
+add <span class="tok-number">3</span> <span class="tok-number">5</span>  <span class="tok-comment">// Result: 8</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> add <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> y <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> y <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> add3 <span class="tok-operator">=</span> add <span class="tok-number">3</span> <span class="tok-keyword">in</span>  <span class="tok-comment">// Partial application</span>
+add3 <span class="tok-number">5</span>               <span class="tok-comment">// Result: 8</span></code></pre></div>
+<h3 id="56-function-application">5.6 Function application</h3>
+<p>To apply a function, write the function followed by its argument. Application groups to the left.</p>
+<pre><code class="language-text">f x
+f x y z  // Same as ((f x) y) z
+</code></pre>
+<h4 id="semantics-2">Semantics</h4>
+<ol>
+<li>The program evaluates the function expression.</li>
+<li>It evaluates the argument expression.</li>
+<li>It binds the argument to the parameter.</li>
+<li>It evaluates the function body.</li>
+<li>The result of the body is the result of the application.</li>
+</ol>
+<h4 id="examples-5">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> double <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span>
+double <span class="tok-number">21</span>  <span class="tok-comment">// Result: 42</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> double <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> <span class="tok-number">2</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> compose <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> f <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> g <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> f (g x) <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> inc <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span> <span class="tok-keyword">in</span>
+compose double inc <span class="tok-number">5</span>  <span class="tok-comment">// Result: 12</span></code></pre></div>
+<h3 id="57-conditional-expressions">5.7 Conditional expressions</h3>
+<p>A conditional expression has the form below.</p>
+<pre><code class="language-text">if condition then expr1 else expr2
+</code></pre>
+<h4 id="semantics-3">Semantics</h4>
+<ol>
+<li>The program evaluates <code>condition</code>, which must have type <code>bool</code>.</li>
+<li>If the condition is true, the program evaluates <code>expr1</code> and returns its value.</li>
+<li>If the condition is false, the program evaluates <code>expr2</code> and returns its value.</li>
+</ol>
+<p>Both branches must have the same type.</p>
+<h4 id="examples-6">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">if</span> <span class="tok-keyword">true</span> <span class="tok-keyword">then</span> <span class="tok-number">1</span> <span class="tok-keyword">else</span> <span class="tok-number">2</span>  <span class="tok-comment">// Result: 1</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> max <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> y <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> x <span class="tok-operator">&gt;</span> y <span class="tok-keyword">then</span> x <span class="tok-keyword">else</span> y
+<span class="tok-keyword">in</span> max <span class="tok-number">5</span> <span class="tok-number">3</span>  <span class="tok-comment">// Result: 5</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> abs <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span>
+  <span class="tok-keyword">if</span> x <span class="tok-operator">&lt;</span> <span class="tok-number">0</span> <span class="tok-keyword">then</span> <span class="tok-operator">-</span>x <span class="tok-keyword">else</span> x
+<span class="tok-keyword">in</span> abs (<span class="tok-operator">-</span><span class="tok-number">5</span>)  <span class="tok-comment">// Result: 5</span></code></pre></div>
+<h3 id="58-binary-operators">5.8 Binary operators</h3>
+<p>A binary operator goes between its two operands.</p>
+<pre><code class="language-text">expr1 op expr2
+</code></pre>
+<h4 id="arithmetic-operators-1">Arithmetic operators</h4>
+<table><thead><tr><th>Operator</th><th>Description</th><th>Types</th></tr></thead><tbody><tr><td><code>+</code></td><td>Addition</td><td><code>int -&gt; int -&gt; int</code> or <code>float -&gt; float -&gt; float</code></td></tr><tr><td><code>-</code></td><td>Subtraction</td><td><code>int -&gt; int -&gt; int</code> or <code>float -&gt; float -&gt; float</code></td></tr><tr><td><code>*</code></td><td>Multiplication</td><td><code>int -&gt; int -&gt; int</code> or <code>float -&gt; float -&gt; float</code></td></tr><tr><td><code>/</code></td><td>Division</td><td><code>int -&gt; int -&gt; int</code> or <code>float -&gt; float -&gt; float</code></td></tr></tbody></table>
+<p>Division by zero raises a runtime error. The arithmetic operators also work element by element on two tensors of the same shape, and on a tensor and a float scalar, as chapter 7 describes.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-number">1</span> <span class="tok-operator">/</span> <span class="tok-number">0</span>  <span class="tok-comment">// Runtime error: Division by zero</span></code></pre></div>
+<h4 id="comparison-operators-1">Comparison operators</h4>
+<table><thead><tr><th>Operator</th><th>Description</th><th>Types</th></tr></thead><tbody><tr><td><code>==</code></td><td>Equal</td><td><code>&#x27;a -&gt; &#x27;a -&gt; bool</code></td></tr><tr><td><code>!=</code></td><td>Not equal</td><td><code>&#x27;a -&gt; &#x27;a -&gt; bool</code></td></tr><tr><td><code>&lt;</code></td><td>Less than</td><td><code>int -&gt; int -&gt; bool</code></td></tr><tr><td><code>&gt;</code></td><td>Greater than</td><td><code>int -&gt; int -&gt; bool</code></td></tr><tr><td><code>&lt;=</code></td><td>Less or equal</td><td><code>int -&gt; int -&gt; bool</code></td></tr><tr><td><code>&gt;=</code></td><td>Greater or equal</td><td><code>int -&gt; int -&gt; bool</code></td></tr></tbody></table>
+<p>The table shows the int form of <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, and <code>&gt;=</code>, and the same operators also accept two floats. The operators <code>==</code> and <code>!=</code> don&#x27;t accept tensors or functions.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1.0</span>] <span class="tok-operator">==</span> [<span class="tok-number">1.0</span>]  <span class="tok-comment">// Error: Equality is not defined for tensors</span></code></pre></div>
+<h4 id="logical-operators-1">Logical operators</h4>
+<table><thead><tr><th>Operator</th><th>Description</th><th>Types</th></tr></thead><tbody><tr><td><code>&amp;&amp;</code></td><td>Logical and</td><td><code>bool -&gt; bool -&gt; bool</code></td></tr><tr><td><code>||</code></td><td>Logical or</td><td><code>bool -&gt; bool -&gt; bool</code></td></tr></tbody></table>
+<p>In the current implementation, the logical operators always evaluate both operands. They don&#x27;t stop early when the left operand already decides the result.</p>
+<h4 id="examples-7">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-number">1</span> <span class="tok-operator">+</span> <span class="tok-number">2</span> <span class="tok-operator">*</span> <span class="tok-number">3</span>  <span class="tok-comment">// Result: 7, because * binds more tightly than +</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>(<span class="tok-number">1</span> <span class="tok-operator">+</span> <span class="tok-number">2</span>) <span class="tok-operator">*</span> <span class="tok-number">3</span>  <span class="tok-comment">// Result: 9</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-number">5</span> <span class="tok-operator">==</span> <span class="tok-number">5</span>  <span class="tok-comment">// Result: true</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-number">3</span> <span class="tok-operator">&lt;</span> <span class="tok-number">5</span> <span class="tok-operator">&amp;&amp;</span> <span class="tok-number">5</span> <span class="tok-operator">&lt;</span> <span class="tok-number">10</span>  <span class="tok-comment">// Result: true</span></code></pre></div>
+<h3 id="59-unary-operators">5.9 Unary operators</h3>
+<p>A unary operator goes before its operand.</p>
+<pre><code class="language-text">-expr
+!expr
+</code></pre>
+<table><thead><tr><th>Operator</th><th>Description</th><th>Types</th></tr></thead><tbody><tr><td><code>-</code></td><td>Negation</td><td><code>int -&gt; int</code> or <code>float -&gt; float</code></td></tr><tr><td><code>!</code></td><td>Logical not</td><td><code>bool -&gt; bool</code></td></tr></tbody></table>
+<h4 id="examples-8">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-operator">-</span><span class="tok-number">5</span>  <span class="tok-comment">// Result: -5</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-operator">-</span><span class="tok-number">3.14</span>  <span class="tok-comment">// Result: -3.14</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-operator">!</span><span class="tok-keyword">true</span>  <span class="tok-comment">// Result: false</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-operator">!</span>(<span class="tok-number">5</span> <span class="tok-operator">&gt;</span> <span class="tok-number">3</span>)  <span class="tok-comment">// Result: false</span></code></pre></div>
+<h3 id="510-tensor-operations">5.10 Tensor operations</h3>
+<h4 id="dot-product">Dot product</h4>
+<p>The dot product has the form below.</p>
+<pre><code class="language-text">dot(a, b)
+</code></pre>
+<p><code>dot</code> multiplies matrices and vectors. The compiler works out the result shape from the operand shapes, as the table shows.</p>
+<table><thead><tr><th>A Shape</th><th>B Shape</th><th>Result Shape</th></tr></thead><tbody><tr><td><code>[m, k]</code></td><td><code>[k, n]</code></td><td><code>[m, n]</code></td></tr><tr><td><code>[k]</code></td><td><code>[k, n]</code></td><td><code>[n]</code></td></tr><tr><td><code>[m, k]</code></td><td><code>[k]</code></td><td><code>[m]</code></td></tr><tr><td><code>[k]</code></td><td><code>[k]</code></td><td>A float scalar</td></tr></tbody></table>
+<h4 id="transpose">Transpose</h4>
+<p>The transpose has the form below.</p>
+<pre><code class="language-text">transpose(a)
+</code></pre>
+<p><code>transpose</code> swaps the two dimensions of a 2D tensor, so shape <code>[m, n]</code> becomes <code>[n, m]</code>.</p>
+<h4 id="reshape">Reshape</h4>
+<p>A reshape has the form below, where the second argument is a shape.</p>
+<pre><code class="language-text">reshape(a, [d1, d2])
+</code></pre>
+<p><code>reshape</code> gives a tensor new dimensions. The new shape must have the same total number of elements as the old one.</p>
+<h4 id="examples-9">Examples</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>       <span class="tok-comment">// [2,3]</span>
+<span class="tok-keyword">let</span> b <span class="tok-operator">=</span> [[<span class="tok-number">7.0</span>, <span class="tok-number">8.0</span>], [<span class="tok-number">9.0</span>, <span class="tok-number">10.0</span>], [<span class="tok-number">11.0</span>, <span class="tok-number">12.0</span>]] <span class="tok-keyword">in</span>  <span class="tok-comment">// [3,2]</span>
+<span class="tok-macroName">dot</span>(a, b)  <span class="tok-comment">// Result: [[58.0, 64.0], [139.0, 154.0]], a [2,2] matrix</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> m <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-macroName">transpose</span>(m)  <span class="tok-comment">// Result: [[1.0, 3.0], [2.0, 4.0]]</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> v <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-macroName">reshape</span>(v, [<span class="tok-number">2</span>, <span class="tok-number">3</span>])  <span class="tok-comment">// Result: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], a 2x3 matrix</span></code></pre></div>
+<h3 id="511-parentheses">5.11 Parentheses</h3>
+<p>Parentheses override the usual precedence, as the examples show.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>(<span class="tok-number">1</span> <span class="tok-operator">+</span> <span class="tok-number">2</span>) <span class="tok-operator">*</span> <span class="tok-number">3</span>  <span class="tok-comment">// Result: 9, not 7</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>(<span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>) <span class="tok-number">5</span>  <span class="tok-comment">// Applies a function that has no name. Result: 6</span></code></pre></div>
+<h3 id="512-automatic-differentiation-with-grad">5.12 Automatic differentiation with grad</h3>
+<p><code>grad</code> does automatic differentiation, which means that it computes the derivative of a function. The expression <code>grad (fn x -&gt; e)</code> is a new function, and that function returns the derivative of <code>e</code> with respect to <code>x</code>. The compiler implements <code>grad</code> as a source-to-source transform. A pass rewrites each <code>grad</code> expression into ordinary Bagl code before type inference, and the rest of the compiler then checks and runs the derivative like any other function.</p>
+<p><code>grad</code> must be applied directly to a function literal in parentheses. The name <code>grad</code> is not a value, so <code>grad</code> on its own is an unbound variable. If you write <code>grad f</code> for a function <code>f</code> bound elsewhere, the compiler reports &quot;grad must be applied directly to a function literal&quot;.</p>
+<h4 id="modes">Modes</h4>
+<p>The pass chooses a mode from the annotation on the parameter.</p>
+<ul>
+<li>An unannotated parameter, or a <code>float</code> parameter whose body uses no tensors, gets scalar mode. Scalar mode is symbolic forward mode. The pass builds an expression for the derivative with the sum, product, quotient, and chain rules, and the result has type <code>float -&gt; float</code>.</li>
+<li>A parameter annotated <code>tensor&lt;float&gt;[...]</code> gets reverse mode. The body must compute a scalar, e.g., a loss. The result is a function that returns the gradient, which is a tensor with the same shape as the parameter.</li>
+<li>A <code>float</code> parameter whose body uses tensors gets pathwise mode. The pass applies the reverse mode rules to the scalar parameter, so it can differentiate a scalar through tensor code.</li>
+</ul>
+<p>An unannotated parameter whose body uses tensors is a compile error, because the pass needs the annotation to choose a mode.</p>
+<h4 id="supported-expressions">Supported expressions</h4>
+<p>In scalar mode, the body can use literals, the parameter, and other variables, which count as constants. It can also use <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, unary minus, <code>if</code>, <code>let</code>, and the math functions <code>exp</code>, <code>log</code>, <code>sqrt</code>, <code>relu</code>, and <code>step</code>. The pass differentiates each branch of an <code>if</code>, and it leaves the condition as it is.</p>
+<p>Reverse mode and pathwise mode support the same expressions. They also support <code>dot</code>, <code>transpose</code>, element-wise arithmetic, and arithmetic between a tensor and a scalar.</p>
+<h4 id="unsupported-forms">Unsupported forms</h4>
+<p>The pass reports a compile error for each form it can&#x27;t differentiate correctly, so it doesn&#x27;t produce a wrong derivative for those forms. The unsupported forms in every mode include the following:</p>
+<ul>
+<li>A call to another function inside the body</li>
+<li>A <code>letrec</code> or a nested <code>fn</code> inside the body</li>
+<li>A boolean or comparison expression where the pass expects a number</li>
+</ul>
+<p>Scalar mode also rejects any tensor operation. Reverse mode and pathwise mode also reject the following forms:</p>
+<ul>
+<li><code>reshape</code></li>
+<li>A tensor literal whose elements mention the parameter</li>
+<li>An <code>if</code> whose condition mentions the parameter</li>
+<li>The matrix side of a matrix-vector or vector-matrix <code>dot</code>, because its gradient needs an outer product</li>
+<li>A scalar built from the parameter and broadcast against a matrix</li>
+<li>A body that doesn&#x27;t compute a scalar</li>
+</ul>
+<h4 id="examples-10">Examples</h4>
+<p>In scalar mode, the derivative of <code>x * x * x</code> is <code>3 * x * x</code>, which is <code>12.0</code> at <code>2.0</code>.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> f <span class="tok-operator">=</span> <span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> x <span class="tok-operator">*</span> x) <span class="tok-keyword">in</span>
+f <span class="tok-number">2.0</span>  <span class="tok-comment">// Result: 12.0</span></code></pre></div>
+<p>In reverse mode, the gradient of the squared dot product <code>dot(w, x) * dot(w, x)</code> is <code>2 * dot(w, x) * x</code>. At <code>w0</code>, <code>dot(w0, x)</code> is <code>4.5</code>, so the gradient is <code>9.0 * x</code>.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> [<span class="tok-number">0.5</span>, <span class="tok-operator">-</span><span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> w0 <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> g <span class="tok-operator">=</span> <span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> w<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>] <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(w, x) <span class="tok-operator">*</span> <span class="tok-macroName">dot</span>(w, x)) <span class="tok-keyword">in</span>
+g w0  <span class="tok-comment">// Result: [4.5, -9.0, 18.0]</span></code></pre></div>
+<p>In pathwise mode, <code>dot(x * s, x)</code> is <code>s</code> times <code>dot(x, x)</code>. Its derivative with respect to <code>s</code> is therefore <code>dot(x, x)</code>, which is <code>14.0</code>.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> x <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> g <span class="tok-operator">=</span> <span class="tok-macroName">grad</span> (<span class="tok-keyword">fn</span> s<span class="tok-operator">:</span> <span class="tok-typeName">float</span> <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(x <span class="tok-operator">*</span> s, x)) <span class="tok-keyword">in</span>
+g <span class="tok-number">2.0</span>  <span class="tok-comment">// Result: 14.0</span></code></pre></div>
+<h2 id="6-type-inference">6. Type inference</h2>
+<p>Bagl uses Hindley-Milner type inference, extended with dimension variables for tensor shapes. Chapter 6 describes the algorithm.</p>
+<h3 id="61-overview">6.1 Overview</h3>
+<p>Type inference works out the type of every expression, so most programs need no type annotations. Some programs still need one. For example, a function parameter that is used as a tensor gets a 2D tensor type unless an annotation says otherwise, so a parameter that should be a vector needs an annotation such as <code>tensor&lt;float&gt;[&#x27;n]</code>.</p>
+<p>The algorithm takes the following steps.</p>
+<ol>
+<li>It gives each unknown type a fresh type variable.</li>
+<li>It collects constraints from the structure of each expression. A constraint is a rule that two types must be equal.</li>
+<li>It solves the constraints with unification.</li>
+<li>It generalizes types at let bindings.</li>
+</ol>
+<h3 id="62-type-environments">6.2 Type environments</h3>
+<p>A type environment maps each variable name in scope to a type scheme.</p>
+<pre><code>Γ = { x₁ : σ₁, x₂ : σ₂, ... }
+</code></pre>
+<p>In the definition above, each <code>σ</code> is a type scheme of the form <code>∀ α₁...αₙ. τ</code>.</p>
+<h4 id="operations">Operations</h4>
+<ul>
+<li>Lookup, written <code>Γ(x)</code>, returns the scheme bound to <code>x</code>.</li>
+<li>Extension, written <code>Γ, x : σ</code>, adds a binding.</li>
+<li><code>FV(Γ)</code> returns all the free type variables in the environment. A free type variable is one that no <code>∀</code> binds.</li>
+</ul>
+<h3 id="63-inference-rules">6.3 Inference rules</h3>
+<p>Each rule below means that if the facts above the line hold, then the fact below the line holds. The notation <code>Γ ⊢ e : τ</code> means that in the environment <code>Γ</code>, the expression <code>e</code> has type <code>τ</code>.</p>
+<h4 id="literals">Literals</h4>
+<pre><code>─────────────────
+Γ ⊢ n : int        (integer literal)
+
+─────────────────
+Γ ⊢ f : float      (float literal)
+
+─────────────────
+Γ ⊢ b : bool       (boolean literal)
+</code></pre>
+<h4 id="variables">Variables</h4>
+<pre><code>x : σ ∈ Γ    τ = instantiate(σ)
+────────────────────────────────
+        Γ ⊢ x : τ
+</code></pre>
+<h4 id="let-binding">Let binding</h4>
+<pre><code>Γ ⊢ e₁ : τ₁    Γ, x : generalize(Γ, τ₁) ⊢ e₂ : τ₂
+─────────────────────────────────────────────────────
+            Γ ⊢ let x = e₁ in e₂ : τ₂
+</code></pre>
+<h4 id="recursive-let">Recursive let</h4>
+<pre><code>Γ, x : τ ⊢ e₁ : τ₁    unify(τ, τ₁)    Γ, x : generalize(Γ, τ) ⊢ e₂ : τ₂
+──────────────────────────────────────────────────────────────────────────
+                  Γ ⊢ letrec x = e₁ in e₂ : τ₂
+</code></pre>
+<h4 id="function">Function</h4>
+<pre><code>Γ, x : τ₁ ⊢ e : τ₂
+─────────────────────────
+Γ ⊢ fn x -&gt; e : τ₁ -&gt; τ₂
+</code></pre>
+<h4 id="application">Application</h4>
+<pre><code>Γ ⊢ e₁ : τ₁    Γ ⊢ e₂ : τ₂    unify(τ₁, τ₂ -&gt; α)
+──────────────────────────────────────────────────
+              Γ ⊢ e₁ e₂ : α
+</code></pre>
+<h4 id="conditional">Conditional</h4>
+<pre><code>Γ ⊢ e₁ : τ₁    Γ ⊢ e₂ : τ₂    Γ ⊢ e₃ : τ₃
+unify(τ₁, bool)    unify(τ₂, τ₃)
+────────────────────────────────────────────
+      Γ ⊢ if e₁ then e₂ else e₃ : τ₂
+</code></pre>
+<h3 id="64-unification">6.4 Unification</h3>
+<p>Unification finds a substitution that makes two types equal. A substitution is a choice of a type for each type variable.</p>
+<h4 id="algorithm">Algorithm</h4>
+<pre><code>unify(τ₁, τ₂):
+  τ₁&#x27; = find(τ₁)  // Follow links
+  τ₂&#x27; = find(τ₂)  // Follow links
+
+  match (τ₁&#x27;, τ₂&#x27;):
+    | (int, int) -&gt; ok
+    | (float, float) -&gt; ok
+    | (bool, bool) -&gt; ok
+    | (α, τ) or (τ, α) where α is unbound -&gt;
+        if occurs(α, τ) then error &quot;recursive type&quot;
+        link(α, τ)
+    | (τ₁ -&gt; τ₂, τ₃ -&gt; τ₄) -&gt;
+        unify(τ₁, τ₃)
+        unify(τ₂, τ₄)
+    | (tensor&lt;e₁&gt;[s₁], tensor&lt;e₂&gt;[s₂]) -&gt;
+        unify(e₁, e₂)
+        unify_shape(s₁, s₂)
+    | _ -&gt; error &quot;cannot unify&quot;
+</code></pre>
+<h4 id="path-compression">Path compression</h4>
+<p>The compiler stores type variables in a union-find structure, which tracks which variables have been made equal. It also uses path compression. When the compiler follows a chain of links to find what a variable stands for, it points the variable straight at the end of the chain, so the next lookup is faster.</p>
+<pre><code class="language-ocaml">let rec find_ty = function
+  | TVar ({ contents = Link t } as r) -&gt;
+      let t&#x27; = find_ty t in
+      r := Link t&#x27;;  (* Path compression *)
+      t&#x27;
+  | t -&gt; t
+</code></pre>
+<h3 id="65-dimension-unification">6.5 Dimension unification</h3>
+<p>The compiler unifies dimensions in the same way as types.</p>
+<pre><code>unify_dim(d₁, d₂):
+  d₁&#x27; = find_dim(d₁)
+  d₂&#x27; = find_dim(d₂)
+
+  match (d₁&#x27;, d₂&#x27;):
+    | (n, m) where n = m -&gt; ok
+    | (n, m) where n ≠ m -&gt; error &quot;dimension mismatch&quot;
+    | (α, d) or (d, α) where α is unbound -&gt;
+        link(α, d)
+</code></pre>
+<h4 id="shape-unification">Shape unification</h4>
+<p>Two shapes unify when they have the same rank and each pair of dimensions unifies.</p>
+<pre><code>unify_shape(s₁, s₂):
+  if length(s₁) ≠ length(s₂) then
+    error &quot;shape rank mismatch&quot;
+  for each (d₁, d₂) in zip(s₁, s₂):
+    unify_dim(d₁, d₂)
+</code></pre>
+<h3 id="66-generalization">6.6 Generalization</h3>
+<p>Generalization turns a type into a type scheme. It does so by adding a <code>∀</code> for each type variable that is free in the type and not free in the environment.</p>
+<pre><code>generalize(Γ, τ):
+  free_vars = FV(τ) - FV(Γ)
+  return ∀ free_vars. τ
+</code></pre>
+<p>Bagl has no type classes, so it needs a rule for arithmetic on operands of unknown type. Before it generalizes a binding, the compiler gives the type <code>int</code> to any such operand that is still unknown. For example, <code>let f = fn x -&gt; x + x in ...</code> gives <code>f</code> the type <code>int -&gt; int</code>. A float constraint anywhere in the same binding takes priority, so <code>let g = fn x -&gt; (x + x) + 1.0 in ...</code> gives <code>g</code> the type <code>float -&gt; float</code>.</p>
+<h4 id="level-based-generalization">Level-based generalization</h4>
+<p>Bagl uses levels to find the variables to generalize without scanning the whole environment. A level is a counter of how deeply the current <code>let</code> binding is nested.</p>
+<ol>
+<li>Each type variable records the level at which it was created.</li>
+<li><code>enter_level()</code> adds one to the current level before the compiler checks the value of a binding.</li>
+<li><code>leave_level()</code> subtracts one from the level after the compiler checks the value.</li>
+<li>A variable whose level is greater than the current level can be generalized.</li>
+</ol>
+<h3 id="67-instantiation">6.7 Instantiation</h3>
+<p>Instantiation is the reverse of generalization. It replaces each variable bound by <code>∀</code> with a fresh type variable.</p>
+<pre><code>instantiate(∀ α₁...αₙ. τ):
+  substitution = { αᵢ → fresh_var() for i in 1..n }
+  return apply(substitution, τ)
+</code></pre>
+<h3 id="68-tensor-operation-types">6.8 Tensor operation types</h3>
+<h4 id="dot-product-1">Dot product</h4>
+<pre><code>infer_dot(shape₁, shape₂):
+  match (shape₁, shape₂):
+    | ([m, k₁], [k₂, n]) -&gt;
+        unify_dim(k₁, k₂)
+        return [m, n]
+    | ([k₁], [k₂, n]) -&gt;
+        unify_dim(k₁, k₂)
+        return [n]
+    | ([m, k₁], [k₂]) -&gt;
+        unify_dim(k₁, k₂)
+        return [m]
+    | ([k₁], [k₂]) -&gt;
+        unify_dim(k₁, k₂)
+        return []  // scalar
+</code></pre>
+<h4 id="transpose-1">Transpose</h4>
+<pre><code>infer_transpose(shape):
+  match shape:
+    | [m, n] -&gt; [n, m]
+    | _ -&gt; error &quot;transpose requires 2D tensor&quot;
+</code></pre>
+<h3 id="69-example-inference">6.9 Example inference</h3>
+<h4 id="example-1-identity-function">Example 1: Identity function</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> id <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-keyword">in</span> id <span class="tok-number">5</span></code></pre></div>
+<p>The compiler takes the following steps.</p>
+<ol>
+<li>For <code>fn x -&gt; x</code>, it assigns <code>x : α</code>. The body also has type <code>α</code>, so the function has type <code>α -&gt; α</code>.</li>
+<li>It generalizes the type to <code>∀α. α -&gt; α</code>.</li>
+<li>For <code>id 5</code>, it instantiates the scheme to <code>β -&gt; β</code> and unifies that with <code>int -&gt; γ</code>.</li>
+<li>Unification gives <code>β = int</code> and <code>γ = int</code>, so the final type is <code>int</code>.</li>
+</ol>
+<h4 id="example-2-tensor-dot">Example 2: Tensor dot</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>,<span class="tok-number">2</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>], [<span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-macroName">dot</span>(a, b)</code></pre></div>
+<p>The compiler takes the following steps.</p>
+<ol>
+<li>It assigns <code>a : tensor&lt;float&gt;[2,3]</code>.</li>
+<li>It assigns <code>b : tensor&lt;float&gt;[3,2]</code>.</li>
+<li>For <code>dot(a, b)</code>, it checks the shapes <code>[2,3]</code> and <code>[3,2]</code>.</li>
+<li>It unifies the inner dimensions, and <code>3 = 3</code> holds.</li>
+<li>The result shape is <code>[2,2]</code>.</li>
+<li>The final type is <code>tensor&lt;float&gt;[2,2]</code>.</li>
+</ol>
+<h4 id="example-3-polymorphic-function">Example 3: Polymorphic function</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> compose <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> f <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> g <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> f (g x) <span class="tok-keyword">in</span>
+compose (<span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">+</span> <span class="tok-number">1</span>) (<span class="tok-keyword">fn</span> x <span class="tok-operator">-&gt;</span> x <span class="tok-operator">*</span> <span class="tok-number">2</span>) <span class="tok-number">5</span></code></pre></div>
+<p>The compiler takes the following steps.</p>
+<ol>
+<li>For <code>fn f -&gt; fn g -&gt; fn x -&gt; f (g x)</code>, it finds the following types:<!-- -->
+<ul>
+<li><code>f : α -&gt; β</code>, <code>g : γ -&gt; α</code>, and <code>x : γ</code>.</li>
+<li>The whole function has type <code>(α -&gt; β) -&gt; (γ -&gt; α) -&gt; γ -&gt; β</code>.</li>
+</ul>
+</li>
+<li>It generalizes the type to <code>∀αβγ. (α -&gt; β) -&gt; (γ -&gt; α) -&gt; γ -&gt; β</code>.</li>
+<li>At the application, it instantiates the scheme and unifies it with the arguments:<!-- -->
+<ul>
+<li><code>f = fn x -&gt; x + 1 : int -&gt; int</code></li>
+<li><code>g = fn x -&gt; x * 2 : int -&gt; int</code></li>
+<li><code>x = 5 : int</code></li>
+</ul>
+</li>
+<li>The result type is <code>int</code>.</li>
+</ol>
+<h3 id="610-error-messages">6.10 Error messages</h3>
+<p>Each type error includes the source location of the problem. For example, the compiler reports an error for the program below, saved as <code>example.bagl</code>.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> y <span class="tok-operator">=</span> <span class="tok-number">1</span> <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> x<span class="tok-operator">:</span> <span class="tok-typeName">int</span> <span class="tok-operator">=</span> <span class="tok-keyword">true</span> <span class="tok-keyword">in</span>
+x <span class="tok-operator">+</span> y</code></pre></div>
+<p>The first line of the report gives the message, and the second line gives the file, line, and column. The compiler then prints the line with the error between its neighbors, and it marks the part that caused the error with <code>^</code>.</p>
+<pre><code class="language-text">error: Cannot unify int with bool
+  --&gt; example.bagl:2:14
+  |
+1 | let y = 1 in
+2 | let x: int = true in
+  |              ^^^^
+3 | x + y
+  |
+</code></pre>
+<h2 id="7-tensor-semantics">7. Tensor semantics</h2>
+<p>Chapter 7 defines what tensor types and tensor operations mean in Bagl.</p>
+<h3 id="71-tensor-representation">7.1 Tensor representation</h3>
+<h4 id="logical-model">Logical model</h4>
+<p>A tensor is an array of elements with one or more dimensions. Its type has the following form.</p>
+<pre><code>tensor&lt;E&gt;[d₁, d₂, ..., dₙ]
+</code></pre>
+<ul>
+<li>The element type <code>E</code> is the type of each element. It must be <code>float</code>.</li>
+<li>The shape <code>[d₁, d₂, ..., dₙ]</code> lists the size of each dimension.</li>
+<li>The rank is the number of dimensions, which is the length of the shape.</li>
+<li>The size is the total number of elements, which is the product of the dimensions.</li>
+</ul>
+<h4 id="physical-storage">Physical storage</h4>
+<p>The VM stores each tensor as one flat array in row-major order, which is the order C uses. In row-major order, the elements of the first row come first, then the elements of the second row, and so on.</p>
+<pre><code>[[a, b, c],     stored as    [a, b, c, d, e, f]
+ [d, e, f]]                   indices: 0  1  2  3  4  5
+</code></pre>
+<h4 id="strides">Strides</h4>
+<p>A stride is the number of positions in the flat array that you move when one index goes up by one. The strides turn an index with several parts into a position in the flat array.</p>
+<p>For a shape <code>[d₁, d₂, ..., dₙ]</code>, the strides are as follows.</p>
+<pre><code>stride[i] = d[i+1] × d[i+2] × ... × d[n]
+stride[n] = 1
+</code></pre>
+<p>For example, the shape <code>[2, 3]</code> has the following strides.</p>
+<ul>
+<li><code>stride[0] = 3</code>, because each row holds 3 elements.</li>
+<li><code>stride[1] = 1</code>, because the elements of a row are next to each other.</li>
+</ul>
+<p>The index <code>[i, j]</code> maps to the flat position <code>i × 3 + j × 1</code>.</p>
+<h3 id="72-tensor-literals">7.2 Tensor literals</h3>
+<p>Tensor elements must be floats. Section 7.6 shows what happens with int elements.</p>
+<h4 id="1d-tensors-vectors">1D tensors (vectors)</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>]  <span class="tok-comment">// Type: tensor&lt;float&gt;[3]</span></code></pre></div>
+<h4 id="2d-tensors-matrices">2D tensors (matrices)</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>],  <span class="tok-comment">// Type: tensor&lt;float&gt;[2, 2]</span>
+ [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]]</code></pre></div>
+<h4 id="type-inference-for-literals">Type inference for literals</h4>
+<p>The compiler checks a tensor literal in the following steps.</p>
+<ol>
+<li>It infers the element type from the first element, and it requires that type to be <code>float</code>.</li>
+<li>It checks that every element has the same type.</li>
+<li>It checks that every row has the same length.</li>
+<li>It infers the shape from the brackets. One level of brackets gives a vector, and two levels give a matrix, even when the matrix has only one row.</li>
+</ol>
+<h4 id="explicit-shape-annotation">Explicit shape annotation</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-operator">:</span> [<span class="tok-number">2</span>, <span class="tok-number">3</span>]</code></pre></div>
+<p>The annotation must match the shape that the compiler infers.</p>
+<h3 id="73-shape-checking">7.3 Shape checking</h3>
+<h4 id="compile-time-verification">Compile-time verification</h4>
+<p>Bagl checks tensor shapes at compile time. In the first example, the annotation matches the literal.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+a  <span class="tok-comment">// OK</span></code></pre></div>
+<p>In the second example, the annotation says the matrix has 2 columns, but the literal has 3.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">2</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+b  <span class="tok-comment">// Error: Dimension mismatch: 2 vs 3</span></code></pre></div>
+<h4 id="dimension-variables">Dimension variables</h4>
+<p>Dimension variables make shape polymorphism possible, which means one function can accept tensors of different sizes.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-comment">// square works on a square matrix of any size</span>
+<span class="tok-keyword">let</span> square<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-typeName">&#x27;n</span>, <span class="tok-typeName">&#x27;n</span>] <span class="tok-operator">-&gt;</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-typeName">&#x27;n</span>, <span class="tok-typeName">&#x27;n</span>] <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> m <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(m, m) <span class="tok-keyword">in</span>
+square [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]]  <span class="tok-comment">// Result: [[7.0, 10.0], [15.0, 22.0]]</span></code></pre></div>
+<p>The same function rejects a matrix that isn&#x27;t square, because <code>&#x27;n</code> must stand for one size.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> square<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-typeName">&#x27;n</span>, <span class="tok-typeName">&#x27;n</span>] <span class="tok-operator">-&gt;</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-typeName">&#x27;n</span>, <span class="tok-typeName">&#x27;n</span>] <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> m <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(m, m) <span class="tok-keyword">in</span>
+square [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]]  <span class="tok-comment">// Error: Dimension mismatch: 2 vs 3</span></code></pre></div>
+<h4 id="shape-constraints">Shape constraints</h4>
+<p>Each tensor operation adds a constraint on the shapes of its operands.</p>
+<ul>
+<li><code>dot(A, B)</code> requires the inner dimensions to match.</li>
+<li><code>transpose(A)</code> requires a 2D tensor.</li>
+<li><code>reshape(A, s)</code> requires the same total number of elements. The compiler checks the count only when every dimension is a known number, and the VM checks it again at run time.</li>
+<li>Element-wise arithmetic on two tensors requires the two shapes to be equal.</li>
+</ul>
+<h3 id="74-tensor-operations">7.4 Tensor operations</h3>
+<h4 id="741-dot-product">7.4.1 Dot product</h4>
+<p>The syntax is <code>dot(a, b)</code>. The table gives the shape rules.</p>
+<table><thead><tr><th>A Shape</th><th>B Shape</th><th>Result Shape</th><th>Description</th></tr></thead><tbody><tr><td><code>[m, k]</code></td><td><code>[k, n]</code></td><td><code>[m, n]</code></td><td>Matrix times matrix</td></tr><tr><td><code>[k]</code></td><td><code>[k, n]</code></td><td><code>[n]</code></td><td>Vector times matrix</td></tr><tr><td><code>[m, k]</code></td><td><code>[k]</code></td><td><code>[m]</code></td><td>Matrix times vector</td></tr><tr><td><code>[k]</code></td><td><code>[k]</code></td><td>A float scalar</td><td>Dot product of two vectors</td></tr></tbody></table>
+<p>Each element of the result is a sum of products. For a matrix times a matrix (<code>[m,k] × [k,n] → [m,n]</code>), the formula is as follows.</p>
+<pre><code>C[i,j] = Σ(k) A[i,k] × B[k,j]
+</code></pre>
+<p>For two vectors (<code>[k] · [k] → scalar</code>), the formula is as follows.</p>
+<pre><code>result = Σ(i) A[i] × B[i]
+</code></pre>
+<p>Example:</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]] <span class="tok-keyword">in</span>       <span class="tok-comment">// [2,2]</span>
+<span class="tok-keyword">let</span> b <span class="tok-operator">=</span> [[<span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>], [<span class="tok-number">7.0</span>, <span class="tok-number">8.0</span>]] <span class="tok-keyword">in</span>       <span class="tok-comment">// [2,2]</span>
+<span class="tok-macroName">dot</span>(a, b)  <span class="tok-comment">// Result: [[19.0, 22.0], [43.0, 50.0]]</span>
+<span class="tok-comment">// C[0,0] = 1×5 + 2×7 = 19</span>
+<span class="tok-comment">// C[0,1] = 1×6 + 2×8 = 22</span>
+<span class="tok-comment">// C[1,0] = 3×5 + 4×7 = 43</span>
+<span class="tok-comment">// C[1,1] = 3×6 + 4×8 = 50</span></code></pre></div>
+<h4 id="742-transpose">7.4.2 Transpose</h4>
+<p>The syntax is <code>transpose(a)</code>, and the shape rule is <code>[m, n] → [n, m]</code>. <code>transpose</code> works only on 2D tensors. Element <code>[i, j]</code> of the result is element <code>[j, i]</code> of the input, as the formula shows.</p>
+<pre><code>B[i,j] = A[j,i]
+</code></pre>
+<p>Example:</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>  <span class="tok-comment">// [2,3]</span>
+<span class="tok-macroName">transpose</span>(a)  <span class="tok-comment">// Result: [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], with shape [3,2]</span></code></pre></div>
+<h4 id="743-reshape">7.4.3 Reshape</h4>
+<p>The syntax is <code>reshape(a, [d₁, d₂, ..., dₙ])</code>. The new shape must have the same total number of elements as the old one.</p>
+<pre><code>d₁ × d₂ × ... × dₙ = original size
+</code></pre>
+<p><code>reshape</code> keeps the flat data as it is, and it reads that data with the new shape.</p>
+<p>Example:</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>] <span class="tok-keyword">in</span>  <span class="tok-comment">// [6]</span>
+<span class="tok-macroName">reshape</span>(a, [<span class="tok-number">2</span>, <span class="tok-number">3</span>])  <span class="tok-comment">// Result: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], with shape [2,3]</span></code></pre></div>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>] <span class="tok-keyword">in</span>  <span class="tok-comment">// [6]</span>
+<span class="tok-macroName">reshape</span>(a, [<span class="tok-number">3</span>, <span class="tok-number">2</span>])  <span class="tok-comment">// Result: [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], with shape [3,2]</span></code></pre></div>
+<h3 id="75-shape-inference-examples">7.5 Shape inference examples</h3>
+<h4 id="example-1-matrix-chain">Example 1: Matrix chain</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>, <span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>, <span class="tok-number">4</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">1.0</span>], [<span class="tok-number">2.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">3.0</span>, <span class="tok-number">3.0</span>, <span class="tok-number">3.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> c<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">4</span>, <span class="tok-number">2</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>], [<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> ab <span class="tok-operator">=</span> <span class="tok-macroName">dot</span>(a, b) <span class="tok-keyword">in</span>    <span class="tok-comment">// [2,3] × [3,4] = [2,4]</span>
+<span class="tok-macroName">dot</span>(ab, c)               <span class="tok-comment">// [2,4] × [4,2] = [2,2]</span></code></pre></div>
+<h4 id="example-2-dimension-polymorphism">Example 2: Dimension polymorphism</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-comment">// Generic matrix multiply function</span>
+<span class="tok-keyword">let</span> mm <span class="tok-operator">=</span> <span class="tok-keyword">fn</span> a <span class="tok-operator">-&gt;</span> <span class="tok-keyword">fn</span> b <span class="tok-operator">-&gt;</span> <span class="tok-macroName">dot</span>(a, b) <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> x<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>,<span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> y<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>,<span class="tok-number">5</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>], [<span class="tok-number">0.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>, <span class="tok-number">0.0</span>, <span class="tok-number">1.0</span>]] <span class="tok-keyword">in</span>
+mm x y    <span class="tok-comment">// Type: tensor&lt;float&gt;[2,5]</span></code></pre></div>
+<h4 id="example-3-shape-error">Example 3: Shape error</h4>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">2</span>, <span class="tok-number">3</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>], [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">4</span>, <span class="tok-number">2</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>], [<span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>], [<span class="tok-number">7.0</span>, <span class="tok-number">8.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-macroName">dot</span>(a, b)    <span class="tok-comment">// Error: Dimension mismatch: 3 vs 4</span></code></pre></div>
+<h3 id="76-element-type-handling">7.6 Element type handling</h3>
+<h4 id="storage">Storage</h4>
+<p>The VM stores every tensor element as a float. The type checker requires float elements, so a program can&#x27;t build an int tensor. If hand-written bytecode passes an int to <code>TENSOR_CREATE</code>, the VM converts it to a float.</p>
+<h4 id="type-inference">Type inference</h4>
+<p>The compiler infers the element type of a literal from the first element, and it requires that type to be <code>float</code>. A literal of floats has a float element type.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>]  <span class="tok-comment">// Type: tensor&lt;float&gt;[3]</span></code></pre></div>
+<p>A literal of ints is a type error.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>]  <span class="tok-comment">// Error: Cannot unify int with float</span></code></pre></div>
+<p>A literal that mixes ints and floats also fails, because its first element is an int.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code>[<span class="tok-number">1</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3</span>]  <span class="tok-comment">// Error: Cannot unify int with float</span></code></pre></div>
+<h3 id="77-tensor-representation-internal">7.7 Tensor representation (internal)</h3>
+<p>The VM stores a tensor with the following OCaml record.</p>
+<pre><code class="language-ocaml">type tensor = {
+  data: float array;    (* Flat storage *)
+  shape: int list;      (* Dimensions *)
+  strides: int list;    (* Access strides *)
+}
+</code></pre>
+<h4 id="creating-tensors">Creating tensors</h4>
+<pre><code class="language-ocaml">let create_tensor shape init_val =
+  let size = List.fold_left ( * ) 1 shape in
+  {
+    data = Array.make size init_val;
+    shape;
+    strides = compute_strides shape;
+  }
+</code></pre>
+<h4 id="indexing">Indexing</h4>
+<pre><code class="language-ocaml">let flat_index indices strides =
+  List.fold_left2 (fun acc i s -&gt; acc + i * s) 0 indices strides
+
+let tensor_get t indices =
+  t.data.(flat_index indices t.strides)
+</code></pre>
+<h3 id="78-future-extensions">7.8 Future extensions</h3>
+<p>The sections below list possible additions to tensor semantics. Two of them already exist in part, as each section says.</p>
+<h4 id="element-wise-operations">Element-wise operations</h4>
+<p>Element-wise arithmetic is already implemented. The operators <code>+</code>, <code>-</code>, <code>*</code>, and <code>/</code> work element by element on two tensors of the same shape.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b <span class="tok-operator">=</span> [<span class="tok-number">4.0</span>, <span class="tok-number">5.0</span>, <span class="tok-number">6.0</span>] <span class="tok-keyword">in</span>
+a <span class="tok-operator">*</span> b  <span class="tok-comment">// Result: [4.0, 10.0, 18.0]</span></code></pre></div>
+<h4 id="reduction-operations">Reduction operations</h4>
+<p>Bagl doesn&#x27;t have reduction operations yet. The block below shows a possible syntax, and the compiler doesn&#x27;t accept it.</p>
+<pre><code class="language-text">sum(a)     // Sum all elements
+mean(a)    // Average of elements
+max(a)     // Maximum element
+</code></pre>
+<h4 id="slicing">Slicing</h4>
+<p>Bagl doesn&#x27;t have slicing yet. The block below shows a possible syntax, and the compiler doesn&#x27;t accept it.</p>
+<pre><code class="language-text">a[0:2, 1:3]    // Submatrix extraction
+</code></pre>
+<h4 id="broadcasting">Broadcasting</h4>
+<p>Bagl already broadcasts a float scalar against a tensor, so <code>a * 2.0</code> multiplies each element of <code>a</code> by <code>2.0</code>.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a <span class="tok-operator">=</span> [<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>] <span class="tok-keyword">in</span>
+a <span class="tok-operator">*</span> <span class="tok-number">2.0</span>  <span class="tok-comment">// Result: [2.0, 4.0, 6.0]</span></code></pre></div>
+<p>Broadcasting between two tensors of different shapes isn&#x27;t implemented. A broadcast of the <code>[3, 1]</code> tensor and the <code>[1, 4]</code> tensor below would give a <code>[3, 4]</code> tensor. The compiler rejects the program instead, because the shapes differ.</p>
+<div class="code-surface overflow-clip rounded-sm"><pre class="m-0 overflow-x-auto px-5 py-3.5 font-mono text-[0.875rem]"><code><span class="tok-keyword">let</span> a<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">3</span>, <span class="tok-number">1</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>], [<span class="tok-number">2.0</span>], [<span class="tok-number">3.0</span>]] <span class="tok-keyword">in</span>
+<span class="tok-keyword">let</span> b<span class="tok-operator">:</span> <span class="tok-typeName">tensor</span><span class="tok-operator">&lt;</span><span class="tok-typeName">float</span><span class="tok-operator">&gt;</span>[<span class="tok-number">1</span>, <span class="tok-number">4</span>] <span class="tok-operator">=</span> [[<span class="tok-number">1.0</span>, <span class="tok-number">2.0</span>, <span class="tok-number">3.0</span>, <span class="tok-number">4.0</span>]] <span class="tok-keyword">in</span>
+a <span class="tok-operator">+</span> b  <span class="tok-comment">// Error: Dimension mismatch: 3 vs 1</span></code></pre></div>
+<h2 id="8-runtime-system">8. Runtime system</h2>
+<p>Chapter 8 describes the Bagl virtual machine (VM) and how it runs a program.</p>
+<h3 id="81-virtual-machine-architecture">8.1 Virtual machine architecture</h3>
+<p>Bagl runs programs on a stack-based virtual machine. A stack-based VM takes the operands of each instruction from the top of a stack, and it pushes the result back onto the stack.</p>
+<h4 id="components">Components</h4>
+<pre><code>┌─────────────────────────────────────────┐
+│              VM State                    │
+├─────────────────────────────────────────┤
+│  Program    │ Bytecode chunks (one per  │
+│             │ function)                  │
+├─────────────┼───────────────────────────┤
+│  Stack      │ Operand stack for         │
+│             │ computation                │
+├─────────────┼───────────────────────────┤
+│  Locals     │ Local variable storage    │
+│             │ for current frame          │
+├─────────────┼───────────────────────────┤
+│  Frames     │ Call stack for function   │
+│             │ returns                    │
+├─────────────┼───────────────────────────┤
+│  PC         │ Program counter           │
+├─────────────┼───────────────────────────┤
+│  Chunk ID   │ Current function index    │
+└─────────────┴───────────────────────────┘
+</code></pre>
+<h4 id="initial-state">Initial state</h4>
+<p>The VM starts with the following state. The locals array has 256 slots, or more if the entry function needs more.</p>
+<pre><code class="language-ocaml">{
+  program;                    (* Loaded bytecode *)
+  stack = Array.make 1024 VUnit;
+  sp = 0;                     (* Stack pointer *)
+  frames = [];                (* Call stack *)
+  pc = 0;                     (* Program counter *)
+  chunk_id = program.entry;   (* Start at entry point *)
+  locals = Array.make 256 VUnit;
+}
+</code></pre>
+<h3 id="82-runtime-values">8.2 Runtime values</h3>
+<h4 id="value-types">Value types</h4>
+<pre><code class="language-ocaml">type value =
+  | VInt of int           (* Integer *)
+  | VFloat of float       (* Float *)
+  | VBool of bool         (* Boolean *)
+  | VString of string     (* String *)
+  | VUnit                 (* Unit value *)
+  | VTensor of tensor     (* Tensor *)
+  | VClosure of closure   (* Function closure *)
+</code></pre>
+<h4 id="tensor-values">Tensor values</h4>
+<pre><code class="language-ocaml">type tensor = {
+  data: float array;      (* Flat element storage *)
+  shape: int list;        (* Dimension sizes *)
+  strides: int list;      (* Access strides *)
+}
+</code></pre>
+<h4 id="closure-values">Closure values</h4>
+<pre><code class="language-ocaml">type closure = {
+  func_id: int;           (* Function chunk index *)
+  captures: value array;  (* Captured variables *)
+}
+</code></pre>
+<h3 id="83-stack-operations">8.3 Stack operations</h3>
+<h4 id="push">Push</h4>
+<pre><code>push(value):
+  stack[sp] = value
+  sp = sp + 1
+</code></pre>
+<h4 id="pop">Pop</h4>
+<pre><code>pop():
+  sp = sp - 1
+  return stack[sp]
+</code></pre>
+<h4 id="stack-discipline">Stack discipline</h4>
+<p>The stack holds the following kinds of values:</p>
+<ul>
+<li>The intermediate results of a computation</li>
+<li>Function arguments</li>
+<li>Temporary values</li>
+</ul>
+<h3 id="84-call-frames">8.4 Call frames</h3>
+<p>A call frame records what the VM needs in order to return from a function call.</p>
+<h4 id="frame-structure">Frame structure</h4>
+<pre><code class="language-ocaml">type frame = {
+  return_addr: int;         (* Where to resume *)
+  return_chunk: int;        (* Which function *)
+  base_ptr: int;            (* Not currently used *)
+  closure: closure option;  (* For captured vars *)
+  saved_locals: value array; (* Caller&#x27;s locals *)
+}
+</code></pre>
+<h4 id="function-call">Function call</h4>
+<p>A function call takes the following steps.</p>
+<ol>
+<li>The VM pops the closure from the stack.</li>
+<li>It pops the arguments from the stack.</li>
+<li>It saves the current state in a new frame.</li>
+<li>It pushes the frame onto the call stack.</li>
+<li>It switches to the chunk of the called function. A chunk is the bytecode of one function.</li>
+<li>It creates a new locals array and copies the arguments into it.</li>
+</ol>
+<h4 id="function-return">Function return</h4>
+<p>A function return takes the following steps.</p>
+<ol>
+<li>The VM pops the return value from the stack.</li>
+<li>It pops the frame from the call stack.</li>
+<li>It restores the state of the caller.</li>
+<li>It pushes the return value onto the stack.</li>
+</ol>
+<h3 id="85-closures">8.5 Closures</h3>
+<h4 id="closure-creation">Closure creation</h4>
+<p>A closure is created in the following steps.</p>
+<ol>
+<li>The compiler finds the free variables of the function, which are the variables it uses from the enclosing scope.</li>
+<li>At run time, the VM copies the values of the free variables from the current environment.</li>
+<li>The VM creates a closure that holds the function ID and the copied values, which are called the captures.</li>
+</ol>
+<h4 id="closure-invocation">Closure invocation</h4>
+<p>When the VM calls a closure, it stores the closure in the new frame. The function body then reads its captures with the <code>LOAD_CAPTURE</code> instruction.</p>
+<h4 id="recursive-closures">Recursive closures</h4>
+<p>A recursive closure needs to capture itself, so the VM builds it in the following steps.</p>
+<ol>
+<li>The bytecode stores the index of the capture that will hold the closure itself.</li>
+<li>The VM creates the closure with an empty slot at that index.</li>
+<li>The VM then puts the closure into its own empty slot.</li>
+</ol>
+<h3 id="86-execution-model">8.6 Execution model</h3>
+<h4 id="fetch-execute-cycle">Fetch-execute cycle</h4>
+<p>The VM runs a loop that fetches the next instruction and then executes it.</p>
+<pre><code>while running:
+  instr = chunk.code[pc]
+  pc = pc + 1
+  execute(instr)
+</code></pre>
+<h4 id="instruction-execution">Instruction execution</h4>
+<p>Each instruction takes the following steps.</p>
+<ol>
+<li>It reads its operands from the stack or the locals.</li>
+<li>It does its computation.</li>
+<li>It pushes the result onto the stack.</li>
+<li>It tells the loop whether to continue.</li>
+</ol>
+<h4 id="termination">Termination</h4>
+<p>Execution ends in any of the following cases:</p>
+<ul>
+<li>The VM executes a <code>HALT</code> instruction.</li>
+<li>The VM executes <code>RETURN</code> when the call stack is empty.</li>
+<li>A runtime error occurs.</li>
+</ul>
+<h3 id="87-memory-management">8.7 Memory management</h3>
+<h4 id="stack-allocation">Stack allocation</h4>
+<ul>
+<li>The stack has a fixed size of 1024 values.</li>
+<li>A stack overflow raises a runtime error.</li>
+</ul>
+<h4 id="local-variables">Local variables</h4>
+<ul>
+<li>Each frame gets its own locals array, with 256 slots or more if the function needs more.</li>
+<li>During a call, the frame keeps the locals of the caller, and the VM restores them on return.</li>
+</ul>
+<h4 id="garbage-collection">Garbage collection</h4>
+<p>The VM has no garbage collector of its own. It is written in OCaml, and its values are ordinary OCaml values. The OCaml garbage collector frees a value once nothing refers to it.</p>
+<h3 id="88-tensor-operations-at-runtime">8.8 Tensor operations at runtime</h3>
+<h4 id="tensor-creation">Tensor creation</h4>
+<p>The VM creates a tensor in the following steps.</p>
+<ol>
+<li>It pops the elements from the stack.</li>
+<li>It puts them in a flat array.</li>
+<li>It computes the strides.</li>
+<li>It pushes the tensor value onto the stack.</li>
+</ol>
+<h4 id="dot-product-2">Dot product</h4>
+<p>The code below is a simplified form of the matrix case. The VM also handles a vector times a matrix, a matrix times a vector, and two vectors. For two vectors, it pushes the result as a float.</p>
+<pre><code class="language-ocaml">let tensor_dot a b =
+  match a.shape, b.shape with
+  | [m; k1], [k2; n] when k1 = k2 -&gt;
+      let result = create_tensor [m; n] 0.0 in
+      for i = 0 to m - 1 do
+        for j = 0 to n - 1 do
+          let sum = ref 0.0 in
+          for k = 0 to k1 - 1 do
+            sum := !sum +. a[i,k] *. b[k,j]
+          done;
+          result[i,j] &lt;- !sum
+        done
+      done;
+      result
+</code></pre>
+<h4 id="transpose-2">Transpose</h4>
+<pre><code class="language-ocaml">let tensor_transpose t =
+  let [m; n] = t.shape in
+  let result = create_tensor [n; m] 0.0 in
+  for i = 0 to m - 1 do
+    for j = 0 to n - 1 do
+      result[j,i] &lt;- t[i,j]
+    done
+  done;
+  result
+</code></pre>
+<h3 id="89-error-handling">8.9 Error handling</h3>
+<h4 id="runtime-errors">Runtime errors</h4>
+<pre><code class="language-ocaml">exception Runtime_error of string
+</code></pre>
+<p>The runtime errors include the following:</p>
+<ul>
+<li>Stack overflow or stack underflow</li>
+<li>Division by zero</li>
+<li>A value of the wrong type at run time</li>
+<li>Tensor shapes that don&#x27;t fit the operation</li>
+<li>A program counter outside the code of the current function</li>
+<li><code>log</code> of a number that isn&#x27;t positive, or <code>sqrt</code> of a negative number</li>
+</ul>
+<h4 id="error-messages">Error messages</h4>
+<pre><code>Runtime error: Stack overflow
+Runtime error: Division by zero
+Runtime error: Expected int, got bool
+Runtime error: Invalid shapes for dot: 2x3 and 4x2
+</code></pre>
+<h3 id="810-debugging-support">8.10 Debugging support</h3>
+<h4 id="instruction-tracing">Instruction tracing</h4>
+<p>The VM has no instruction tracer. The listing below is an example of what a trace would show for <code>let x = 5 in x + 1</code>, with one line for each instruction the VM runs.</p>
+<pre><code>0000: PUSH_INT 5
+0001: STORE_LOCAL 0
+0002: LOAD_LOCAL 0
+0003: PUSH_INT 1
+0004: IADD
+0005: RETURN
+</code></pre>
+<h4 id="stack-inspection">Stack inspection</h4>
+<p>The VM has no command that prints the stack or the locals. The listing below is an example of what such a printout would show.</p>
+<pre><code>Stack: [VInt 5, VInt 1]
+Locals: [VInt 5, VUnit, ...]
+</code></pre>
+<h4 id="bytecode-disassembly">Bytecode disassembly</h4>
+<p>The <code>--dump-bytecode</code> option prints the bytecode of each function in the following format. The listing below is simplified. The real listing for a program is often longer, because the compiler stores each intermediate result in a local.</p>
+<pre><code>=== Function 0 (locals=2, params=0, captures=0) ===
+   0: PUSH_INT 5
+   1: STORE_LOCAL 0
+   2: LOAD_LOCAL 0
+   3: PUSH_INT 1
+   4: IADD
+   5: RETURN
+</code></pre>
+<h3 id="811-performance-characteristics">8.11 Performance characteristics</h3>
+<h4 id="time-complexity">Time complexity</h4>
+<table><thead><tr><th>Operation</th><th>Complexity</th></tr></thead><tbody><tr><td>Stack push/pop</td><td>O(1)</td></tr><tr><td>Local access</td><td>O(1)</td></tr><tr><td>Closure capture</td><td>O(1)</td></tr><tr><td>Function call</td><td>O(captures)</td></tr><tr><td>Tensor dot</td><td>O(m×n×k)</td></tr><tr><td>Tensor transpose</td><td>O(m×n)</td></tr></tbody></table>
+<h4 id="space-complexity">Space complexity</h4>
+<table><thead><tr><th>Resource</th><th>Limit</th></tr></thead><tbody><tr><td>Stack</td><td>1024 values</td></tr><tr><td>Locals</td><td>At least 256 per frame</td></tr><tr><td>Call depth</td><td>Limited by memory</td></tr></tbody></table>
+<h2 id="9-bytecode-specification">9. Bytecode specification</h2>
+<p>Chapter 9 describes the Bagl bytecode instruction set. Bytecode is the list of simple instructions that the compiler produces and the VM runs.</p>
+<p>The chapter doesn&#x27;t yet cover every opcode in <code>src/bytecode.ml</code>. It leaves out the following opcodes:</p>
+<ul>
+<li>The float comparisons <code>FLT</code>, <code>FGT</code>, <code>FLE</code>, and <code>FGE</code></li>
+<li>The element-wise tensor operations <code>TADD</code>, <code>TSUB</code>, <code>TMUL</code>, and <code>TDIV</code></li>
+<li>The math functions <code>MEXP</code>, <code>MLOG</code>, <code>MSQRT</code>, <code>MRELU</code>, and <code>MSTEP</code></li>
+</ul>
+<h3 id="91-bytecode-format">9.1 Bytecode format</h3>
+<h4 id="program-structure-1">Program structure</h4>
+<p>A program is a list of chunks, with one chunk for each function, and the index of the function that runs first.</p>
+<pre><code class="language-text">Program = {
+  chunks: Chunk[]    // One chunk per function
+  entry: int         // Index of main function
+}
+</code></pre>
+<h4 id="chunk-structure">Chunk structure</h4>
+<p>A chunk holds the instructions of one function and three counts.</p>
+<pre><code class="language-text">Chunk = {
+  code: Opcode[]     // Instruction sequence
+  num_locals: int    // Local variable count
+  num_params: int    // Parameter count
+  num_captures: int  // Captured variable count
+}
+</code></pre>
+<h3 id="92-instruction-categories">9.2 Instruction categories</h3>
+<h4 id="stack-operations">Stack operations</h4>
+<ul>
+<li><code>PUSH_*</code> pushes a value onto the stack.</li>
+<li><code>POP</code> removes the top of the stack.</li>
+<li><code>DUP</code> duplicates the top of the stack.</li>
+</ul>
+<h4 id="variable-access">Variable access</h4>
+<ul>
+<li><code>LOAD_LOCAL</code> and <code>STORE_LOCAL</code> read and write local variables.</li>
+<li><code>LOAD_GLOBAL</code> and <code>STORE_GLOBAL</code> read and write global variables.</li>
+<li><code>LOAD_CAPTURE</code> reads a value that a closure captured.</li>
+</ul>
+<h4 id="arithmetic">Arithmetic</h4>
+<ul>
+<li>The integer instructions are <code>IADD</code>, <code>ISUB</code>, <code>IMUL</code>, <code>IDIV</code>, and <code>INEG</code>.</li>
+<li>The float instructions are <code>FADD</code>, <code>FSUB</code>, <code>FMUL</code>, <code>FDIV</code>, and <code>FNEG</code>.</li>
+</ul>
+<h4 id="comparison">Comparison</h4>
+<ul>
+<li><code>IEQ</code> and <code>INEQ</code> test equality.</li>
+<li><code>ILT</code>, <code>IGT</code>, <code>ILE</code>, and <code>IGE</code> compare order.</li>
+</ul>
+<h4 id="logical">Logical</h4>
+<ul>
+<li>The logical instructions are <code>AND</code>, <code>OR</code>, and <code>NOT</code>.</li>
+</ul>
+<h4 id="control-flow">Control flow</h4>
+<ul>
+<li><code>JUMP</code> and <code>JUMP_IF_FALSE</code> move to another instruction.</li>
+<li><code>CALL</code> and <code>RETURN</code> enter and leave a function.</li>
+</ul>
+<h4 id="closures">Closures</h4>
+<ul>
+<li><code>MAKE_CLOSURE</code> and <code>MAKE_REC_CLOSURE</code> create closures.</li>
+</ul>
+<h4 id="tensors">Tensors</h4>
+<ul>
+<li>The tensor instructions are <code>TENSOR_CREATE</code>, <code>TENSOR_DOT</code>, <code>TENSOR_TRANSPOSE</code>, and <code>TENSOR_RESHAPE</code>.</li>
+</ul>
+<h3 id="93-instruction-reference">9.3 Instruction reference</h3>
+<p>Each entry shows the stack before and after the instruction, with the top of the stack on the right.</p>
+<h4 id="stack-operations-1">Stack operations</h4>
+<h5 id="push_int-n">PUSH_INT n</h5>
+<p>Pushes the integer <code>n</code> onto the stack.</p>
+<pre><code class="language-text">Stack: ... → ..., VInt(n)
+</code></pre>
+<h5 id="push_float-f">PUSH_FLOAT f</h5>
+<p>Pushes the float <code>f</code> onto the stack.</p>
+<pre><code class="language-text">Stack: ... → ..., VFloat(f)
+</code></pre>
+<h5 id="push_bool-b">PUSH_BOOL b</h5>
+<p>Pushes the boolean <code>b</code> onto the stack.</p>
+<pre><code class="language-text">Stack: ... → ..., VBool(b)
+</code></pre>
+<h5 id="push_string-s">PUSH_STRING s</h5>
+<p>Pushes the string <code>s</code> onto the stack.</p>
+<pre><code class="language-text">Stack: ... → ..., VString(s)
+</code></pre>
+<h5 id="push_unit">PUSH_UNIT</h5>
+<p>Pushes the unit value onto the stack.</p>
+<pre><code class="language-text">Stack: ... → ..., VUnit
+</code></pre>
+<h5 id="pop-1">POP</h5>
+<p>Removes the top value from the stack.</p>
+<pre><code class="language-text">Stack: ..., v → ...
+</code></pre>
+<h5 id="dup">DUP</h5>
+<p>Duplicates the top value of the stack.</p>
+<pre><code class="language-text">Stack: ..., v → ..., v, v
+</code></pre>
+<h4 id="local-variable-operations">Local variable operations</h4>
+<h5 id="load_local-i">LOAD_LOCAL i</h5>
+<p>Pushes the local variable at index <code>i</code>.</p>
+<pre><code class="language-text">Stack: ... → ..., locals[i]
+</code></pre>
+<h5 id="store_local-i">STORE_LOCAL i</h5>
+<p>Pops a value and stores it in local <code>i</code>.</p>
+<pre><code class="language-text">Stack: ..., v → ...
+Effect: locals[i] = v
+</code></pre>
+<h4 id="global-variable-operations">Global variable operations</h4>
+<h5 id="load_global-i">LOAD_GLOBAL i</h5>
+<p>Pushes the global variable at index <code>i</code>.</p>
+<pre><code class="language-text">Stack: ... → ..., globals[i]
+</code></pre>
+<p>The VM doesn&#x27;t implement <code>LOAD_GLOBAL</code> yet, and it raises a runtime error when it runs one.</p>
+<h5 id="store_global-i">STORE_GLOBAL i</h5>
+<p>Pops a value and stores it in global <code>i</code>.</p>
+<pre><code class="language-text">Stack: ..., v → ...
+Effect: globals[i] = v
+</code></pre>
+<p>The VM doesn&#x27;t implement <code>STORE_GLOBAL</code> yet, and it raises a runtime error when it runs one.</p>
+<h4 id="closure-operations">Closure operations</h4>
+<h5 id="make_closure-func_id-num_captures">MAKE_CLOSURE func_id num_captures</h5>
+<p>Creates a closure.</p>
+<pre><code class="language-text">Stack: ..., capture₀, ..., captureₙ₋₁ → ..., VClosure
+</code></pre>
+<p>The instruction pops <code>num_captures</code> values, and it creates a closure that refers to function <code>func_id</code> and holds the popped values.</p>
+<h5 id="make_rec_closure-func_id-num_captures-self_idx">MAKE_REC_CLOSURE func_id num_captures self_idx</h5>
+<p>Creates a recursive closure.</p>
+<pre><code class="language-text">Stack: ..., capture₀, ..., captureₙ₋₁ → ..., VClosure
+</code></pre>
+<p>The instruction works like <code>MAKE_CLOSURE</code>, and it also puts the closure itself into capture slot <code>self_idx</code>.</p>
+<h5 id="load_capture-i">LOAD_CAPTURE i</h5>
+<p>Pushes the captured value at index <code>i</code> of the current closure.</p>
+<pre><code class="language-text">Stack: ... → ..., current_closure.captures[i]
+</code></pre>
+<h4 id="integer-arithmetic">Integer arithmetic</h4>
+<h5 id="iadd">IADD</h5>
+<p>Adds two integers.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a + b)
+Types: VInt, VInt → VInt
+</code></pre>
+<h5 id="isub">ISUB</h5>
+<p>Subtracts two integers.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a - b)
+Types: VInt, VInt → VInt
+</code></pre>
+<h5 id="imul">IMUL</h5>
+<p>Multiplies two integers.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a * b)
+Types: VInt, VInt → VInt
+</code></pre>
+<h5 id="idiv">IDIV</h5>
+<p>Divides two integers.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a / b)
+Types: VInt, VInt → VInt
+Error: Division by zero if b = 0
+</code></pre>
+<h5 id="ineg">INEG</h5>
+<p>Negates an integer.</p>
+<pre><code class="language-text">Stack: ..., a → ..., (-a)
+Types: VInt → VInt
+</code></pre>
+<h4 id="float-arithmetic">Float arithmetic</h4>
+<h5 id="fadd">FADD</h5>
+<p>Adds two floats.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a +. b)
+Types: VFloat, VFloat → VFloat
+</code></pre>
+<h5 id="fsub">FSUB</h5>
+<p>Subtracts two floats.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a -. b)
+Types: VFloat, VFloat → VFloat
+</code></pre>
+<h5 id="fmul">FMUL</h5>
+<p>Multiplies two floats.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a *. b)
+Types: VFloat, VFloat → VFloat
+</code></pre>
+<h5 id="fdiv">FDIV</h5>
+<p>Divides two floats.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a /. b)
+Types: VFloat, VFloat → VFloat
+Error: Division by zero if b = 0.0
+</code></pre>
+<h5 id="fneg">FNEG</h5>
+<p>Negates a float.</p>
+<pre><code class="language-text">Stack: ..., a → ..., (-.a)
+Types: VFloat → VFloat
+</code></pre>
+<h4 id="comparison-operations">Comparison operations</h4>
+<h5 id="ieq">IEQ</h5>
+<p>Tests whether two values are equal.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a = b)
+Types: &#x27;a, &#x27;a → VBool
+</code></pre>
+<p><code>IEQ</code> works on ints, floats, bools, strings, and the unit value. Two values of different kinds are never equal.</p>
+<h5 id="ineq">INEQ</h5>
+<p>Tests whether two values are not equal.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a ≠ b)
+Types: &#x27;a, &#x27;a → VBool
+</code></pre>
+<h5 id="ilt">ILT</h5>
+<p>Tests whether <code>a</code> is less than <code>b</code>.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a &lt; b)
+Types: VInt, VInt → VBool
+</code></pre>
+<h5 id="igt">IGT</h5>
+<p>Tests whether <code>a</code> is greater than <code>b</code>.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a &gt; b)
+Types: VInt, VInt → VBool
+</code></pre>
+<h5 id="ile">ILE</h5>
+<p>Tests whether <code>a</code> is less than or equal to <code>b</code>.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a ≤ b)
+Types: VInt, VInt → VBool
+</code></pre>
+<h5 id="ige">IGE</h5>
+<p>Tests whether <code>a</code> is greater than or equal to <code>b</code>.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a ≥ b)
+Types: VInt, VInt → VBool
+</code></pre>
+<h4 id="logical-operations">Logical operations</h4>
+<h5 id="and">AND</h5>
+<p>Computes the logical and of two booleans.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a &amp;&amp; b)
+Types: VBool, VBool → VBool
+</code></pre>
+<h5 id="or">OR</h5>
+<p>Computes the logical or of two booleans.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., (a || b)
+Types: VBool, VBool → VBool
+</code></pre>
+<h5 id="not">NOT</h5>
+<p>Computes the logical not of a boolean.</p>
+<pre><code class="language-text">Stack: ..., a → ..., (!a)
+Types: VBool → VBool
+</code></pre>
+<h4 id="control-flow-1">Control flow</h4>
+<h5 id="jump-addr">JUMP addr</h5>
+<p>Jumps to <code>addr</code> every time.</p>
+<pre><code class="language-text">Effect: pc = addr
+</code></pre>
+<h5 id="jump_if_false-addr">JUMP_IF_FALSE addr</h5>
+<p>Pops a boolean, and jumps to <code>addr</code> if the boolean is false.</p>
+<pre><code class="language-text">Stack: ..., cond → ...
+Effect: if !cond then pc = addr
+Types: VBool → (consumed)
+</code></pre>
+<h5 id="call-n_args">CALL n_args</h5>
+<p>Calls a function.</p>
+<pre><code class="language-text">Stack: ..., arg₀, ..., argₙ₋₁, closure → ...
+Effect:
+  1. Save current frame
+  2. Switch to closure&#x27;s function
+  3. Copy args to new locals
+</code></pre>
+<h5 id="return">RETURN</h5>
+<p>Returns from a function.</p>
+<pre><code class="language-text">Stack: ..., result → ... (in caller), result
+Effect:
+  1. Pop frame
+  2. Restore caller state
+  3. Push result on caller&#x27;s stack
+</code></pre>
+<h4 id="tensor-operations">Tensor operations</h4>
+<h5 id="tensor_create-shape">TENSOR_CREATE shape</h5>
+<p>Creates a tensor with the given shape.</p>
+<pre><code class="language-text">Stack: ..., elem₀, ..., elemₙ₋₁ → ..., VTensor
+</code></pre>
+<p>The instruction pops as many elements as the shape holds, and it creates the tensor. The number of elements is the product of the dimensions.</p>
+<h5 id="tensor_dot">TENSOR_DOT</h5>
+<p>Computes the dot product of two matrices or vectors.</p>
+<pre><code class="language-text">Stack: ..., a, b → ..., result
+Types: VTensor, VTensor → VTensor or VFloat
+</code></pre>
+<p>The result is a float when both inputs are vectors, and a tensor otherwise.</p>
+<h5 id="tensor_transpose">TENSOR_TRANSPOSE</h5>
+<p>Transposes a 2D tensor.</p>
+<pre><code class="language-text">Stack: ..., t → ..., transposed
+Types: VTensor → VTensor
+</code></pre>
+<h5 id="tensor_reshape-shape">TENSOR_RESHAPE shape</h5>
+<p>Reshapes a tensor.</p>
+<pre><code class="language-text">Stack: ..., t → ..., reshaped
+Types: VTensor → VTensor
+Error: if sizes don&#x27;t match
+</code></pre>
+<h4 id="debugging-and-control">Debugging and control</h4>
+<h5 id="print">PRINT</h5>
+<p>Prints the top of the stack, for debugging.</p>
+<pre><code class="language-text">Stack: ..., v → ..., v
+Effect: prints string_of_value(v)
+</code></pre>
+<h5 id="halt">HALT</h5>
+<p>Stops execution.</p>
+<pre><code class="language-text">Effect: terminates VM execution loop
+</code></pre>
+<h5 id="nop">NOP</h5>
+<p>Does nothing.</p>
+<pre><code class="language-text">Effect: none
+</code></pre>
+<h3 id="94-bytecode-examples">9.4 Bytecode examples</h3>
+<p>The listings in section 9.4 are simplified by hand to show how each construct works. The real compiler stores each intermediate result in a local, and its optimizer folds constant expressions such as <code>1 + 2</code> into one value. The <code>--dump-bytecode</code> option prints the real code, which is often longer or different.</p>
+<h4 id="simple-expression">Simple expression</h4>
+<p>Source: <code>1 + 2</code></p>
+<pre><code class="language-text">PUSH_INT 1
+PUSH_INT 2
+IADD
+RETURN
+</code></pre>
+<h4 id="let-binding-1">Let binding</h4>
+<p>Source: <code>let x = 5 in x + 1</code></p>
+<pre><code class="language-text">PUSH_INT 5
+STORE_LOCAL 0
+LOAD_LOCAL 0
+PUSH_INT 1
+IADD
+RETURN
+</code></pre>
+<h4 id="function-definition-1">Function definition</h4>
+<p>Source: <code>fn x -&gt; x + 1</code></p>
+<pre><code class="language-text">// Main function
+MAKE_CLOSURE 1 0    // func_id=1, no captures
+RETURN
+
+// Function 1: x -&gt; x + 1
+LOAD_LOCAL 0        // x
+PUSH_INT 1
+IADD
+RETURN
+</code></pre>
+<h4 id="function-call-1">Function call</h4>
+<p>Source: <code>(fn x -&gt; x + 1) 5</code></p>
+<pre><code class="language-text">PUSH_INT 5          // Argument
+MAKE_CLOSURE 1 0    // Create closure
+CALL 1              // Call with 1 arg
+RETURN
+</code></pre>
+<h4 id="conditional-1">Conditional</h4>
+<p>Source: <code>if true then 1 else 2</code></p>
+<pre><code class="language-text">PUSH_BOOL true
+JUMP_IF_FALSE 4     // Jump to else
+PUSH_INT 1
+JUMP 5              // Skip else
+PUSH_INT 2          // else branch
+RETURN
+</code></pre>
+<h4 id="closure-with-capture">Closure with capture</h4>
+<p>Source: <code>let y = 5 in fn x -&gt; x + y</code></p>
+<pre><code class="language-text">// Main
+PUSH_INT 5
+STORE_LOCAL 0       // y = 5
+LOAD_LOCAL 0        // Push y for capture
+MAKE_CLOSURE 1 1    // func_id=1, 1 capture
+RETURN
+
+// Function 1
+LOAD_LOCAL 0        // x
+LOAD_CAPTURE 0      // y
+IADD
+RETURN
+</code></pre>
+<h3 id="95-serialization-format">9.5 Serialization format</h3>
+<p>A compiled program is saved as a <code>.baglc</code> file with the layout below. Every integer in the file, including each <code>uint32</code> in the layout, is written as 4 bytes in big-endian order, which puts the most significant byte first.</p>
+<pre><code class="language-text">Header:
+  magic: &quot;BAGL&quot; (4 bytes)
+  version: uint32
+  entry: uint32
+  num_chunks: uint32
+
+For each chunk:
+  num_locals: uint32
+  num_params: uint32
+  num_captures: uint32
+  code_length: uint32
+  code: opcode[] (variable)
+</code></pre>
+<p>Each opcode is written in two parts:</p>
+<ul>
+<li>One tag byte, which says which opcode it is.</li>
+<li>The operands, which depend on the opcode.</li>
+</ul></main></div><footer class="border-t border-line"><div class="mx-auto flex max-w-[90rem] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] text-sm text-muted sm:px-6"><svg viewBox="26 26 204 204" aria-hidden="true" class="size-5 flex-none"><path fill-rule="evenodd" d="M181 41C165 31 147 26 128 26C71.7 26 26 71.7 26 128C26 184.3 71.7 230 128 230C184.3 230 230 184.3 230 128C230 123 229.6 118 229 113C215 121 201 111 203 96C187 100 173 87 178 71C161 65 165 47 181 41ZM156 134C156 153 143 166 124 166C104 166 91 152 92 133C93 113 106 101 126 102C145 103 157 115 156 134Z" style="fill:light-dark(var(--toast), var(--cream))"></path></svg><p>Bagl is open source under the MIT License.</p><ul class="flex flex-wrap gap-x-5 gap-y-2 sm:ms-auto"><li><a class="underline-offset-4 hover:underline" href="https://github.com/aibrahm/bagl">Source code</a></li><li><a class="underline-offset-4 hover:underline" href="https://github.com/aibrahm/bagl/issues">Report a problem</a></li><li><a class="underline-offset-4 hover:underline" href="https://abdelrahmanibrm.com/projects/bagl-compiler">About the project</a></li><li><a class="underline-offset-4 hover:underline" href="/bagl/reference/">Language reference</a></li></ul></div></footer></div>
+</body>
+</html>

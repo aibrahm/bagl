@@ -1,52 +1,52 @@
-# 2. Lexical Structure
+# 2. Lexical structure
 
-This chapter defines the lexical elements (tokens) of the BAGL language.
+Chapter 2 defines the tokens of Bagl. A token is the smallest unit the lexer reads from the source text, e.g., a keyword, a number, or an operator.
 
-## 2.1 Source Encoding
+## 2.1 Source encoding
 
-BAGL source files are UTF-8 encoded text. The file extension is `.bagl`.
+Bagl source files are UTF-8 text, and their file extension is `.bagl`.
 
-## 2.2 Whitespace and Comments
+## 2.2 Whitespace and comments
 
 ### Whitespace
 
-Whitespace characters (space, tab, newline, carriage return) separate tokens but are otherwise ignored.
+The whitespace characters are space, tab, newline, and carriage return. Whitespace separates tokens, and the lexer otherwise ignores it.
 
 ### Comments
 
-BAGL supports two comment styles:
+Bagl has two kinds of comments.
 
-**Line Comments**: Start with `//` and extend to end of line
+A line comment starts with `//` and runs to the end of the line.
 ```bagl
-let x = 5  // This is a comment
+let x = 5 in x  // This is a comment
 ```
 
-**Block Comments**: Enclosed in `/* */`
+A block comment starts with `/*` and ends with `*/`.
 ```bagl
 /* This is a
    multi-line comment */
-let x = 5
+let x = 5 in x
 ```
 
-Block comments do not nest.
+Block comments do not nest, so the first `*/` ends the comment.
 
 ## 2.3 Keywords
 
-The following identifiers are reserved keywords:
+The identifiers in the table below are reserved keywords.
 
 | Keyword | Description |
 |---------|-------------|
-| `let` | Variable binding |
-| `letrec` | Recursive binding |
-| `in` | Body of let expression |
-| `fn` | Function definition |
-| `if` | Conditional |
-| `then` | Conditional branch |
-| `else` | Conditional branch |
+| `let` | Binds a variable |
+| `letrec` | Binds a recursive variable |
+| `in` | Starts the body of a let expression |
+| `fn` | Starts a function definition |
+| `if` | Starts a conditional |
+| `then` | Starts the first branch of a conditional |
+| `else` | Starts the second branch of a conditional |
 | `true` | Boolean literal |
 | `false` | Boolean literal |
 
-### Type Keywords
+### Type keywords
 
 | Keyword | Description |
 |---------|-------------|
@@ -54,70 +54,78 @@ The following identifiers are reserved keywords:
 | `float` | Float type |
 | `bool` | Boolean type |
 | `string` | String type |
-| `tensor` | Tensor type constructor |
+| `tensor` | Builds a tensor type |
 
-### Tensor Operation Keywords
+### Tensor operation keywords
 
 | Keyword | Description |
 |---------|-------------|
-| `dot` | Matrix/vector dot product |
+| `dot` | Dot product of matrices or vectors |
 | `transpose` | Matrix transpose |
-| `reshape` | Tensor reshape |
+| `reshape` | Gives a tensor a new shape |
+
+The lexer also reserves `exp`, `log`, `sqrt`, `relu`, and `step` as keywords. Each of them takes a float or a tensor, and on a tensor it works on each element.
 
 ## 2.4 Literals
 
-### Integer Literals
+### Integer literals
 
-Integer literals are sequences of decimal digits, optionally preceded by a minus sign:
+An integer literal is a sequence of decimal digits.
 
 ```
-INT_LIT ::= '-'? [0-9]+
+INT_LIT ::= [0-9]+
 ```
+
+A literal never includes a minus sign. A leading minus sign is a separate `MINUS` token, which the parser reads as negation. For example, `-17` is the negation of `17`.
 
 Examples: `0`, `42`, `-17`, `1000`
 
-### Float Literals
+### Float literals
 
-Float literals include a decimal point and optional exponent:
+A float literal has a decimal point, an exponent, or both.
 
 ```
-FLOAT_LIT ::= '-'? [0-9]+ '.' [0-9]+ ([eE] [+-]? [0-9]+)?
+FLOAT_LIT ::= [0-9]+ ('.' [0-9]+)? ([eE] [+-]? [0-9]+)?
 ```
+
+A number with neither a decimal point nor an exponent is an integer literal instead. As with integers, a leading minus sign is a separate token.
 
 Examples: `3.14`, `-0.5`, `1.0e10`, `2.5e-3`
 
-### Boolean Literals
+### Boolean literals
 
 ```
 BOOL_LIT ::= 'true' | 'false'
 ```
 
-### String Literals
+### String literals
 
-String literals are enclosed in double quotes with escape sequences:
+A string literal is text between double quotes. It can contain escape sequences, which are a backslash followed by one character.
 
 ```
 STRING_LIT ::= '"' (char | escape)* '"'
 escape     ::= '\\' ('n' | 't' | 'r' | '\\' | '"')
 ```
 
+A string literal can't contain a newline.
+
 Examples: `"hello"`, `"line\nbreak"`, `"say \"hi\""`
 
 ## 2.5 Identifiers
 
-Identifiers start with a letter or underscore, followed by letters, digits, or underscores:
+An identifier starts with a letter or an underscore. The rest of it can be letters, digits, and underscores.
 
 ```
 IDENT ::= [a-zA-Z_] [a-zA-Z0-9_]*
 ```
 
-Identifiers cannot be keywords.
+A keyword can't be used as an identifier. The name `grad` is not a keyword, but the compiler gives special meaning to `grad` applied to a function, as section 5.12 describes.
 
 Examples: `x`, `myVar`, `matrix_2d`, `_helper`
 
 ## 2.6 Operators
 
-### Arithmetic Operators
+### Arithmetic operators
 
 | Token | Symbol | Description |
 |-------|--------|-------------|
@@ -126,7 +134,7 @@ Examples: `x`, `myVar`, `matrix_2d`, `_helper`
 | `STAR` | `*` | Multiplication |
 | `SLASH` | `/` | Division |
 
-### Comparison Operators
+### Comparison operators
 
 | Token | Symbol | Description |
 |-------|--------|-------------|
@@ -134,22 +142,22 @@ Examples: `x`, `myVar`, `matrix_2d`, `_helper`
 | `NEQ` | `!=` | Not equal |
 | `LT` | `<` | Less than |
 | `GT` | `>` | Greater than |
-| `LE` | `<=` | Less or equal |
-| `GE` | `>=` | Greater or equal |
+| `LE` | `<=` | Less than or equal |
+| `GE` | `>=` | Greater than or equal |
 
-### Logical Operators
-
-| Token | Symbol | Description |
-|-------|--------|-------------|
-| `AMPAMP` | `&&` | Logical AND |
-| `PIPEPIPE` | `\|\|` | Logical OR |
-| `BANG` | `!` | Logical NOT |
-
-### Other Operators
+### Logical operators
 
 | Token | Symbol | Description |
 |-------|--------|-------------|
-| `EQ` | `=` | Assignment/binding |
+| `AMPAMP` | `&&` | Logical and |
+| `PIPEPIPE` | `\|\|` | Logical or |
+| `BANG` | `!` | Logical not |
+
+### Other operators
+
+| Token | Symbol | Description |
+|-------|--------|-------------|
+| `EQ` | `=` | Binds a name in `let` and `letrec` |
 | `ARROW` | `->` | Function arrow |
 
 ## 2.7 Delimiters
@@ -160,16 +168,16 @@ Examples: `x`, `myVar`, `matrix_2d`, `_helper`
 | `RPAREN` | `)` | Right parenthesis |
 | `LBRACKET` | `[` | Left bracket |
 | `RBRACKET` | `]` | Right bracket |
-| `LANGLE` | `<` | Left angle (in types) |
-| `RANGLE` | `>` | Right angle (in types) |
+| `LANGLE` | `<` | Left angle bracket. The lexer never produces `LANGLE`, and tensor types use `LT` instead |
+| `RANGLE` | `>` | Right angle bracket. The lexer never produces `RANGLE`, and tensor types use `GT` instead |
 | `COMMA` | `,` | Comma |
-| `COLON` | `:` | Type annotation |
-| `SEMI` | `;` | Statement separator |
-| `QUOTE` | `'` | Type/dimension variable |
+| `COLON` | `:` | Starts a type annotation |
+| `SEMI` | `;` | Separates top-level declarations |
+| `QUOTE` | `'` | Starts a type variable or a dimension variable |
 
-## 2.8 Operator Precedence
+## 2.8 Operator precedence
 
-From lowest to highest precedence:
+The table lists the operators from the lowest precedence to the highest. An operator with higher precedence binds more tightly, so `1 + 2 * 3` means `1 + (2 * 3)`.
 
 | Level | Operators | Associativity |
 |-------|-----------|---------------|
@@ -182,13 +190,13 @@ From lowest to highest precedence:
 | 7 | `-` `!` (unary) | Right |
 | 8 | Function application | Left |
 
-## 2.9 Token Examples
+## 2.9 Token examples
 
 ```bagl
 let sum: int = 1 + 2 in sum
 ```
 
-Tokenizes to:
+The lexer turns the line above into the following tokens.
 ```
 LET IDENT("sum") COLON INT_TYPE EQ INT_LIT(1) PLUS INT_LIT(2) IN IDENT("sum") EOF
 ```

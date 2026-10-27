@@ -1,0 +1,202 @@
+@import "tailwindcss";
+@import "@fontsource-variable/nunito-sans/wght.css";
+
+/* Bagl brand tokens, from the brand kit's tokens.css: Ink, Toast, Cream and Crust,
+   Avenir Next for the interface, Menlo for code, 4 px corners, a 4/8/16/24/32 spacing scale.
+   Each color holds its light and its dark value. The theme switches through color-scheme,
+   so a code panel that sets color-scheme: dark gets the dark values inside it. */
+:root {
+  color-scheme: light dark;
+
+  --ink: oklch(26.3% 0.009 67.4);
+  --cream: oklch(98.2% 0.016 79.4);
+  --toast: oklch(67.2% 0.141 50.8);
+  --crust: oklch(48.2% 0.099 45.1);
+
+  --bg: light-dark(var(--cream), var(--ink));
+  --raised: light-dark(color-mix(in oklch, var(--cream), white 55%), oklch(30% 0.01 67.4));
+  --sunk: light-dark(color-mix(in oklch, var(--cream), var(--crust) 6%), oklch(22.5% 0.008 67.4));
+  --text: light-dark(var(--ink), var(--cream));
+  /* secondary text: a warm gray (5.7:1 on Cream, 6.2:1 on Ink). Crust is kept for links. */
+  --muted: light-dark(oklch(50% 0.012 70), oklch(72% 0.012 75));
+  --line: color-mix(in oklch, var(--text) 16%, transparent);
+  --line-soft: color-mix(in oklch, var(--text) 8%, transparent);
+  /* Toast fails as text on Cream (2.95:1), so it is a fill with Ink text on it (4.95:1),
+     and links and small accent text use --link. */
+  --accent: var(--toast);
+  --on-accent: var(--ink);
+  /* Crust reads at 6.4:1 on Cream but only 2.3:1 on Ink, so dark mode links use a lighter tan (8:1). */
+  --link: light-dark(var(--crust), oklch(80% 0.1 55));
+  --error: light-dark(oklch(50% 0.17 28), oklch(78% 0.11 28));
+  --ok: light-dark(oklch(45% 0.1 145), oklch(80% 0.1 145));
+
+  /* code panels are Ink in light mode, a step darker than the page in dark mode */
+  --code-bg: light-dark(var(--ink), oklch(21% 0.008 67.4));
+  --syn-keyword: oklch(72% 0.14 50.8);
+  --syn-builtin: oklch(84% 0.09 65);
+  --syn-number: oklch(84% 0.09 65);
+  --syn-string: oklch(80% 0.09 140);
+  --syn-type: oklch(85% 0.06 85);
+  --syn-comment: oklch(70% 0.02 70);
+
+  --font-ui: "Avenir Next", Avenir, "Nunito Sans Variable", system-ui, sans-serif;
+  --font-code: Menlo, ui-monospace, "SF Mono", Consolas, "DejaVu Sans Mono", monospace;
+
+  --text-sm: 0.8125rem;
+  --text-body: clamp(1rem, 0.9643rem + 0.1786vw, 1.0625rem);
+  --text-heading: clamp(1.375rem, 1.3036rem + 0.3571vw, 1.5rem);
+  --text-display: clamp(2rem, 1.7143rem + 1.4286vw, 2.5rem);
+
+  --radius: 4px;
+  --header-h: 4rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-raised: var(--raised);
+  --color-sunk: var(--sunk);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-link: var(--link);
+  --color-error: var(--error);
+  --color-ok: var(--ok);
+  --color-code: var(--code-bg);
+  --color-ink: var(--ink);
+  --color-cream: var(--cream);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --text-sm: var(--text-sm);
+  --text-body: var(--text-body);
+  --text-heading: var(--text-heading);
+  --text-display: var(--text-display);
+}
+
+/* ---- reset (good-css) ---- */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; min-width: 0; }
+  :root {
+    interpolate-size: allow-keywords;
+    scrollbar-gutter: stable;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scroll-padding-block-start: calc(var(--header-h) + 1rem);
+    overscroll-behavior-y: none;
+  }
+  @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
+  @media (prefers-reduced-motion: no-preference) { :root { scroll-behavior: smooth; } }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    line-height: 1.5;
+  }
+  h1, h2, h3, h4 { text-wrap: balance; font-weight: 600; }
+  img, svg, video { display: block; max-width: 100%; height: auto; }
+  input, textarea, select { font-size: max(16px, 1rem); }
+  button, a, [role="button"] { touch-action: manipulation; }
+  button, [role="button"] { user-select: none; -webkit-user-select: none; cursor: pointer; }
+  code, kbd, pre { font-family: var(--font-code); font-variant-ligatures: none; }
+  :focus-visible { outline: max(2px, 0.08em) solid currentColor; outline-offset: 0.2em; }
+  ::selection { background: color-mix(in oklch, var(--accent) 45%, transparent); }
+}
+
+/* A dark code panel in both themes. Tokens inside it resolve to their dark values. */
+.code-surface {
+  color-scheme: dark;
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+/* ---- prose (Markdown pages) ---- */
+.prose { font-size: var(--text-body); line-height: 1.65; }
+.prose > * + * { margin-block-start: 1rem; }
+.prose h1 { font-size: var(--text-display); line-height: 1.1; letter-spacing: -0.01em; }
+.prose h2 {
+  margin-block-start: 3rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--line);
+  font-size: var(--text-heading);
+  line-height: 1.25;
+}
+.prose h3 { margin-block-start: 2rem; font-size: 1.125rem; }
+.prose h4 { margin-block-start: 1.5rem; font-size: 1rem; }
+.prose h2 + *, .prose h3 + *, .prose h4 + * { margin-block-start: 0.5rem; }
+.prose ul, .prose ol { padding-inline-start: 1.25rem; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose li + li { margin-block-start: 0.35rem; }
+.prose li::marker { color: var(--muted); }
+.prose a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
+.prose a:active { opacity: 0.7; }
+@media (hover: hover) and (pointer: fine) { .prose a:hover { text-decoration-thickness: 2px; } }
+.prose :not(pre) > code {
+  padding-inline: 0.3em;
+  border-radius: var(--radius);
+  background: var(--sunk);
+  font-size: 0.875em;
+}
+.prose > pre {
+  color-scheme: dark;
+  background: var(--code-bg);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding-block: 1rem;
+  padding-inline: 1.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.prose table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  overflow-x: auto;
+}
+.prose th, .prose td {
+  border-block-end: 1px solid var(--line);
+  padding-block: 0.5rem;
+  padding-inline: 0 1.25rem;
+  text-align: start;
+  vertical-align: top;
+}
+.prose th { color: var(--muted); font-weight: 600; }
+.prose blockquote { border-inline-start: 3px solid var(--accent); padding-inline-start: 1rem; color: var(--muted); }
+.prose img { border-radius: var(--radius); border: 1px solid var(--line); }
+.prose hr { border: 0; border-block-start: 1px solid var(--line); }
+
+/* ---- Bagl code colors (editor and static code) ---- */
+.tok-keyword { color: var(--syn-keyword); font-weight: 600; }
+.tok-macroName { color: var(--syn-builtin); }
+.tok-typeName { color: var(--syn-type); }
+.tok-number { color: var(--syn-number); }
+.tok-string { color: var(--syn-string); }
+.tok-comment { color: var(--syn-comment); }
+.tok-operator { color: color-mix(in oklch, var(--cream) 80%, transparent); }
+.cm-bagl-error {
+  text-decoration: underline wavy var(--error);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
+  background: color-mix(in oklch, var(--error) 14%, transparent);
+}

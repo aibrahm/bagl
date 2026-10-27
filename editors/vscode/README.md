@@ -1,31 +1,23 @@
 # Bagl for VS Code
 
-Language support for `.bagl` files: syntax highlighting, live diagnostics
-(red squiggles with the compiler's real error messages) and hover types,
-powered by the `bagl-lsp` server in this repository.
+The extension adds language support for `.bagl` files, with syntax highlighting, live diagnostics and hover types. Diagnostics are red underlines that show the compiler's own error messages. The diagnostics and hover types come from the `bagl-lsp` server in the Bagl repository, and the syntax highlighting comes from the extension's grammar.
 
 ## What hover shows
 
-The server splits each top-level `let ... in` chain into its individual
-bindings and reports the inferred type of the binding under the cursor,
-for example `double : int -> int`. Hovering the final body expression of a
-program shows its type as `_ : <type>`. Hover inside `letrec` bindings and
-nested inner expressions falls back to the type of the enclosing top-level
-declaration; finer-grained expression hover is not implemented.
+The server splits each top-level `let ... in` chain into separate bindings. It then shows the inferred type of the binding under the cursor, e.g., `double : int -> int`. When you hover over the final body expression of a program, the server shows its type as `_ : <type>`. Hover over a nested expression shows the type of the top-level binding that contains it. The split stops at a `letrec`, so hover anywhere from a `letrec` to the end of the chain shows the type of the whole remaining expression, as `_ : <type>`. Hover for smaller expressions is not implemented.
 
 ## Building and installing
 
-1. Build and install the server so `bagl-lsp` is on your PATH:
+1. Build and install the server so that `bagl-lsp` is on your PATH:
 
    ```sh
    dune build
    dune install
    ```
 
-   Alternatively point the `baglLsp.path` setting at
-   `_build/default/lsp/lsp_main.exe`.
+   Or set the `baglLsp.path` setting to `_build/default/lsp/lsp_main.exe`.
 
-2. Package and install the extension (requires `npm` and `vsce`):
+2. Package and install the extension. You need `npm` and `vsce` for the following steps:
 
    ```sh
    cd editors/vscode
@@ -34,8 +26,7 @@ declaration; finer-grained expression hover is not implemented.
    code --install-extension bagl-language-0.1.0.vsix
    ```
 
-3. Open any `.bagl` file. Diagnostics update as you type; hover a
-   top-level binding to see its inferred type.
+3. Open any `.bagl` file. Diagnostics update as you type, and hovering over a top-level binding shows its inferred type.
 
 ## Settings
 
@@ -45,7 +36,7 @@ declaration; finer-grained expression hover is not implemented.
 
 ## Neovim
 
-No plugin needed; put this in your `init.lua`:
+Neovim needs no plugin. Add the following to your `init.lua`:
 
 ```lua
 vim.filetype.add({ extension = { bagl = "bagl" } })

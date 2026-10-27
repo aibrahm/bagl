@@ -1,0 +1,139 @@
+{
+  "reference": {
+    "literals": {
+      "source": "/* a program is one expression */\n42  // the answer",
+      "expect": "= 42 : int"
+    },
+    "bindings": {
+      "source": "let x = 5 in\nlet y = x * 2 in\nx + y",
+      "expect": "= 15 : int"
+    },
+    "functions": {
+      "source": "let add = fn x -> fn y -> x + y in\nlet add3 = add 3 in   // partial application\nadd3 4",
+      "expect": "= 7 : int"
+    },
+    "recursion": {
+      "source": "letrec fact = fn n ->\n  if n == 0 then 1\n  else n * fact (n - 1)\nin fact 10",
+      "expect": "= 3628800 : int"
+    },
+    "conditionals": {
+      "source": "if 3 > 2 && !(1 == 2) then \"yes\" else \"no\"",
+      "expect": "= \"yes\" : string"
+    },
+    "inference": {
+      "source": "let id = fn x -> x in\nif id true then id 1 else id 2   // one id, used at bool and int",
+      "expect": "= 1 : int"
+    },
+    "occurs-check": {
+      "source": "fn x -> x x",
+      "expect": "error: Recursive type detected"
+    },
+    "numerics": {
+      "source": "let f = fn x -> (x + x) + 1.0 in   // the later 1.0 wins; f is float -> float\nf 2.0",
+      "expect": "= 5. : float"
+    },
+    "annotations": {
+      "source": "let m: tensor<float>['n,'n] = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in\nm   // 2x3 into a square annotation: rejected",
+      "expect": "error: Dimension mismatch: 2 vs 3"
+    },
+    "tensor-literals": {
+      "source": "transpose([[1.0, 2.0, 3.0]])   // 1x3 matrix -> 3x1",
+      "expect": "= [[1], [2], [3]] : tensor<float>[3, 1]"
+    },
+    "dot": {
+      "source": "let a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in   // 2x3\nlet b = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]] in  // 3x2\ndot(a, b)",
+      "expect": "= [[22, 28], [49, 64]] : tensor<float>[2, 2]"
+    },
+    "elementwise": {
+      "source": "let v = [1.0, 2.0, 3.0] in\n2.0 * v + [10.0, 20.0, 30.0]",
+      "expect": "= [12, 24, 36] : tensor<float>[3]"
+    },
+    "shapes": {
+      "source": "let f = fn a -> dot(a, [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]) in\nf [[1.0, 2.0]]   // 1x2 . 3x2: inner dimensions disagree",
+      "expect": "error: Dimension mismatch: 3 vs 2"
+    },
+    "math": {
+      "source": "relu([-1.5, 0.0, 2.5]) + exp([0.0, 0.0, 0.0])",
+      "expect": "= [1, 1, 3.5] : tensor<float>[3]"
+    },
+    "math-domain": {
+      "source": "log(0.0)",
+      "expect": "runtime error: log of a non-positive number: 0"
+    },
+    "grad-scalar": {
+      "source": "let d = grad (fn x -> exp(x * x)) in\nd 1.0   // d/dx e^(x^2) = 2x e^(x^2) = 2e at x=1",
+      "expect": "= 5.43656365692 : float"
+    },
+    "newton": {
+      "source": "let f  = fn x -> x * x - 2.0 in\nlet df = grad (fn x -> x * x - 2.0) in\nletrec newton = fn n ->\n  if n < 0.5 then 1.0 else\n  let x = newton (n - 1.0) in\n  x - f x / df x\nin newton 6.0",
+      "expect": "= 1.41421356237 : float"
+    },
+    "grad-tensor": {
+      "source": "let x = [[1.0, 2.0], [3.0, 4.0]] in\nlet y = [1.0, 2.0] in\ngrad (fn w: tensor<float>[2] ->\n  let e = dot(x, w) - y in dot(e, e)) [0.0, 0.0]   // 2 X^T (Xw - y)",
+      "expect": "= [-14, -20] : tensor<float>[2]"
+    },
+    "train-xor": {
+      "source": "let x = [[0.0, 0.0, 0.0],\n         [0.0, 1.0, 0.0],\n         [1.0, 0.0, 0.0],\n         [1.0, 1.0, 1.0]] in\nlet y = [0.0, 1.0, 1.0, 0.0] in\nlet dloss = grad (fn w: tensor<float>[3] ->\n  let e = dot(x, w) - y in\n  dot(e, e)) in\nletrec train = fn n ->\n  if n < 0.5 then [0.0, 0.0, 0.0] else\n  let w = train (n - 1.0) in\n  w - 0.1 * dloss w\nin train 200.0",
+      "expect": "= [0.999987, 0.999987, -1.99996] : tensor<float>[3]"
+    },
+    "pathwise": {
+      "source": "let g = [0.8, 1.0, 1.2, 1.4] in\nlet ones = [1.0, 1.0, 1.0, 1.0] in\ngrad (fn s: float -> dot(relu(s * g - 1.0), ones) / 4.0) 1.0",
+      "expect": "= 0.65 : float"
+    },
+    "grad-rejected": {
+      "source": "grad (fn w -> dot(w, w)) [1.0, 2.0]",
+      "expect": "error: grad over tensors requires an annotated parameter: tensor<float>[...] for a tensor, float for a scalar differentiated through tensor code"
+    }
+  },
+  "playground": {
+    "hello": {
+      "label": "Hello",
+      "source": "// A function, a recursive function and a call.\n// The result is the sum of the squares from 1 to 10.\nlet square = fn x -> x * x in\nletrec sum = fn n -> if n == 0 then 0 else square n + sum (n - 1)\nin sum 10",
+      "expect": "= 385 : int"
+    },
+    "shapes": {
+      "label": "Shapes",
+      "source": "// A tensor's shape is part of its type.\n// A 2x3 matrix times a 3x2 matrix is a 2x2 matrix.\nlet a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in\nlet b = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]] in\ndot(a, b)",
+      "expect": "= [[22, 28], [49, 64]] : tensor<float>[2, 2]"
+    },
+    "shape-error": {
+      "label": "Shape error",
+      "source": "// This example fails on purpose. The inner\n// dimensions disagree (3 vs 2), so the compiler\n// rejects it before anything runs.\nlet a = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]] in\nlet b = [[1.0, 2.0], [3.0, 4.0]] in\ndot(a, b)",
+      "expect": "error: Dimension mismatch: 3 vs 2"
+    },
+    "grad": {
+      "label": "grad",
+      "source": "// grad turns a function into its derivative.\n// The derivative of x^3 is 3x^2, so at x = 2 the result is 12.\ngrad (fn x -> x * x * x) 2.0",
+      "expect": "= 12. : float"
+    },
+    "newton": {
+      "label": "Newton's method",
+      "source": "// Newton's method for the square root of 2.\n// grad writes the derivative of f at compile time.\nlet f  = fn x -> x * x - 2.0 in\nlet df = grad (fn x -> x * x - 2.0) in\nletrec newton = fn n ->\n  if n < 0.5 then 1.0 else\n  let x = newton (n - 1.0) in\n  x - f x / df x\nin newton 6.0",
+      "expect": "= 1.41421356237 : float"
+    },
+    "train-xor": {
+      "label": "Train XOR",
+      "source": "// Gradient descent on XOR, in your browser.\n// The compiler writes the gradient of the loss,\n// and it checks the shape of every step.\n// The exact solution is [1, 1, -2].\nlet x = [[0.0, 0.0, 0.0],\n         [0.0, 1.0, 0.0],\n         [1.0, 0.0, 0.0],\n         [1.0, 1.0, 1.0]] in\nlet y = [0.0, 1.0, 1.0, 0.0] in\nlet dloss = grad (fn w: tensor<float>[3] ->\n  let e = dot(x, w) - y in\n  dot(e, e)) in\nletrec train = fn n ->\n  if n < 0.5 then [0.0, 0.0, 0.0] else\n  let w = train (n - 1.0) in\n  w - 0.1 * dloss w\nin train 200.0",
+      "expect": "= [0.999987, 0.999987, -1.99996] : tensor<float>[3]"
+    },
+    "markov": {
+      "label": "Markov chain",
+      "source": "// The steady state of a Markov chain, by power iteration.\n// The compiler checks the shape of every dot() in the loop.\nlet p = [[0.9, 0.1], [0.5, 0.5]] in\nletrec iter = fn n ->\n  if n < 0.5 then [[1.0, 0.0], [0.0, 1.0]]\n  else dot(p, iter (n - 1.0))\nin dot([0.5, 0.5], iter 20.0)",
+      "expect": "= [0.833333, 0.166667] : tensor<float>[2]"
+    }
+  },
+  "home": {
+    "shapes": {
+      "source": "let a = [[1.0, 2.0, 3.0],\n         [4.0, 5.0, 6.0]] in\nlet b = [[1.0, 2.0],\n         [3.0, 4.0]] in\ndot(a, b)",
+      "expect": "error: Dimension mismatch: 3 vs 2"
+    },
+    "grad": {
+      "source": "let x = [[1.0, 2.0], [3.0, 4.0]] in\nlet y = [1.0, 2.0] in\ngrad (fn w: tensor<float>[2] ->\n  let e = dot(x, w) - y in\n  dot(e, e)) [0.0, 0.0]",
+      "expect": "= [-14, -20] : tensor<float>[2]"
+    },
+    "inference": {
+      "source": "let id = fn x -> x in\nif id true then id 1 else id 2",
+      "expect": "= 1 : int"
+    }
+  }
+}

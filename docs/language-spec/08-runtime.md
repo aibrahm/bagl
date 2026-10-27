@@ -1,10 +1,10 @@
-# 8. Runtime System
+# 8. Runtime system
 
-This chapter describes the BAGL virtual machine and runtime execution model.
+Chapter 8 describes the Bagl virtual machine (VM) and how it runs a program.
 
-## 8.1 Virtual Machine Architecture
+## 8.1 Virtual machine architecture
 
-BAGL uses a **stack-based virtual machine** for program execution.
+Bagl runs programs on a stack-based virtual machine. A stack-based VM takes the operands of each instruction from the top of a stack, and it pushes the result back onto the stack.
 
 ### Components
 
@@ -30,7 +30,9 @@ BAGL uses a **stack-based virtual machine** for program execution.
 └─────────────┴───────────────────────────┘
 ```
 
-### Initial State
+### Initial state
+
+The VM starts with the following state. The locals array has 256 slots, or more if the entry function needs more.
 
 ```ocaml
 {
@@ -44,9 +46,9 @@ BAGL uses a **stack-based virtual machine** for program execution.
 }
 ```
 
-## 8.2 Runtime Values
+## 8.2 Runtime values
 
-### Value Types
+### Value types
 
 ```ocaml
 type value =
@@ -59,7 +61,7 @@ type value =
   | VClosure of closure   (* Function closure *)
 ```
 
-### Tensor Values
+### Tensor values
 
 ```ocaml
 type tensor = {
@@ -69,7 +71,7 @@ type tensor = {
 }
 ```
 
-### Closure Values
+### Closure values
 
 ```ocaml
 type closure = {
@@ -78,7 +80,7 @@ type closure = {
 }
 ```
 
-## 8.3 Stack Operations
+## 8.3 Stack operations
 
 ### Push
 
@@ -96,16 +98,18 @@ pop():
   return stack[sp]
 ```
 
-### Stack Discipline
+### Stack discipline
 
-The stack holds:
-- Intermediate computation results
+The stack holds the following kinds of values:
+- The intermediate results of a computation
 - Function arguments
 - Temporary values
 
-## 8.4 Call Frames
+## 8.4 Call frames
 
-### Frame Structure
+A call frame records what the VM needs in order to return from a function call.
+
+### Frame structure
 
 ```ocaml
 type frame = {
@@ -117,47 +121,49 @@ type frame = {
 }
 ```
 
-### Function Call
+### Function call
 
-1. Pop closure from stack
-2. Pop arguments from stack
-3. Save current state in new frame
-4. Push frame onto call stack
-5. Switch to callee's chunk
-6. Initialize locals with arguments
+A function call takes the following steps.
+1. The VM pops the closure from the stack.
+2. It pops the arguments from the stack.
+3. It saves the current state in a new frame.
+4. It pushes the frame onto the call stack.
+5. It switches to the chunk of the called function. A chunk is the bytecode of one function.
+6. It creates a new locals array and copies the arguments into it.
 
-### Function Return
+### Function return
 
-1. Pop return value from stack
-2. Pop frame from call stack
-3. Restore caller's state
-4. Push return value onto stack
+A function return takes the following steps.
+1. The VM pops the return value from the stack.
+2. It pops the frame from the call stack.
+3. It restores the state of the caller.
+4. It pushes the return value onto the stack.
 
 ## 8.5 Closures
 
-### Closure Creation
+### Closure creation
 
-When a function is defined:
-1. Identify free variables (captured from enclosing scope)
-2. Copy captured values from current environment
-3. Create closure with function ID and captures
+A closure is created in the following steps.
+1. The compiler finds the free variables of the function, which are the variables it uses from the enclosing scope.
+2. At run time, the VM copies the values of the free variables from the current environment.
+3. The VM creates a closure that holds the function ID and the copied values, which are called the captures.
 
-### Closure Invocation
+### Closure invocation
 
-When a closure is called:
-1. Store closure in frame
-2. Access captures via `LOAD_CAPTURE` instruction
+When the VM calls a closure, it stores the closure in the new frame. The function body then reads its captures with the `LOAD_CAPTURE` instruction.
 
-### Recursive Closures
+### Recursive closures
 
-Self-referencing closures use a special mechanism:
-1. Create closure with placeholder for self
-2. Fill in self-reference after creation
-3. Store self-capture index in bytecode
+A recursive closure needs to capture itself, so the VM builds it in the following steps.
+1. The bytecode stores the index of the capture that will hold the closure itself.
+2. The VM creates the closure with an empty slot at that index.
+3. The VM then puts the closure into its own empty slot.
 
-## 8.6 Execution Model
+## 8.6 Execution model
 
-### Fetch-Execute Cycle
+### Fetch-execute cycle
+
+The VM runs a loop that fetches the next instruction and then executes it.
 
 ```
 while running:
@@ -166,50 +172,50 @@ while running:
   execute(instr)
 ```
 
-### Instruction Execution
+### Instruction execution
 
-Each instruction:
-1. Reads operands from stack/locals
-2. Performs computation
-3. Pushes result to stack
-4. Returns whether to continue
+Each instruction takes the following steps.
+1. It reads its operands from the stack or the locals.
+2. It does its computation.
+3. It pushes the result onto the stack.
+4. It tells the loop whether to continue.
 
 ### Termination
 
-Execution ends when:
-- `HALT` instruction is executed
-- `RETURN` with empty call stack
-- Runtime error occurs
+Execution ends in any of the following cases:
+- The VM executes a `HALT` instruction.
+- The VM executes `RETURN` when the call stack is empty.
+- A runtime error occurs.
 
-## 8.7 Memory Management
+## 8.7 Memory management
 
-### Stack Allocation
+### Stack allocation
 
-- Fixed-size stack (1024 elements)
-- Stack overflow causes runtime error
+- The stack has a fixed size of 1024 values.
+- A stack overflow raises a runtime error.
 
-### Local Variables
+### Local variables
 
-- Fixed-size local array (256 per frame)
-- Locals preserved on call stack during calls
+- Each frame gets its own locals array, with 256 slots or more if the function needs more.
+- During a call, the frame keeps the locals of the caller, and the VM restores them on return.
 
-### Garbage Collection
+### Garbage collection
 
-Current implementation:
-- No garbage collection
-- Values live for program duration
-- Suitable for short-running programs
+The VM has no garbage collector of its own. It is written in OCaml, and its values are ordinary OCaml values. The OCaml garbage collector frees a value once nothing refers to it.
 
-## 8.8 Tensor Operations at Runtime
+## 8.8 Tensor operations at runtime
 
-### Tensor Creation
+### Tensor creation
 
-1. Pop elements from stack
-2. Allocate flat array
-3. Compute strides
-4. Return tensor value
+The VM creates a tensor in the following steps.
+1. It pops the elements from the stack.
+2. It puts them in a flat array.
+3. It computes the strides.
+4. It pushes the tensor value onto the stack.
 
-### Dot Product
+### Dot product
+
+The code below is a simplified form of the matrix case. The VM also handles a vector times a matrix, a matrix times a vector, and two vectors. For two vectors, it pushes the result as a float.
 
 ```ocaml
 let tensor_dot a b =
@@ -242,22 +248,23 @@ let tensor_transpose t =
   result
 ```
 
-## 8.9 Error Handling
+## 8.9 Error handling
 
-### Runtime Errors
+### Runtime errors
 
 ```ocaml
 exception Runtime_error of string
 ```
 
-Errors include:
-- Stack overflow/underflow
+The runtime errors include the following:
+- Stack overflow or stack underflow
 - Division by zero
-- Type mismatch at runtime
-- Invalid tensor shapes
-- PC out of bounds
+- A value of the wrong type at run time
+- Tensor shapes that don't fit the operation
+- A program counter outside the code of the current function
+- `log` of a number that isn't positive, or `sqrt` of a negative number
 
-### Error Messages
+### Error messages
 
 ```
 Runtime error: Stack overflow
@@ -266,11 +273,11 @@ Runtime error: Expected int, got bool
 Runtime error: Invalid shapes for dot: 2x3 and 4x2
 ```
 
-## 8.10 Debugging Support
+## 8.10 Debugging support
 
-### Instruction Tracing
+### Instruction tracing
 
-Debug builds can trace each instruction:
+The VM has no instruction tracer. The listing below is an example of what a trace would show for `let x = 5 in x + 1`, with one line for each instruction the VM runs.
 
 ```
 0000: PUSH_INT 5
@@ -281,14 +288,18 @@ Debug builds can trace each instruction:
 0005: RETURN
 ```
 
-### Stack Inspection
+### Stack inspection
+
+The VM has no command that prints the stack or the locals. The listing below is an example of what such a printout would show.
 
 ```
 Stack: [VInt 5, VInt 1]
 Locals: [VInt 5, VUnit, ...]
 ```
 
-### Bytecode Disassembly
+### Bytecode disassembly
+
+The `--dump-bytecode` option prints the bytecode of each function in the following format. The listing below is simplified. The real listing for a program is often longer, because the compiler stores each intermediate result in a local.
 
 ```
 === Function 0 (locals=2, params=0, captures=0) ===
@@ -300,9 +311,9 @@ Locals: [VInt 5, VUnit, ...]
    5: RETURN
 ```
 
-## 8.11 Performance Characteristics
+## 8.11 Performance characteristics
 
-### Time Complexity
+### Time complexity
 
 | Operation | Complexity |
 |-----------|------------|
@@ -313,10 +324,10 @@ Locals: [VInt 5, VUnit, ...]
 | Tensor dot | O(m×n×k) |
 | Tensor transpose | O(m×n) |
 
-### Space Complexity
+### Space complexity
 
 | Resource | Limit |
 |----------|-------|
 | Stack | 1024 values |
-| Locals | 256 per frame |
+| Locals | At least 256 per frame |
 | Call depth | Limited by memory |

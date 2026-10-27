@@ -53,5 +53,33 @@ jobs:
             console.log('playground bundle OK:', JSON.stringify(r));
           "
 
-      - name: Verify language reference examples
-        run: node docs/reference/verify.js _build/default/js/bagl_js.bc.js docs/reference/index.html
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install the docs site's packages
+        working-directory: site
+        run: npm ci
+
+      # Every example on the site (home page, playground, reference) runs through
+      # the compiler built above, and through the copy the site ships.
+      - name: Verify site examples
+        working-directory: site
+        run: |
+          node scripts/verify.mjs ../_build/default/js/bagl_js.bc.js
+          node scripts/verify.mjs
+
+      - name: Build the docs site
+        working-directory: site
+        run: npm run build
+
+      # GitHub Pages serves docs/ from main, so a change to the site must come
+      # with its published build.
+      - name: Check that docs/ holds the current build
+        run: |
+          node site/scripts/publish.mjs
+          git status --porcelain docs
+          test -z "$(git status --porcelain docs)" || { echo "docs/ is out of date: run npm run build && npm run publish in site/"; exit 1; }

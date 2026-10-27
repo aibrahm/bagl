@@ -1,0 +1,25 @@
+/* bagl — interface foundations */
+:root {
+  --bagl-ink: #282420;
+  --bagl-toast: #D9793B;
+  --bagl-cream: #FFF8ED;
+  --bagl-crust: #8B4A2B;
+  --color-bg: var(--bagl-cream);
+  --color-text: var(--bagl-ink);
+  --color-accent: var(--bagl-toast);
+  --color-muted: var(--bagl-crust);
+  --font-ui: "Avenir Next", Avenir, system-ui, sans-serif;
+  --font-code: Menlo, ui-monospace, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --text-sm: 12px;
+  --text-body: 16px;
+  --text-heading: 24px;
+  --text-display: 40px;
+  --line-height-body: 1.5;
+}

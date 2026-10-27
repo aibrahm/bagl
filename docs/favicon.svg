@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Bagl">
-  <!-- The Bagl mark: a lambda drawn with two strokes in a square, in the
-       style of abdelrahmanibrm.com (black on white, hairline corners). -->
-  <style>
-    .box { fill: #000; }
-    .l { stroke: #fff; }
-    @media (prefers-color-scheme: dark) { .box { fill: #ededed; } .l { stroke: #0c0c0c; } }
-  </style>
-  <rect class="box" x="0.5" y="0.5" width="23" height="23" rx="3"/>
-  <path class="l" d="M6 4.75h2.1L18 19.25M12.85 11.6 6.5 19.25" fill="none" stroke-width="2.1" stroke-linecap="square" stroke-linejoin="miter"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="26 26 204 204"><path fill="#D9793B" fill-rule="evenodd" d="M181 41C165 31 147 26 128 26C71.7 26 26 71.7 26 128C26 184.3 71.7 230 128 230C184.3 230 230 184.3 230 128C230 123 229.6 118 229 113C215 121 201 111 203 96C187 100 173 87 178 71C161 65 165 47 181 41ZM156 134C156 153 143 166 124 166C104 166 91 152 92 133C93 113 106 101 126 102C145 103 157 115 156 134Z"/></svg>
