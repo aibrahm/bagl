@@ -103,6 +103,85 @@ brand/            the logo, colors and brand rules
 
 The website is built from `site/` into `docs/`, which GitHub Pages serves. After changing the site, run `npm run build && npm run publish` in `site/`. CI fails if `docs/` doesn't match the source.
 
+## Brand
+
+The logo is a bagel with a bite taken out at the upper right, next to the word "bagl" in custom outlined letters. The files and the rules for using them are in [brand/](brand/), and [brand/README.md](brand/README.md) has the details.
+
+### Logos
+
+<table>
+  <tr>
+    <td width="50%"><img src="brand/readme/logo-color.svg" alt="The horizontal logo, a Toast bagel and an Ink wordmark on Cream"></td>
+    <td width="50%"><img src="brand/readme/logo-cream.svg" alt="The horizontal logo in Cream on Ink"></td>
+  </tr>
+  <tr>
+    <td><a href="brand/bagl-logo.svg"><code>bagl-logo.svg</code></a>, for light backgrounds</td>
+    <td><a href="brand/bagl-logo-cream.svg"><code>bagl-logo-cream.svg</code></a>, for dark backgrounds</td>
+  </tr>
+  <tr>
+    <td><img src="brand/readme/logo-ink.svg" alt="The horizontal logo in Ink on Cream"></td>
+    <td><img src="brand/readme/wordmark.svg" alt="The wordmark alone, in Ink"></td>
+  </tr>
+  <tr>
+    <td><a href="brand/bagl-logo-ink.svg"><code>bagl-logo-ink.svg</code></a>, in one color</td>
+    <td><a href="brand/bagl-wordmark.svg"><code>bagl-wordmark.svg</code></a>, the word alone</td>
+  </tr>
+</table>
+
+<a href="brand/bagl-logo-ribbon.svg"><img src="brand/bagl-logo-ribbon.svg" alt="The Cream logo centered on an Ink band" width="100%"></a>
+
+`bagl-logo-ribbon.svg` puts the Cream logo on an Ink band, for banners and headers.
+
+### Symbols
+
+<table>
+  <tr>
+    <td width="25%"><img src="brand/readme/symbol-toast.svg" alt="The bagel symbol in Toast"></td>
+    <td width="25%"><img src="brand/readme/symbol-ink.svg" alt="The bagel symbol in Ink"></td>
+    <td width="25%"><img src="brand/readme/symbol-cream.svg" alt="The bagel symbol in Cream on Ink"></td>
+    <td width="25%"><img src="brand/readme/symbol-small.svg" alt="The seedless bagel symbol"></td>
+  </tr>
+  <tr>
+    <td><a href="brand/bagl-symbol.svg"><code>bagl-symbol.svg</code></a></td>
+    <td><a href="brand/bagl-symbol-ink.svg"><code>bagl-symbol-ink.svg</code></a></td>
+    <td><a href="brand/bagl-symbol-cream.svg"><code>bagl-symbol-cream.svg</code></a></td>
+    <td><a href="brand/bagl-symbol-small.svg"><code>bagl-symbol-small.svg</code></a>, for 16 to 24 px</td>
+  </tr>
+</table>
+
+### Colors
+
+<table>
+  <tr>
+    <td width="25%"><img src="brand/readme/color-ink.svg" alt="Ink, #282420"></td>
+    <td width="25%"><img src="brand/readme/color-toast.svg" alt="Toast, #D9793B"></td>
+    <td width="25%"><img src="brand/readme/color-cream.svg" alt="Cream, #FFF8ED"></td>
+    <td width="25%"><img src="brand/readme/color-crust.svg" alt="Crust, #8B4A2B"></td>
+  </tr>
+  <tr>
+    <td>Text, and dark backgrounds</td>
+    <td>Accents, as a fill with Ink text</td>
+    <td>Light backgrounds, and text on Ink</td>
+    <td>Secondary text and links on Cream</td>
+  </tr>
+</table>
+
+The interface uses Avenir Next for text and Menlo for code. [brand/tokens.css](brand/tokens.css) has the colors, type sizes, spacing and corner radius as CSS variables.
+
+### Rules
+
+- Leave clear space of at least a quarter of the symbol's width around the logo.
+- Don't show the symbol below 32 px or the horizontal logo below 140 px wide. Use the seedless symbol from 16 to 24 px.
+- Keep the bite at the upper right, and keep the proportions.
+- Use the Cream logo on dark surfaces.
+
+<details>
+<summary>The whole brand guide on one page</summary>
+
+![The Bagl brand guide, with the logo, its variants, the colors, the type and the button styles](brand/bagl-design-system.png)
+
+</details>
+
 ## License
 
 MIT. See [LICENSE](LICENSE). Third-party code in the website is listed in [site/THIRD_PARTY.md](site/THIRD_PARTY.md).
